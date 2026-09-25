@@ -226,11 +226,12 @@
         <div class="card-hd">Vælg år</div>
         <div class="card-bd">
           <select id="year-select"></select>
-          <p class="footnote" style="margin-top:12px">Se tickers og afkast for det valgte år.</p>
+          <p class="footnote" style="margin-top:12px">Afkast i parentes: Top-10 · Bund-10 · Jegadeesh-Titman · S&P 500. Se tickers i panelet til venstre.</p>
         </div>
       </div>
     </div>
 
+    <h2>Sharpe-ratio</h2>
     <div class="stats" id="sharpe-stats"></div>
 
     <h2>Alle år</h2>
@@ -506,7 +507,7 @@
     }
 
     const sel = document.getElementById("year-select");
-    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} / ${fmt(d.bottom10Pct)})</option>`).join("");
+    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`).join("");
     sel.value = "2024";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
 
