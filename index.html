@@ -376,25 +376,25 @@
           <th>År</th>
           <th class="num">Top-10</th>
           <th class="num">Bottom-10</th>
-          <th class="num">12-1</th>
+          <th class="num">Jegadeesh-Titman</th>
           <th class="num">S&P 500</th>
           <th class="num">Udv.år</th>
           <th>Periode</th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr><td colspan="7" class="footnote" style="padding-top:14px;border:none">
-          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · bottom-10 ${fmt(BOTTOM10_TOTAL,0)} · 12-1 ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · bottom-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
 
     const LEGEND_ITEMS = [
       { label: "Top-10", color: "var(--top)", width: 78 },
       { label: "Bottom-10", color: "var(--bottom)", width: 92 },
-      { label: "12-1", color: "var(--mom121)", width: 58 },
+      { label: "Jegadeesh-Titman", color: "var(--mom121)", width: 128 },
       { label: "S&P 500", color: "var(--spy)", width: 82 },
     ];
 
-    function chartLegend(W, m, offset = 330) {
+    function chartLegend(W, m, offset = 400) {
       const startX = W - m.r - offset;
       const items = LEGEND_ITEMS.map((item, i) => {
         const x = LEGEND_ITEMS.slice(0, i).reduce((sum, it) => sum + it.width, 0);
@@ -459,7 +459,7 @@
       const series = [
         { name: "Top-10", data: [100, ...DATA.map(d => d.top10Index)], color: "var(--top)" },
         { name: "Bottom-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
-        { name: "12-1", data: [100, ...DATA.map(d => d.mom12_1Index)], color: "var(--mom121)" },
+        { name: "Jegadeesh-Titman", data: [100, ...DATA.map(d => d.mom12_1Index)], color: "var(--mom121)" },
         { name: "S&P 500", data: [100, ...DATA.map(d => d.sp500Index)], color: "var(--spy)" },
       ];
       const W = 1040, H = 420;
@@ -483,7 +483,7 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
-          ${chartLegend(W, m, 360)}
+          ${chartLegend(W, m, 430)}
           <text x="${m.l}" y="40" font-size="11" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
@@ -500,7 +500,7 @@
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
           tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>
-            Top-10: ${fmt(row.top10Pct)}<br>Bottom-10: ${fmt(row.bottom10Pct)}<br>12-1: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
+            Top-10: ${fmt(row.top10Pct)}<br>Bottom-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
