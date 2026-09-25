@@ -30,8 +30,22 @@
       padding: 24px 16px 48px;
     }
     .wrap { max-width: 1100px; margin: 0 auto; }
-    h1 { font-size: 1.6rem; margin-bottom: 8px; }
-    .intro { color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; }
+    .hero { margin-bottom: 28px; }
+    h1 {
+      font-size: clamp(1.85rem, 4vw, 2.35rem);
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: #0f172a;
+      margin-bottom: 14px;
+    }
+    .intro {
+      color: #334155;
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 42rem;
+      margin-bottom: 0;
+    }
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -168,12 +182,16 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Momentum vs anti-momentum vs S&P 500</h1>
-    <p class="intro">
-      Top-10 og bottom-10 (ligevægtet): køb 1. januar baseret på forrige års afkast.
-      Kun aktier med fuldt års S&P 500-medlemskab. Justeret lukkepris (splits + udbytter).
-      2011–2025 + YTD 2026 pr. 23. september.
-    </p>
+    <header class="hero">
+      <h1>Momentum vs anti-momentum vs S&P 500</h1>
+      <p class="intro">
+        Top-10 og bottom-10 (ligevægtet): køb 1. januar baseret på forrige års afkast.
+        Kun aktier med fuldt års S&P 500-medlemskab.
+      </p>
+      <p class="intro" style="margin-top:10px">
+        Justeret lukkepris (splits + udbytter). 2011–2025 + YTD 2026 pr. 23. september.
+      </p>
+    </header>
 
     <div class="stats" id="summary-stats"></div>
 
