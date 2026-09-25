@@ -328,6 +328,24 @@
         </td></tr></tfoot>`;
     }
 
+    const LEGEND_ITEMS = [
+      { label: "Top-10 (ligevægtet)", color: "var(--top)", width: 138 },
+      { label: "Bottom-10 (ligevægtet)", color: "var(--bottom)", width: 172 },
+      { label: "S&P 500 (SPY)", color: "var(--spy)", width: 120 },
+    ];
+
+    function chartLegend(W, m, offset = 430) {
+      const startX = W - m.r - offset;
+      const items = LEGEND_ITEMS.map((item, i) => {
+        const x = LEGEND_ITEMS.slice(0, i).reduce((sum, it) => sum + it.width, 0);
+        return `<g transform="translate(${x}, 0)">
+          <rect x="0" y="2" width="10" height="10" fill="${item.color}" rx="2"></rect>
+          <text x="16" y="11" font-size="11" fill="var(--chart-label)">${item.label}</text>
+        </g>`;
+      }).join("");
+      return `<g transform="translate(${startX}, 22)">${items}</g>`;
+    }
+
     function renderAnnualChart() {
       const data = CHART_ROWS;
       const vals = data.flatMap(d => [d.top10Pct, d.bottom10Pct, d.sp500Pct]);
@@ -364,6 +382,8 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Årligt afkast">
+          ${chartLegend(W, m)}
+          <text x="16" y="${m.t + plotH / 2}" font-size="11" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
@@ -401,6 +421,8 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
+          ${chartLegend(W, m, 500)}
+          <text x="${m.l}" y="40" font-size="11" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}</text>`).join("")}
