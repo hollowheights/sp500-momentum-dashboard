@@ -37,11 +37,11 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       line-height: 1.15;
-      color: #0f172a;
+      color: var(--text);
       margin-bottom: 14px;
     }
     .intro {
-      color: #334155;
+      color: var(--text);
       font-size: 1rem;
       line-height: 1.65;
       max-width: 42rem;
@@ -59,8 +59,7 @@
       border-radius: 10px;
       padding: 14px 16px;
     }
-    .stat .val { font-size: 1.35rem; font-weight: 700; }
-    .stat .val.pos { color: var(--success); }
+    .stat .val { font-size: 1.35rem; font-weight: 700; color: var(--text); }
     .stat .label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
     .card {
       background: var(--surface);
@@ -102,10 +101,10 @@
     .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .pill {
       font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
-      background: rgba(78, 121, 167, 0.12); color: #3d6289;
+      background: rgba(78, 121, 167, 0.12); color: var(--text);
     }
-    .pill.warn { background: rgba(225, 87, 89, 0.12); color: #c44547; }
-    .pill.mom121 { background: rgba(89, 161, 79, 0.12); color: #3d7a36; }
+    .pill.warn { background: rgba(225, 87, 89, 0.12); color: var(--text); }
+    .pill.mom121 { background: rgba(89, 161, 79, 0.12); color: var(--text); }
     select {
       width: 100%; padding: 10px 12px; border-radius: 8px;
       background: var(--bg); border: 1px solid var(--border);
@@ -162,8 +161,7 @@
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
-    .portfolio-block-hd .ret.pos { color: var(--success); }
-    .portfolio-block-hd .ret.neg { color: var(--danger); }
+    .portfolio-block-hd .ret { color: var(--text); }
     .benchmark-row {
       margin-top: 12px;
       padding-top: 12px;
