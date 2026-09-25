@@ -193,8 +193,6 @@
       </p>
     </header>
 
-    <div class="stats" id="summary-stats"></div>
-
     <div class="card">
       <div class="card-hd">YTD 2026 · pr. 23. september</div>
       <div class="card-bd" id="ytd-panel"></div>
@@ -270,9 +268,7 @@
       isPartial: true, chartLabel: "23. sep.", periodLabel: "YTD 2026 pr. 23. september",
     };
     const CHART_ROWS = [...DATA, YTD_2026];
-    const TOP10_CAGR = 17.1, BOTTOM10_CAGR = 7.1, SP500_CAGR = 13.9;
     const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, SP500_TOTAL = 608.8;
-    const TOP10_WINS = DATA.filter(d => d.top10Pct > d.sp500Pct).length;
 
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
     const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
@@ -280,11 +276,6 @@
     let cumulative = false;
 
     function renderSummary() {
-      document.getElementById("summary-stats").innerHTML = `
-        <div class="stat"><div class="val pos">${fmt(TOP10_CAGR)}</div><div class="label">Top-10 CAGR</div></div>
-        <div class="stat"><div class="val">${fmt(BOTTOM10_CAGR)}</div><div class="label">Bottom-10 CAGR</div></div>
-        <div class="stat"><div class="val">${fmt(SP500_CAGR)}</div><div class="label">S&P 500 CAGR</div></div>
-        <div class="stat"><div class="val">${TOP10_WINS}/${DATA.length}</div><div class="label">Top-10 slår SPY</div></div>`;
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
           <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10 YTD</div></div>
