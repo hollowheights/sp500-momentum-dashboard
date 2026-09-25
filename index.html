@@ -6,16 +6,20 @@
   <title>Momentum vs anti-momentum vs S&P 500</title>
   <style>
     :root {
-      --bg: #0f1419;
-      --surface: #1a2332;
-      --border: #2d3a4d;
-      --text: #e8edf4;
-      --muted: #8b9cb3;
-      --top: #3b82f6;
-      --bottom: #f59e0b;
-      --spy: #94a3b8;
-      --success: #22c55e;
-      --danger: #ef4444;
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --border: #dde3ea;
+      --text: #1a2332;
+      --muted: #5c6b7f;
+      --top: #2563eb;
+      --bottom: #d97706;
+      --spy: #64748b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --chart-bg: #fafbfc;
+      --chart-grid: #e8edf2;
+      --chart-axis: #94a3b8;
+      --chart-label: #64748b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,9 +87,9 @@
     .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .pill {
       font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
-      background: rgba(59, 130, 246, 0.2); color: #93c5fd;
+      background: rgba(37, 99, 235, 0.1); color: #1d4ed8;
     }
-    .pill.warn { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    .pill.warn { background: rgba(217, 119, 6, 0.12); color: #b45309; }
     select {
       width: 100%; padding: 10px 12px; border-radius: 8px;
       background: var(--bg); border: 1px solid var(--border);
@@ -99,8 +103,9 @@
     tr.loss td:first-child { border-left: 3px solid var(--danger); }
     .tooltip {
       position: absolute; top: 8px; left: 0;
-      background: #243044; border: 1px solid var(--border);
+      background: var(--surface); border: 1px solid var(--border);
       border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
       pointer-events: none; display: none; min-width: 200px;
     }
     .tooltip.show { display: block; }
@@ -268,7 +273,7 @@
         const cx = m.l + groupW * i + groupW / 2;
         const bx = m.l + groupW * i + 2;
         const partial = row.isPartial;
-        const dash = partial ? 'stroke-dasharray="5 3" stroke="#8b9cb3" stroke-width="1.2"' : "";
+        const dash = partial ? 'stroke-dasharray="5 3" stroke="var(--chart-axis)" stroke-width="1.2"' : "";
         [[row.top10Pct, cx - barW - gap, "var(--top)"],
          [row.bottom10Pct, cx, "var(--bottom)"],
          [row.sp500Pct, cx + barW + gap, "var(--spy)"]].forEach(([v, x, col]) => {
@@ -278,17 +283,17 @@
           bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${col}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
         });
         bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
-        bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="#8b9cb3" font-size="11">${row.holdYear}</text>`;
-        if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="#6b7c93" font-size="10">${row.chartLabel}</text>`;
+        bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${row.holdYear}</text>`;
+        if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="10">${row.chartLabel}</text>`;
       });
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Årligt afkast">
-          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="#1a2332" rx="8" stroke="#2d3a4d"/>
-          ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'#8b9cb3':'#2d3a4d'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
-            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="#6b7c93" font-size="11">${t}%</text>`).join("")}
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
+          ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
+            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
           ${bars}
-          <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="#8b9cb3" font-size="11" font-weight="600">Kalenderår</text>
+          <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-weight="600">Kalenderår</text>
         </svg>`;
       bindTooltip(data);
     }
@@ -321,11 +326,11 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
-          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="#1a2332" rx="8" stroke="#2d3a4d"/>
-          ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="#2d3a4d" stroke-dasharray="4 4"/>
-            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="#6b7c93" font-size="11">${t}</text>`).join("")}
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
+          ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
+            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}</text>`).join("")}
           ${paths}
-          ${cats.map((l,i) => i%2===0||i===last?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="#8b9cb3" font-size="11">${l}</text>`:"").join("")}
+          ${cats.map((l,i) => i%2===0||i===last?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${l}</text>`:"").join("")}
         </svg>`;
       document.getElementById("tooltip").classList.remove("show");
     }
