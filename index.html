@@ -308,15 +308,11 @@
     function renderSummary() {
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
-          <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bund-10</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">Jegadeesh-Titman</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
-        </div>
-        <p class="footnote" style="margin-top:14px">Køb 1. jan 2026 · udvælgelsesår ${YTD_2026.selectionYear}</p>
-        <div class="pills">${pills(YTD_2026.top10Tickers)}</div>
-        <div class="pills">${pills(YTD_2026.bottom10Tickers, "warn")}</div>
-        <div class="pills">${pills(YTD_2026.mom12_1Tickers, "mom121")}</div>`;
+        </div>`;
     }
 
     function retClass(v) {
@@ -476,7 +472,7 @@
         const end = s.data[last];
         return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>
           <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>
-          <text x="${xScale(last)+8}" y="${yScale(end)+4}" fill="${s.color}" font-size="10" opacity="0.85">${Math.round(end)}%</text>`;
+          <text x="${xScale(last)+8}" y="${yScale(end)+4}" fill="var(--chart-label)" font-size="10">${Math.round(end)}%</text>`;
       }).join("");
 
       document.getElementById("chart").innerHTML = `
