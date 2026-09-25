@@ -193,6 +193,8 @@
       </p>
     </header>
 
+    <div class="stats" id="sharpe-stats"></div>
+
     <div class="card">
       <div class="card-hd">YTD 2026 · pr. 23. september</div>
       <div class="card-bd" id="ytd-panel"></div>
@@ -271,9 +273,33 @@
     const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, SP500_TOTAL = 608.8;
 
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
+    const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "—");
     const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
 
+    function sharpeRatio(pcts, rf = 0) {
+      const returns = pcts.map((p) => p / 100 - rf);
+      if (returns.length < 2) return NaN;
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((a, r) => a + (r - mean) ** 2, 0) / (returns.length - 1);
+      const std = Math.sqrt(variance);
+      return std === 0 ? NaN : mean / std;
+    }
+
+    const SHARPE = {
+      top10: sharpeRatio(DATA.map((d) => d.top10Pct)),
+      bottom10: sharpeRatio(DATA.map((d) => d.bottom10Pct)),
+      sp500: sharpeRatio(DATA.map((d) => d.sp500Pct)),
+    };
+
     let cumulative = false;
+
+    function renderSharpe() {
+      document.getElementById("sharpe-stats").innerHTML = `
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Sharpe · Top-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Sharpe · Bottom-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">Sharpe · S&P 500</div></div>
+        <p class="footnote" style="grid-column:1/-1;margin:0">Årlige afkast 2011–2025 · risikofri rente sat til 0%</p>`;
+    }
 
     function renderSummary() {
       document.getElementById("ytd-panel").innerHTML = `
@@ -469,6 +495,7 @@
       renderChart();
     });
 
+    renderSharpe();
     renderSummary();
     renderYearDetail(2024);
     renderTable();
