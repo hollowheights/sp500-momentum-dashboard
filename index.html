@@ -112,6 +112,48 @@
     h2 { font-size: 1.1rem; margin-bottom: 12px; }
     .ytd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     @media (max-width: 600px) { .ytd-grid { grid-template-columns: 1fr; } }
+    .year-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; }
+    .portfolio-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 700px) { .portfolio-split { grid-template-columns: 1fr; } }
+    .portfolio-block {
+      background: var(--chart-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .portfolio-block.top { border-top: 3px solid var(--top); }
+    .portfolio-block.bottom { border-top: 3px solid var(--bottom); }
+    .portfolio-block-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .portfolio-block-hd .name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .portfolio-block-hd .ret {
+      font-size: 1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .portfolio-block-hd .ret.pos { color: var(--success); }
+    .portfolio-block-hd .ret.neg { color: var(--danger); }
+    .benchmark-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .benchmark-row strong { color: var(--text); }
   </style>
 </head>
 <body>
@@ -221,14 +263,32 @@
         <div class="pills">${pills(YTD_2026.bottom10Tickers, "warn")}</div>`;
     }
 
+    function retClass(v) {
+      return v >= 0 ? "pos" : "neg";
+    }
+
     function renderYearDetail(year) {
       const y = DATA.find(d => d.holdYear === year) || DATA[DATA.length - 1];
       document.getElementById("year-card-title").textContent = `Portefølje ${y.holdYear}`;
       document.getElementById("year-detail").innerHTML = `
-        <p><strong>Top-10:</strong> ${fmt(y.top10Pct)} · <strong>Bottom-10:</strong> ${fmt(y.bottom10Pct)} · <strong>SPY:</strong> ${fmt(y.sp500Pct)}</p>
-        <p class="footnote">Udvælgelsesår ${y.selectionYear}</p>
-        <div class="pills">${pills(y.top10Tickers)}</div>
-        <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>`;
+        <p class="year-meta">Udvælgelsesår ${y.selectionYear} · 10 aktier à 10% vægt</p>
+        <div class="portfolio-split">
+          <div class="portfolio-block top">
+            <div class="portfolio-block-hd">
+              <span class="name">Top-10 momentum</span>
+              <span class="ret ${retClass(y.top10Pct)}">${fmt(y.top10Pct)}</span>
+            </div>
+            <div class="pills">${pills(y.top10Tickers)}</div>
+          </div>
+          <div class="portfolio-block bottom">
+            <div class="portfolio-block-hd">
+              <span class="name">Bottom-10 anti-momentum</span>
+              <span class="ret ${retClass(y.bottom10Pct)}">${fmt(y.bottom10Pct)}</span>
+            </div>
+            <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>
+          </div>
+        </div>
+        <p class="benchmark-row">Benchmark <strong>S&P 500 (SPY):</strong> ${fmt(y.sp500Pct)}</p>`;
     }
 
     function renderTable() {
