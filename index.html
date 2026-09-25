@@ -189,7 +189,7 @@
     <header class="hero">
       <h1>Momentum vs anti-momentum vs S&P 500</h1>
       <p class="intro">
-        Top-10, bottom-10 og Jegadeesh-Titman (ligevægtet): køb 1. januar. Kalenderår-momentum bruger hele forrige år;
+        Top-10, Bund-10 og Jegadeesh-Titman (ligevægtet): køb 1. januar. Kalenderår-momentum bruger hele forrige år;
         Jegadeesh-Titman bruger jan–nov (december udelades). Kun aktier med fuldt års S&P 500-medlemskab.
       </p>
       <p class="intro" style="margin-top:10px">
@@ -301,7 +301,7 @@
     function renderSharpe() {
       document.getElementById("sharpe-stats").innerHTML = `
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Sharpe · Top-10</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Sharpe · Bottom-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Sharpe · Bund-10</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Sharpe · Jegadeesh-Titman</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">Sharpe · S&P 500</div></div>
         <p class="footnote" style="grid-column:1/-1;margin:0">Årlige afkast 2011–2025 · risikofri rente sat til 0%</p>`;
@@ -311,7 +311,7 @@
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
           <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bottom-10</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bund-10</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">Jegadeesh-Titman</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
         </div>
@@ -340,7 +340,7 @@
           </div>
           <div class="portfolio-block bottom">
             <div class="portfolio-block-hd">
-              <span class="name">Bottom-10 anti-momentum</span>
+              <span class="name">Bund-10 anti-momentum</span>
               <span class="ret ${retClass(y.bottom10Pct)}">${fmt(y.bottom10Pct)}</span>
             </div>
             <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>
@@ -375,7 +375,7 @@
         <thead><tr>
           <th>År</th>
           <th class="num">Top-10</th>
-          <th class="num">Bottom-10</th>
+          <th class="num">Bund-10</th>
           <th class="num">Jegadeesh-Titman</th>
           <th class="num">S&P 500</th>
           <th class="num">Udv.år</th>
@@ -383,13 +383,13 @@
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr><td colspan="7" class="footnote" style="padding-top:14px;border:none">
-          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · bottom-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
 
     const LEGEND_ITEMS = [
       { label: "Top-10", color: "var(--top)", width: 78 },
-      { label: "Bottom-10", color: "var(--bottom)", width: 92 },
+      { label: "Bund-10", color: "var(--bottom)", width: 92 },
       { label: "Jegadeesh-Titman", color: "var(--mom121)", width: 128 },
       { label: "S&P 500", color: "var(--spy)", width: 82 },
     ];
@@ -458,7 +458,7 @@
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
       const series = [
         { name: "Top-10", data: [100, ...DATA.map(d => d.top10Index)], color: "var(--top)" },
-        { name: "Bottom-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
+        { name: "Bund-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
         { name: "Jegadeesh-Titman", data: [100, ...DATA.map(d => d.mom12_1Index)], color: "var(--mom121)" },
         { name: "S&P 500", data: [100, ...DATA.map(d => d.sp500Index)], color: "var(--spy)" },
       ];
@@ -500,7 +500,7 @@
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
           tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>
-            Top-10: ${fmt(row.top10Pct)}<br>Bottom-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
+            Top-10: ${fmt(row.top10Pct)}<br>Bund-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
