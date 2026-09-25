@@ -278,9 +278,9 @@
     function renderSummary() {
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
-          <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10 YTD</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bottom-10 YTD</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500 YTD</div></div>
+          <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bottom-10</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
         </div>
         <p class="footnote" style="margin-top:14px">Køb 1. jan 2026 · udvælgelsesår ${YTD_2026.selectionYear}</p>
         <div class="pills">${pills(YTD_2026.top10Tickers)}</div>
