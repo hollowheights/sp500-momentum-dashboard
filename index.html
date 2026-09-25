@@ -154,6 +154,16 @@
       color: var(--muted);
     }
     .benchmark-row strong { color: var(--text); }
+    .source-box {
+      margin-top: 8px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
@@ -209,6 +219,11 @@
         <table id="all-years"></table>
       </div>
     </div>
+
+    <p class="source-box">
+      Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter).
+      S&P 500-medlemskab er baseret på historiske indeksdata (fja05680/sp500).
+    </p>
   </div>
 
   <script>
