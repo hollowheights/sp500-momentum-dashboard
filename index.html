@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Momentum vs anti-momentum vs S&P 500</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4d;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --top: #3b82f6;
+      --bottom: #f59e0b;
+      --spy: #94a3b8;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px 48px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; }
+    .intro { color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .stat .val { font-size: 1.35rem; font-weight: 700; }
+    .stat .val.pos { color: var(--success); }
+    .stat .label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .card-bd { padding: 16px 18px 20px; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--muted); }
+    .toggle {
+      width: 44px; height: 24px; border-radius: 12px;
+      background: var(--border); border: none; cursor: pointer; position: relative;
+    }
+    .toggle.on { background: var(--top); }
+    .toggle::after {
+      content: ""; position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(20px); }
+    .chart-wrap { position: relative; }
+    svg { display: block; width: 100%; height: auto; }
+    .footnote { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .pill {
+      font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
+      background: rgba(59, 130, 246, 0.2); color: #93c5fd;
+    }
+    .pill.warn { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    select {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.95rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.win td:first-child { border-left: 3px solid var(--success); }
+    tr.loss td:first-child { border-left: 3px solid var(--danger); }
+    .tooltip {
+      position: absolute; top: 8px; left: 0;
+      background: #243044; border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+      pointer-events: none; display: none; min-width: 200px;
+    }
+    .tooltip.show { display: block; }
+    h2 { font-size: 1.1rem; margin-bottom: 12px; }
+    .ytd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 600px) { .ytd-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Momentum vs anti-momentum vs S&P 500</h1>
+    <p class="intro">
+      Top-10 og bottom-10 (ligevægtet): køb 1. januar baseret på forrige års afkast.
+      Kun aktier med fuldt års S&P 500-medlemskab. Justeret lukkepris (splits + udbytter).
+      2011–2025 + YTD 2026 pr. 23. september.
+    </p>
+
+    <div class="stats" id="summary-stats"></div>
+
+    <div class="card">
+      <div class="card-hd">YTD 2026 · pr. 23. september</div>
+      <div class="card-bd" id="ytd-panel"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <span>Momentum VS anti-momentum VS S&P500</span>
+        <div class="toggle-row">
+          <span>Akkumuleret</span>
+          <button class="toggle" id="mode-toggle" type="button" aria-label="Skift visning"></button>
+        </div>
+      </div>
+      <div class="card-bd">
+        <div class="chart-wrap">
+          <div class="tooltip" id="tooltip"></div>
+          <div id="chart"></div>
+        </div>
+        <p class="footnote">2026-data til og med 23. september · Kun aktier der indgår i S&P 500 hele året.</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hd" id="year-card-title">Portefølje</div>
+        <div class="card-bd" id="year-detail"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd">Vælg år</div>
+        <div class="card-bd">
+          <select id="year-select"></select>
+          <p class="footnote" style="margin-top:12px">Se tickers og afkast for det valgte år.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>Alle år</h2>
+    <div class="card">
+      <div class="card-bd" style="overflow-x:auto">
+        <table id="all-years"></table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA = [
+      { holdYear: 2011, selectionYear: 2010, top10Tickers: ["GR","CMI","WYNN","AIG","HBAN","ZION","AKAM","BKNG","CRM","VIAV"], bottom10Tickers: ["ADBE","NVDA","HPQ","V","WDC","MU","PHM","HRB","CPWR","EP"], top10Pct: -24.16, bottom10Pct: -12.37, sp500Pct: 1.89, top10Index: 75.8, bottom10Index: 87.6, sp500Index: 101.9 },
+      { holdYear: 2012, selectionYear: 2011, top10Tickers: ["ISRG","MA","BIIB","HUM","OKE","ROST","VFC","FAST","TJX","V"], bottom10Tickers: ["WHR","GS","GNW","DXC","AIG","BAC","NFLX","GR","FSLR","CPWR"], top10Pct: 18.16, bottom10Pct: 82.54, sp500Pct: 15.99, top10Index: 89.6, bottom10Index: 160.0, sp500Index: 118.2 },
+      { holdYear: 2013, selectionYear: 2012, top10Tickers: ["PHM","WHR","EXPE","BAC","LEN","MPC","GILD","EMN","SHW","DXC"], bottom10Tickers: ["NEM","HUM","WU","EXC","ATI","CLF","PBI","HPQ","BBY","AMD"], top10Pct: 35.81, bottom10Pct: 55.94, sp500Pct: 32.31, top10Index: 121.7, bottom10Index: 249.4, sp500Index: 156.4 },
+      { holdYear: 2014, selectionYear: 2013, top10Tickers: ["NFLX","BBY","MU","PBI","BSX","GNW","GILD","GME","LNC","HPQ"], bottom10Tickers: ["VTR","JBL","WELL","MOS","FE","ISRG","TDC","EW","CLF","NEM"], top10Pct: 8.2, bottom10Pct: 16.75, sp500Pct: 13.46, top10Index: 131.7, bottom10Index: 291.2, sp500Index: 177.4 },
+      { holdYear: 2015, selectionYear: 2014, top10Tickers: ["LUV","EW","DAL","KR","MU","MAR","VRTX","MNST","KDP","ORLY"], bottom10Tickers: ["FMC","OI","APA","GME","TPR","MAT","FCX","RRC","GNW","RIG"], top10Pct: 9.78, bottom10Pct: -33.19, sp500Pct: 1.23, top10Index: 144.6, bottom10Index: 194.6, sp500Index: 179.6 },
+      { holdYear: 2016, selectionYear: 2015, top10Tickers: ["NFLX","AMZN","NVDA","HRL","VRSN","SBUX","FSLR","VLO","EXPE","GOOGL"], bottom10Tickers: ["OKE","WYNN","RRC","MUR","NRG","MU","KMI","FOSL","FCX","CNX"], top10Pct: 15.96, bottom10Pct: 56.4, sp500Pct: 12.0, top10Index: 167.6, bottom10Index: 304.3, sp500Index: 201.1 },
+      { holdYear: 2017, selectionYear: 2016, top10Tickers: ["NVDA","OKE","FCX","NEM","AMAT","DHR","PWR","MLM","HAL","CMI"], bottom10Tickers: ["GILD","UAA","MCK","HRB","REGN","ILMN","VRTX","PRGO","TRIP","FSLR"], top10Pct: 25.17, bottom10Pct: 24.96, sp500Pct: 21.71, top10Index: 209.8, bottom10Index: 380.3, sp500Index: 244.8 },
+      { holdYear: 2018, selectionYear: 2017, top10Tickers: ["NRG","VRTX","WYNN","BA","DHI","MU","PYPL","PHM","NVDA","CNC"], bottom10Tickers: ["BHGE","NWL","APA","SIG","AAP","MAT","GE","UA","RRC","UAA"], top10Pct: -5.57, bottom10Pct: -17.85, sp500Pct: -4.57, top10Index: 198.1, bottom10Index: 312.4, sp500Index: 233.6 },
+      { holdYear: 2019, selectionYear: 2018, top10Tickers: ["AMD","AAP","TRIP","CMG","HCA","ORLY","BSX","LLY","MRK","NRG"], bottom10Tickers: ["UNM","PCG","BHF","WDC","IVZ","AMG","PRGO","GE","MHK","COTY"], top10Pct: 32.21, bottom10Pct: 24.27, sp500Pct: 31.22, top10Index: 262.0, bottom10Index: 388.2, sp500Index: 306.6 },
+      { holdYear: 2020, selectionYear: 2019, top10Tickers: ["AMD","LRCX","KLAC","TGT","CMG","IR","XRX","QRVO","CPRT","AMAT"], bottom10Tickers: ["BEN","AAL","FFIV","TPR","KSS","KHC","MOS","DXC","OXY","M"], top10Pct: 43.51, bottom10Pct: -11.42, sp500Pct: 18.33, top10Index: 375.9, bottom10Index: 343.9, sp500Index: 362.8 },
+      { holdYear: 2021, selectionYear: 2020, top10Tickers: ["NVDA","PYPL","ALB","AMD","FCX","CDNS","NOW","ALGN","IDXX","SNPS"], bottom10Tickers: ["APA","SLB","AAL","NOV","FANG","UAL","FTI","NCLH","OXY","CCL"], top10Pct: 43.54, bottom10Pct: 29.89, sp500Pct: 28.73, top10Index: 539.6, bottom10Index: 446.6, sp500Index: 467.0 },
+      { holdYear: 2022, selectionYear: 2021, top10Tickers: ["DVN","FTNT","F","FANG","NVDA","NUE","IT","EXR","ANET","SPG"], bottom10Tickers: ["NCLH","PYPL","TFX","FIS","IPGP","WYNN","VTRS","MKTX","LVS","GPN"], top10Pct: -9.06, bottom10Pct: -25.53, sp500Pct: -18.18, top10Index: 490.7, bottom10Index: 332.6, sp500Index: 382.1 },
+      { holdYear: 2023, selectionYear: 2022, top10Tickers: ["OXY","XOM","MPC","SLB","APA","VLO","HAL","COP","CVX","EOG"], bottom10Tickers: ["CZR","ZBRA","SWK","CCL","VFC","PYPL","TSLA","ALGN","MTCH","GNRC"], top10Pct: -1.62, bottom10Pct: 29.06, sp500Pct: 26.18, top10Index: 482.8, bottom10Index: 429.3, sp500Index: 482.1 },
+      { holdYear: 2024, selectionYear: 2023, top10Tickers: ["NVDA","META","RCL","CCL","PHM","AMD","AVGO","TSLA","CRM","GE"], bottom10Tickers: ["ETSY","ALB","PAYC","EL","PFE","DG","MRNA","FMC","ENPH","PARA"], top10Pct: 60.45, bottom10Pct: -39.15, sp500Pct: 24.89, top10Index: 774.6, bottom10Index: 261.2, sp500Index: 602.1 },
+      { holdYear: 2025, selectionYear: 2024, top10Tickers: ["NVDA","UAL","AXON","AVGO","TRGP","HWM","CEG","ANET","NFLX","TPR"], bottom10Tickers: ["BIIB","DG","HUM","DLTR","EL","ENPH","CE","MRNA","INTC","PARA"], top10Pct: 37.51, bottom10Pct: 7.39, sp500Pct: 17.72, top10Index: 1065.2, bottom10Index: 280.5, sp500Index: 708.8 },
+    ];
+    const YTD_2026 = {
+      holdYear: 2026, selectionYear: 2025,
+      top10Tickers: ["WDC","MU","STX","NEM","WBD","LRCX","PLTR","GEV","TPR","APH"],
+      bottom10Tickers: ["GDDY","DOW","CMG","FDS","CHTR","MOH","LULU","ARE","IT","DECK"],
+      top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 1.24,
+      isPartial: true, chartLabel: "23. sep.", periodLabel: "YTD 2026 pr. 23. september",
+    };
+    const CHART_ROWS = [...DATA, YTD_2026];
+    const TOP10_CAGR = 17.1, BOTTOM10_CAGR = 7.1, SP500_CAGR = 13.9;
+    const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, SP500_TOTAL = 608.8;
+    const TOP10_WINS = DATA.filter(d => d.top10Pct > d.sp500Pct).length;
+
+    const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
+    const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
+
+    let cumulative = false;
+
+    function renderSummary() {
+      document.getElementById("summary-stats").innerHTML = `
+        <div class="stat"><div class="val pos">${fmt(TOP10_CAGR)}</div><div class="label">Top-10 CAGR</div></div>
+        <div class="stat"><div class="val">${fmt(BOTTOM10_CAGR)}</div><div class="label">Bottom-10 CAGR</div></div>
+        <div class="stat"><div class="val">${fmt(SP500_CAGR)}</div><div class="label">S&P 500 CAGR</div></div>
+        <div class="stat"><div class="val">${TOP10_WINS}/${DATA.length}</div><div class="label">Top-10 slår SPY</div></div>`;
+      document.getElementById("ytd-panel").innerHTML = `
+        <div class="ytd-grid">
+          <div class="stat"><div class="val pos">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10 YTD</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bottom-10 YTD</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500 YTD</div></div>
+        </div>
+        <p class="footnote" style="margin-top:14px">Køb 1. jan 2026 · udvælgelsesår ${YTD_2026.selectionYear}</p>
+        <div class="pills">${pills(YTD_2026.top10Tickers)}</div>
+        <div class="pills">${pills(YTD_2026.bottom10Tickers, "warn")}</div>`;
+    }
+
+    function renderYearDetail(year) {
+      const y = DATA.find(d => d.holdYear === year) || DATA[DATA.length - 1];
+      document.getElementById("year-card-title").textContent = `Portefølje ${y.holdYear}`;
+      document.getElementById("year-detail").innerHTML = `
+        <p><strong>Top-10:</strong> ${fmt(y.top10Pct)} · <strong>Bottom-10:</strong> ${fmt(y.bottom10Pct)} · <strong>SPY:</strong> ${fmt(y.sp500Pct)}</p>
+        <p class="footnote">Udvælgelsesår ${y.selectionYear}</p>
+        <div class="pills">${pills(y.top10Tickers)}</div>
+        <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>`;
+    }
+
+    function renderTable() {
+      const rows = [...DATA, YTD_2026].map(d => {
+        const win = d.top10Pct > d.sp500Pct;
+        const loss = d.top10Pct < d.sp500Pct;
+        const cls = win ? "win" : loss ? "loss" : "";
+        return `<tr class="${cls}">
+          <td>${d.isPartial ? "2026" : d.holdYear}</td>
+          <td class="num">${fmt(d.top10Pct)}</td>
+          <td class="num">${fmt(d.bottom10Pct)}</td>
+          <td class="num">${fmt(d.sp500Pct)}</td>
+          <td class="num">${d.selectionYear}</td>
+          <td class="num">${d.isPartial ? "YTD 23. sep." : "Fuldt år"}</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("all-years").innerHTML = `
+        <thead><tr><th>År</th><th>Top-10</th><th>Bottom-10</th><th>S&P 500</th><th>Udv.år</th><th>Type</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td colspan="6" class="footnote" style="padding-top:14px;border:none">
+          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · bottom-10 ${fmt(BOTTOM10_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+        </td></tr></tfoot>`;
+    }
+
+    function renderAnnualChart() {
+      const data = CHART_ROWS;
+      const vals = data.flatMap(d => [d.top10Pct, d.bottom10Pct, d.sp500Pct]);
+      const yMin = Math.floor(Math.min(...vals) - 5);
+      const yMax = Math.ceil(Math.max(...vals) + 5);
+      const W = 1040, H = 480;
+      const m = { t: 58, r: 24, b: 56, l: 64 };
+      const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+      const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+      const zeroY = yScale(0);
+      const groupW = plotW / data.length;
+      const barW = Math.min(13, groupW * 0.18);
+      const gap = 3;
+      const ticks = [-40,-20,0,20,40,60,80,100].filter(t => t >= yMin && t <= yMax);
+
+      let bars = "";
+      data.forEach((row, i) => {
+        const cx = m.l + groupW * i + groupW / 2;
+        const bx = m.l + groupW * i + 2;
+        const partial = row.isPartial;
+        const dash = partial ? 'stroke-dasharray="5 3" stroke="#8b9cb3" stroke-width="1.2"' : "";
+        [[row.top10Pct, cx - barW - gap, "var(--top)"],
+         [row.bottom10Pct, cx, "var(--bottom)"],
+         [row.sp500Pct, cx + barW + gap, "var(--spy)"]].forEach(([v, x, col]) => {
+          const tip = yScale(v);
+          const y = v >= 0 ? tip : zeroY;
+          const h = Math.max(2, Math.abs(zeroY - tip));
+          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${col}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
+        });
+        bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
+        bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="#8b9cb3" font-size="11">${row.holdYear}</text>`;
+        if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="#6b7c93" font-size="10">${row.chartLabel}</text>`;
+      });
+
+      document.getElementById("chart").innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Årligt afkast">
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="#1a2332" rx="8" stroke="#2d3a4d"/>
+          ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'#8b9cb3':'#2d3a4d'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
+            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="#6b7c93" font-size="11">${t}%</text>`).join("")}
+          ${bars}
+          <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="#8b9cb3" font-size="11" font-weight="600">Kalenderår</text>
+        </svg>`;
+      bindTooltip(data);
+    }
+
+    function renderCumulativeChart() {
+      const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
+      const series = [
+        { name: "Top-10", data: [100, ...DATA.map(d => d.top10Index)], color: "var(--top)" },
+        { name: "Bottom-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
+        { name: "S&P 500", data: [100, ...DATA.map(d => d.sp500Index)], color: "var(--spy)" },
+      ];
+      const W = 1040, H = 420;
+      const m = { t: 58, r: 58, b: 48, l: 64 };
+      const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+      const last = cats.length - 1;
+      const all = series.flatMap(s => s.data);
+      const yMin = Math.min(100, ...all) * 0.92;
+      const yMax = Math.max(...all) * 1.06;
+      const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+      const xScale = i => m.l + (i / last) * plotW;
+      const yTicks = [100,200,400,600,800,1000].filter(t => t >= yMin && t <= yMax);
+
+      const paths = series.map(s => {
+        const d = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
+        const end = s.data[last];
+        return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>
+          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>
+          <text x="${xScale(last)+8}" y="${yScale(end)+4}" fill="${s.color}" font-size="10" opacity="0.85">${Math.round(end)}%</text>`;
+      }).join("");
+
+      document.getElementById("chart").innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="#1a2332" rx="8" stroke="#2d3a4d"/>
+          ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="#2d3a4d" stroke-dasharray="4 4"/>
+            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="#6b7c93" font-size="11">${t}</text>`).join("")}
+          ${paths}
+          ${cats.map((l,i) => i%2===0||i===last?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="#8b9cb3" font-size="11">${l}</text>`:"").join("")}
+        </svg>`;
+      document.getElementById("tooltip").classList.remove("show");
+    }
+
+    function bindTooltip(data) {
+      const tip = document.getElementById("tooltip");
+      document.querySelectorAll(".band, .bar").forEach(el => {
+        el.addEventListener("mouseenter", () => {
+          const row = data[+el.dataset.i];
+          tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>
+            Top-10: ${fmt(row.top10Pct)}<br>Bottom-10: ${fmt(row.bottom10Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
+          tip.classList.add("show");
+        });
+        el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+      });
+    }
+
+    function renderChart() {
+      cumulative ? renderCumulativeChart() : renderAnnualChart();
+    }
+
+    const sel = document.getElementById("year-select");
+    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} / ${fmt(d.bottom10Pct)})</option>`).join("");
+    sel.value = "2024";
+    sel.addEventListener("change", () => renderYearDetail(+sel.value));
+
+    document.getElementById("mode-toggle").addEventListener("click", (e) => {
+      cumulative = !cumulative;
+      e.target.classList.toggle("on", cumulative);
+      renderChart();
+    });
+
+    renderSummary();
+    renderYearDetail(2024);
+    renderTable();
+    renderChart();
+  </script>
+</body>
+</html>
