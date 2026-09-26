@@ -831,7 +831,8 @@
       top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 1.24, mom12_1Pct: 102.49, mom12_1Tickers: ["WDC", "STX", "MU", "NEM", "WBD", "PLTR", "LRCX", "APH", "INTC", "NRG"], top3Pct: 229.11, top3Tickers: ["WDC", "MU", "STX"],
       isPartial: true, chartLabel: "23. sep.", periodLabel: "YTD 2026 pr. 23. september",
     };
-    const CHART_ROWS = [...DATA, YTD_2026];
+    const YEAR_ROWS = [...DATA, YTD_2026];
+    const CHART_ROWS = YEAR_ROWS;
     const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, TOP3_TOTAL = 3457.9, SP500_TOTAL = 608.8;
 
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
@@ -883,10 +884,10 @@
     }
 
     function renderYearDetail(year) {
-      const y = DATA.find(d => d.holdYear === year) || DATA[DATA.length - 1];
-      document.getElementById("year-card-title").textContent = `Portefølje ${y.holdYear}`;
+      const y = YEAR_ROWS.find(d => d.holdYear === year) || YEAR_ROWS[YEAR_ROWS.length - 1];
+      document.getElementById("year-card-title").textContent = y.isPartial ? `Portefølje ${y.holdYear} · YTD` : `Portefølje ${y.holdYear}`;
       document.getElementById("year-detail").innerHTML = `
-        <p class="year-meta">Udvælgelsesår ${y.selectionYear}</p>
+        <p class="year-meta">${y.isPartial ? y.periodLabel : `Udvælgelsesår ${y.selectionYear}`}</p>
         <div class="portfolio-split">
           <div class="portfolio-block top">
             <div class="portfolio-block-hd">
