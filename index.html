@@ -106,40 +106,34 @@
       transition: transform 0.2s;
     }
     .toggle.on::after { transform: translateX(20px); }
-    .chart-wrap {
-      position: relative;
+    .chart-wrap { position: relative; }
+    svg { display: block; width: 100%; height: auto; }
+    .card-hd-toggles {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .chart-zoom-toggle { display: none; }
+    .chart-wrap.is-zoomed {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      margin: 0 -6px;
-      padding: 0 6px 4px;
     }
-    svg { display: block; height: auto; }
-    .chart-wrap svg { width: auto; max-width: none; }
-    .chart-scroll-hint {
+    .chart-wrap.is-zoomed svg {
+      width: auto;
+      max-width: none;
+    }
+    .chart-zoom-hint {
       display: none;
       font-size: 0.8rem;
       color: var(--muted);
       margin: 0 0 10px;
     }
     @media (max-width: 639px) {
-      .chart-scroll-hint { display: block; }
-      body { padding-left: 6px; padding-right: 6px; }
-      .card-bd--chart {
-        padding-left: 8px;
-        padding-right: 8px;
-      }
-      .card-bd--chart .chart-wrap {
-        margin-left: -8px;
-        margin-right: -8px;
-        padding-left: 0;
-        padding-right: 0;
-      }
-      .card-bd--chart .chart-legend,
-      .card-bd--chart .chart-scroll-hint,
-      .card-bd--chart .footnote {
-        padding-left: 2px;
-        padding-right: 2px;
-      }
+      .chart-zoom-toggle { display: flex; }
+      .card-hd { flex-wrap: wrap; gap: 10px; }
+      .chart-zoom-hint.is-visible { display: block; }
     }
     .footnote { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
     .grid2 {
@@ -294,15 +288,21 @@
     <div class="card">
       <div class="card-hd">
         <span>Porteføljernes afkast</span>
-        <div class="toggle-row">
-          <span>Akkumuleret</span>
-          <button class="toggle" id="mode-toggle" type="button" aria-label="Skift visning"></button>
+        <div class="card-hd-toggles">
+          <div class="toggle-row chart-zoom-toggle">
+            <span>Zoom</span>
+            <button class="toggle" id="chart-zoom-toggle" type="button" aria-label="Zoom graf"></button>
+          </div>
+          <div class="toggle-row">
+            <span>Akkumuleret</span>
+            <button class="toggle" id="mode-toggle" type="button" aria-label="Skift visning"></button>
+          </div>
         </div>
       </div>
-      <div class="card-bd card-bd--chart">
+      <div class="card-bd">
         <div class="chart-legend" id="chart-legend"></div>
-        <p class="chart-scroll-hint">Swipe for at se alle år</p>
-        <div class="chart-wrap">
+        <p class="chart-zoom-hint" id="chart-zoom-hint">Swipe for at se hele grafen</p>
+        <div class="chart-wrap" id="chart-wrap">
           <div class="tooltip" id="tooltip"></div>
           <div id="chart"></div>
         </div>
@@ -326,7 +326,7 @@
 
     <h2>Momentum og næste års afkast</h2>
     <div class="card">
-      <div class="card-bd card-bd--chart">
+      <div class="card-bd">
         <div class="scatter-filters" id="scatter-filters"></div>
         <div class="chart-wrap">
           <div class="tooltip" id="scatter-tooltip"></div>
@@ -1011,30 +1011,41 @@
     }
 
     const MOBILE_CHART_BREAKPOINT = 640;
+    let chartZoomed = false;
 
     function isMobileChart() {
       return window.innerWidth < MOBILE_CHART_BREAKPOINT;
     }
 
-    function getChartLayout(pointCount, base = { w: 1040, h: 440, font: 11, r: 24 }) {
-      if (!isMobileChart()) {
-        return { W: base.w, H: base.h, font: base.font, mobile: false, r: base.r };
-      }
+    function chartZoomActive() {
+      return chartZoomed && isMobileChart();
+    }
+
+    function getZoomedLayout(pointCount, base) {
       return {
         W: Math.max(base.w, pointCount * 72),
         H: base.h + 80,
         font: 13,
-        mobile: true,
-        r: base.r,
+        ml: 48,
+        mr: base.r === 72 ? 56 : 16,
       };
     }
 
-    function chartSvgTag(W, H, label) {
-      return `<svg viewBox="0 0 ${W} ${H}" style="min-width:${W}px;width:${W}px;height:auto;display:block" role="img" aria-label="${label}">`;
+    function chartSvgOpen(W, H, label, zoomed) {
+      const style = zoomed ? ` style="min-width:${W}px;width:${W}px;height:auto;display:block"` : "";
+      return `<svg viewBox="0 0 ${W} ${H}"${style} role="img" aria-label="${label}">`;
     }
 
-    function showYearLabel(i, total) {
-      return !isMobileChart() || i % 2 === 0 || i === total - 1;
+    function showZoomedYearLabel(i, total) {
+      return i % 2 === 0 || i === total - 1;
+    }
+
+    function updateChartZoomUi() {
+      const active = chartZoomActive();
+      document.getElementById("chart-wrap").classList.toggle("is-zoomed", active);
+      document.getElementById("chart-zoom-hint").classList.toggle("is-visible", active);
+      const btn = document.getElementById("chart-zoom-toggle");
+      if (btn) btn.classList.toggle("on", chartZoomed);
     }
 
     function renderChartLegend() {
@@ -1063,15 +1074,17 @@
       const vals = data.flatMap(d => active.map(s => d[s.pctKey]));
       const yMin = Math.floor(Math.min(...vals, 0) - 5);
       const yMax = Math.ceil(Math.max(...vals, 0) + 5);
-      const { W, H, font } = getChartLayout(data.length, { w: 1040, h: 440, font: 11, r: 24 });
-      const mobile = isMobileChart();
-      const m = { t: 24, r: mobile ? 16 : 24, b: 56, l: mobile ? 46 : 64 };
+      const zoomed = chartZoomActive();
+      const base = { w: 1040, h: 440, r: 24 };
+      const layout = zoomed ? getZoomedLayout(data.length, base) : { W: 1040, H: 440, font: 11, ml: 64, mr: 24 };
+      const { W, H, font, ml, mr } = layout;
+      const m = { t: 24, r: mr, b: 56, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
       const gap = 2;
-      const barW = Math.min(14, Math.max(6, (groupW * 0.85 - gap * (active.length - 1)) / active.length));
+      const barW = Math.min(zoomed ? 14 : 12, Math.max(zoomed ? 6 : 5, (groupW * 0.85 - gap * (active.length - 1)) / active.length));
       const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
@@ -1090,14 +1103,14 @@
           bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${s.color}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
         });
         bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
-        if (showYearLabel(i, data.length)) {
+        if (!zoomed || showZoomedYearLabel(i, data.length)) {
           bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${row.holdYear}</text>`;
         }
         if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${row.chartLabel}</text>`;
       });
 
       document.getElementById("chart").innerHTML = `
-        ${chartSvgTag(W, H, "Årligt afkast")}
+        ${chartSvgOpen(W, H, "Årligt afkast", zoomed)}
           <text x="16" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
@@ -1130,8 +1143,11 @@
         ...s,
         data: [100, ...DATA.map(d => d[s.indexKey])],
       }));
-      const { W, H, font } = getChartLayout(cats.length, { w: 1040, h: 420, font: 11, r: 72 });
-      const m = { t: 24, r: 72, b: 48, l: 64 };
+      const zoomed = chartZoomActive();
+      const base = { w: 1040, h: 420, r: 72 };
+      const layout = zoomed ? getZoomedLayout(cats.length, base) : { W: 1040, H: 420, font: 11, ml: 64, mr: 72 };
+      const { W, H, font, ml, mr } = layout;
+      const m = { t: 24, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const last = cats.length - 1;
       const all = series.flatMap(s => s.data);
@@ -1160,14 +1176,14 @@
       ).join("");
 
       document.getElementById("chart").innerHTML = `
-        ${chartSvgTag(W, H, "Akkumuleret afkast")}
+        ${chartSvgOpen(W, H, "Akkumuleret afkast", zoomed)}
           <text x="${m.l}" y="14" font-size="${font}" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}</text>`).join("")}
           ${paths}
           ${endLabelSvg}
-          ${cats.map((l,i) => showYearLabel(i, cats.length)?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
+          ${cats.map((l,i) => (!zoomed && (i%2===0||i===last)) || (zoomed && showZoomedYearLabel(i, cats.length))?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
         </svg>`;
       document.getElementById("tooltip").classList.remove("show");
     }
@@ -1187,6 +1203,7 @@
 
     function renderChart() {
       cumulative ? renderCumulativeChart() : renderAnnualChart();
+      updateChartZoomUi();
     }
 
     const SCATTER_PORTFOLIOS = [
@@ -1254,10 +1271,7 @@
       const xMax = Math.ceil(Math.max(...xs, 0) + 10);
       const yMin = Math.floor(Math.min(...ys, 0) - 10);
       const yMax = Math.ceil(Math.max(...ys, 0) + 10);
-      const mobile = isMobileChart();
-      const W = mobile ? 900 : 1040;
-      const H = mobile ? 560 : 480;
-      const font = mobile ? 13 : 11;
+      const W = 1040, H = 480;
       const m = { t: 40, r: 24, b: 56, l: 64 };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const xScale = v => m.l + ((v - xMin) / (xMax - xMin)) * plotW;
@@ -1273,7 +1287,7 @@
         const y1 = reg.a + reg.b * xMin;
         const y2 = reg.a + reg.b * xMax;
         regressionLine = `<line x1="${xScale(xMin)}" y1="${yScale(y1)}" x2="${xScale(xMax)}" y2="${yScale(y2)}" stroke="var(--text)" stroke-width="2" stroke-dasharray="7 5" opacity="0.55"/>`;
-        regressionLabel = `<text x="${W - m.r - 8}" y="${m.t + 16}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">R² = ${reg.r2.toFixed(2)}</text>`;
+        regressionLabel = `<text x="${W - m.r - 8}" y="${m.t + 16}" text-anchor="end" fill="var(--chart-label)" font-size="11">R² = ${reg.r2.toFixed(2)}</text>`;
       }
 
       const dots = pts.map((p, i) =>
@@ -1281,19 +1295,19 @@
       ).join("");
 
       document.getElementById("scatter-chart").innerHTML = `
-        ${chartSvgTag(W, H, "Scatterplot momentum")}
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scatterplot momentum">
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           <line x1="${zeroX}" x2="${zeroX}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
           <line x1="${m.l}" x2="${W - m.r}" y1="${zeroY}" y2="${zeroY}" stroke="var(--chart-axis)" stroke-width="1.5"/>
           ${xTicks.map(t => `<line x1="${xScale(t)}" x2="${xScale(t)}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-            <text x="${xScale(t)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
+            <text x="${xScale(t)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-            <text x="${m.l - 12}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
+            <text x="${m.l - 12}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
           ${regressionLine}
           ${regressionLabel}
           ${dots}
-          <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">Afkast i udvælgelsesåret (%)</text>
-          <text x="16" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Afkast i holdåret (%)</text>
+          <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-weight="600">Afkast i udvælgelsesåret (%)</text>
+          <text x="16" y="${m.t + plotH / 2}" font-size="11" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Afkast i holdåret (%)</text>
         </svg>`;
 
       const tip = document.getElementById("scatter-tooltip");
@@ -1323,13 +1337,18 @@
       renderChart();
     });
 
-    let chartResizeTimer;
+    document.getElementById("chart-zoom-toggle").addEventListener("click", (e) => {
+      chartZoomed = !chartZoomed;
+      e.target.classList.toggle("on", chartZoomed);
+      renderChart();
+    });
+
     window.addEventListener("resize", () => {
-      clearTimeout(chartResizeTimer);
-      chartResizeTimer = setTimeout(() => {
-        renderChart();
-        renderScatterChart();
-      }, 150);
+      if (!isMobileChart() && chartZoomed) {
+        chartZoomed = false;
+        document.getElementById("chart-zoom-toggle").classList.remove("on");
+      }
+      renderChart();
     });
 
     renderSharpe();
