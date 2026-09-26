@@ -1006,8 +1006,8 @@
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
-      const barW = Math.min(10, groupW * 0.12 / Math.max(active.length, 1));
       const gap = 2;
+      const barW = Math.min(12, Math.max(5, (groupW * 0.85 - gap * (active.length - 1)) / active.length));
       const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
