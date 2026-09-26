@@ -1042,6 +1042,21 @@
       bindTooltip(data, active);
     }
 
+    function layoutEndLabels(labels, minGap, top, bottom) {
+      const sorted = [...labels].sort((a, b) => a.y - b.y);
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
+      }
+      const overflow = sorted[sorted.length - 1].y - bottom;
+      if (overflow > 0) sorted.forEach(l => { l.y -= overflow; });
+      for (let i = sorted.length - 2; i >= 0; i--) {
+        if (sorted[i + 1].y - sorted[i].y < minGap) sorted[i].y = sorted[i + 1].y - minGap;
+      }
+      const underflow = top - sorted[0].y;
+      if (underflow > 0) sorted.forEach(l => { l.y += underflow; });
+      return labels;
+    }
+
     function renderCumulativeChart() {
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
       const active = activeChartSeries();
@@ -1050,7 +1065,7 @@
         data: [100, ...DATA.map(d => d[s.indexKey])],
       }));
       const W = 1040, H = 420;
-      const m = { t: 24, r: 58, b: 48, l: 64 };
+      const m = { t: 24, r: 72, b: 48, l: 64 };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const last = cats.length - 1;
       const all = series.flatMap(s => s.data);
@@ -1059,15 +1074,24 @@
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const xScale = i => m.l + (i / last) * plotW;
       const yTicks = [100,200,400,600,800,1000,2000,4000].filter(t => t >= yMin && t <= yMax);
+      const labelX = xScale(last) + 10;
+      const endLabels = layoutEndLabels(
+        series.map(s => ({ s, end: s.data[last], y: yScale(s.data[last]) })),
+        15,
+        m.t + 8,
+        m.t + plotH - 6,
+      );
 
-      const paths = series.map((s, idx) => {
+      const paths = series.map(s => {
         const d = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
         const end = s.data[last];
-        const labelX = xScale(last) + 8 + idx * 4;
         return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>
-          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>
-          <text x="${labelX}" y="${yScale(end)+4}" fill="var(--chart-label)" font-size="10">${Math.round(end)}%</text>`;
+          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>`;
       }).join("");
+
+      const endLabelSvg = endLabels.map(({ s, end, y }) =>
+        `<text x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="10" font-weight="600">${Math.round(end)}%</text>`
+      ).join("");
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
@@ -1076,6 +1100,7 @@
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}</text>`).join("")}
           ${paths}
+          ${endLabelSvg}
           ${cats.map((l,i) => i%2===0||i===last?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${l}</text>`:"").join("")}
         </svg>`;
       document.getElementById("tooltip").classList.remove("show");
