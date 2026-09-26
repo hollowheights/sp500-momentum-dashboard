@@ -142,6 +142,15 @@
       gap: 16px;
       margin-bottom: 20px;
     }
+    .grid-year {
+      grid-template-columns: minmax(0, 1fr) 132px;
+      align-items: start;
+    }
+    .year-picker-card .card-bd { padding: 14px 12px; }
+    .year-picker-card select { width: 100%; }
+    @media (max-width: 520px) {
+      .grid-year { grid-template-columns: 1fr; }
+    }
     .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .pill {
       font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
@@ -310,16 +319,15 @@
       </div>
     </div>
 
-    <div class="grid2">
+    <div class="grid2 grid-year">
       <div class="card">
         <div class="card-hd" id="year-card-title">Portefølje</div>
         <div class="card-bd" id="year-detail"></div>
       </div>
-      <div class="card">
+      <div class="card year-picker-card">
         <div class="card-hd">Vælg år</div>
         <div class="card-bd">
           <select id="year-select"></select>
-          <p class="footnote" style="margin-top:12px">Afkast i parentes: Top-10 · Top-3 · Bund-10 · Jegadeesh-Titman · S&P 500. Se tickers i panelet til venstre.</p>
         </div>
       </div>
     </div>
@@ -1026,8 +1034,8 @@
         W: Math.max(base.w, pointCount * 72),
         H: base.h + 80,
         font: 13,
-        ml: 48,
-        mr: base.r === 72 ? 56 : 16,
+        ml: 70,
+        mr: base.r === 72 ? 56 : 20,
       };
     }
 
@@ -1109,12 +1117,14 @@
         if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${row.chartLabel}</text>`;
       });
 
+      const yTitle = zoomed ? "" : `<text x="16" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>`;
+
       document.getElementById("chart").innerHTML = `
         ${chartSvgOpen(W, H, "Årligt afkast", zoomed)}
-          <text x="16" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>
+          ${yTitle}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
-            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
+            <text x="${m.l - 14}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
           ${bars}
           <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">Kalenderår</text>
         </svg>`;
@@ -1326,7 +1336,7 @@
     const sel = document.getElementById("year-select");
     sel.innerHTML = YEAR_ROWS.map(d => {
       const yr = d.isPartial ? "2026 YTD" : String(d.holdYear);
-      return `<option value="${d.holdYear}">${yr} (${fmt(d.top10Pct)} · ${fmt(d.top3Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`;
+      return `<option value="${d.holdYear}">${yr}</option>`;
     }).join("");
     sel.value = "2024";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
