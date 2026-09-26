@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Momentum vs anti-momentum vs S&P 500</title>
+  <title>S&P 500 momentum-backtest</title>
   <style>
     :root {
       --bg: #f4f6f9;
@@ -15,6 +15,7 @@
       --bottom: #e15759;
       --spy: #79706e;
       --mom121: #59a14f;
+      --top3: #f28e2b;
       --success: #16a34a;
       --danger: #dc2626;
       --chart-bg: #fafbfc;
@@ -46,6 +47,20 @@
       line-height: 1.65;
       max-width: 42rem;
       margin-bottom: 0;
+    }
+    .intro-list {
+      margin: 12px 0 0;
+      padding-left: 1.2rem;
+      max-width: 42rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+    .intro-list li { margin-bottom: 6px; }
+    .intro-meta {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: var(--muted);
     }
     .stats {
       display: grid;
@@ -125,16 +140,17 @@
     }
     .tooltip.show { display: block; }
     h2 { font-size: 1.1rem; margin-bottom: 12px; }
-    .ytd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    @media (max-width: 800px) { .ytd-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 500px) { .ytd-grid { grid-template-columns: 1fr; } }
+    .ytd-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .ytd-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 500px) { .ytd-grid { grid-template-columns: repeat(2, 1fr); } }
     .year-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; }
     .portfolio-split {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
-    @media (max-width: 900px) { .portfolio-split { grid-template-columns: 1fr; } }
+    @media (min-width: 1000px) { .portfolio-split { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 600px) { .portfolio-split { grid-template-columns: 1fr; } }
     .portfolio-block {
       background: var(--chart-bg);
       border: 1px solid var(--border);
@@ -144,6 +160,8 @@
     .portfolio-block.top { border-top: 3px solid var(--top); }
     .portfolio-block.bottom { border-top: 3px solid var(--bottom); }
     .portfolio-block.mom121 { border-top: 3px solid var(--mom121); }
+    .portfolio-block.top3 { border-top: 3px solid var(--top3); }
+    .pill.top3 { background: rgba(242, 142, 43, 0.12); color: var(--text); }
     .portfolio-block-hd {
       display: flex;
       justify-content: space-between;
@@ -185,14 +203,16 @@
 <body>
   <div class="wrap">
     <header class="hero">
-      <h1>Momentum vs anti-momentum vs S&P 500</h1>
+      <h1>S&P 500 momentum-backtest</h1>
       <p class="intro">
-        Top-10, Bund-10 og Jegadeesh-Titman (ligevægtet): køb 1. januar. Kalenderår-momentum bruger hele forrige år;
-        Jegadeesh-Titman bruger jan–nov (december udelades). Kun aktier med fuldt års S&P 500-medlemskab.
+        Hvad sker der, hvis vi køber de aktier der klarede sig bedst — eller dårligst — året før?
       </p>
-      <p class="intro" style="margin-top:10px">
-        Justeret lukkepris (splits + udbytter). 2011–2025 + YTD 2026 pr. 23. september.
-      </p>
+      <ul class="intro-list">
+        <li><strong>Top-10, Top-3 og Bund-10:</strong> hele kalenderåret som udvælgelsesperiode, køb 1. januar, hold et år.</li>
+        <li><strong>Jegadeesh-Titman:</strong> jan–nov (december udelades), køb 1. januar.</li>
+        <li>Kun aktier med fuldt års S&P 500-medlemskab · justerede kursdata fra Yahoo Finance.</li>
+      </ul>
+      <p class="intro-meta">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</p>
     </header>
 
     <div class="card">
@@ -226,8 +246,19 @@
         <div class="card-hd">Vælg år</div>
         <div class="card-bd">
           <select id="year-select"></select>
-          <p class="footnote" style="margin-top:12px">Afkast i parentes: Top-10 · Bund-10 · Jegadeesh-Titman · S&P 500. Se tickers i panelet til venstre.</p>
+          <p class="footnote" style="margin-top:12px">Afkast i parentes: Top-10 · Top-3 · Bund-10 · Jegadeesh-Titman · S&P 500. Se tickers i panelet til venstre.</p>
         </div>
+      </div>
+    </div>
+
+    <h2>Momentum og næste års afkast</h2>
+    <div class="card">
+      <div class="card-bd">
+        <div class="chart-wrap">
+          <div class="tooltip" id="scatter-tooltip"></div>
+          <div id="scatter-chart"></div>
+        </div>
+        <p class="footnote">Én prik per top-3-aktie (2011–2025). X = afkast i udvælgelsesåret, Y = afkast det efterfølgende holdår.</p>
       </div>
     </div>
 
@@ -249,31 +280,78 @@
 
   <script>
     const DATA = [
-      { holdYear: 2011, selectionYear: 2010, top10Tickers: ["GR","CMI","WYNN","AIG","HBAN","ZION","AKAM","BKNG","CRM","VIAV"], bottom10Tickers: ["ADBE","NVDA","HPQ","V","WDC","MU","PHM","HRB","CPWR","EP"], top10Pct: -24.16, bottom10Pct: -12.37, sp500Pct: 1.89, top10Index: 75.8, bottom10Index: 87.6, sp500Index: 101.9, mom12_1Pct: -17.75, mom12_1Index: 82.2, mom12_1Tickers: ["GR", "CMI", "AKAM", "CRM", "WYNN", "BKNG", "AZO", "HBAN", "F", "TMUS"],  },
-      { holdYear: 2012, selectionYear: 2011, top10Tickers: ["ISRG","MA","BIIB","HUM","OKE","ROST","VFC","FAST","TJX","V"], bottom10Tickers: ["WHR","GS","GNW","DXC","AIG","BAC","NFLX","GR","FSLR","CPWR"], top10Pct: 18.16, bottom10Pct: 82.54, sp500Pct: 15.99, top10Index: 89.6, bottom10Index: 160.0, sp500Index: 118.2, mom12_1Pct: 10.78, mom12_1Index: 91.1, mom12_1Tickers: ["BIIB", "ISRG", "MA", "VFC", "HUM", "RRC", "OKE", "EL", "ROST", "FAST"],  },
-      { holdYear: 2013, selectionYear: 2012, top10Tickers: ["PHM","WHR","EXPE","BAC","LEN","MPC","GILD","EMN","SHW","DXC"], bottom10Tickers: ["NEM","HUM","WU","EXC","ATI","CLF","PBI","HPQ","BBY","AMD"], top10Pct: 35.81, bottom10Pct: 55.94, sp500Pct: 32.31, top10Index: 121.7, bottom10Index: 249.4, sp500Index: 156.4, mom12_1Pct: 40.21, mom12_1Index: 127.8, mom12_1Tickers: ["PHM", "WHR", "EXPE", "LEN", "MPC", "GILD", "BAC", "EBAY", "STZ", "SHW"],  },
-      { holdYear: 2014, selectionYear: 2013, top10Tickers: ["NFLX","BBY","MU","PBI","BSX","GNW","GILD","GME","LNC","HPQ"], bottom10Tickers: ["VTR","JBL","WELL","MOS","FE","ISRG","TDC","EW","CLF","NEM"], top10Pct: 8.2, bottom10Pct: 16.75, sp500Pct: 13.46, top10Index: 131.7, bottom10Index: 291.2, sp500Index: 177.4, mom12_1Pct: 9.47, mom12_1Index: 139.9, mom12_1Tickers: ["NFLX", "BBY", "MU", "PBI", "TRIP", "GILD", "BSX", "GNW", "LNC", "STZ"],  },
-      { holdYear: 2015, selectionYear: 2014, top10Tickers: ["LUV","EW","DAL","KR","MU","MAR","VRTX","MNST","KDP","ORLY"], bottom10Tickers: ["FMC","OI","APA","GME","TPR","MAT","FCX","RRC","GNW","RIG"], top10Pct: 9.78, bottom10Pct: -33.19, sp500Pct: 1.23, top10Index: 144.6, bottom10Index: 194.6, sp500Index: 179.6, mom12_1Pct: 6.8, mom12_1Index: 149.4, mom12_1Tickers: ["LUV", "EW", "DAL", "MNST", "MU", "MAR", "VRTX", "GD", "KDP", "KR"],  },
-      { holdYear: 2016, selectionYear: 2015, top10Tickers: ["NFLX","AMZN","NVDA","HRL","VRSN","SBUX","FSLR","VLO","EXPE","GOOGL"], bottom10Tickers: ["OKE","WYNN","RRC","MUR","NRG","MU","KMI","FOSL","FCX","CNX"], top10Pct: 15.96, bottom10Pct: 56.4, sp500Pct: 12.0, top10Index: 167.6, bottom10Index: 304.3, sp500Index: 201.1, mom12_1Pct: 30.55, mom12_1Index: 195.0, mom12_1Tickers: ["NFLX", "AMZN", "NVDA", "VRSN", "VMC", "SBUX", "VLO", "HRL", "EXPE", "MLM"],  },
-      { holdYear: 2017, selectionYear: 2016, top10Tickers: ["NVDA","OKE","FCX","NEM","AMAT","DHR","PWR","MLM","HAL","CMI"], bottom10Tickers: ["GILD","UAA","MCK","HRB","REGN","ILMN","VRTX","PRGO","TRIP","FSLR"], top10Pct: 25.17, bottom10Pct: 24.96, sp500Pct: 21.71, top10Index: 209.8, bottom10Index: 380.3, sp500Index: 244.8, mom12_1Pct: 26.33, mom12_1Index: 246.3, mom12_1Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "CMI", "PWR", "MLM", "MUR"],  },
-      { holdYear: 2018, selectionYear: 2017, top10Tickers: ["NRG","VRTX","WYNN","BA","DHI","MU","PYPL","PHM","NVDA","CNC"], bottom10Tickers: ["BHGE","NWL","APA","SIG","AAP","MAT","GE","UA","RRC","UAA"], top10Pct: -5.57, bottom10Pct: -17.85, sp500Pct: -4.57, top10Index: 198.1, bottom10Index: 312.4, sp500Index: 233.6, mom12_1Pct: -7.46, mom12_1Index: 228.0, mom12_1Tickers: ["NRG", "VRTX", "MU", "PYPL", "ISRG", "DHI", "NVDA", "PHM", "WYNN", "LRCX"],  },
-      { holdYear: 2019, selectionYear: 2018, top10Tickers: ["AMD","AAP","TRIP","CMG","HCA","ORLY","BSX","LLY","MRK","NRG"], bottom10Tickers: ["UNM","PCG","BHF","WDC","IVZ","AMG","PRGO","GE","MHK","COTY"], top10Pct: 32.21, bottom10Pct: 24.27, sp500Pct: 31.22, top10Index: 262.0, bottom10Index: 388.2, sp500Index: 306.6, mom12_1Pct: 33.08, mom12_1Index: 303.4, mom12_1Tickers: ["AMD", "TRIP", "AAP", "UA", "HCA", "UAA", "CMG", "ILMN", "BSX", "MKC"],  },
-      { holdYear: 2020, selectionYear: 2019, top10Tickers: ["AMD","LRCX","KLAC","TGT","CMG","IR","XRX","QRVO","CPRT","AMAT"], bottom10Tickers: ["BEN","AAL","FFIV","TPR","KSS","KHC","MOS","DXC","OXY","M"], top10Pct: 43.51, bottom10Pct: -11.42, sp500Pct: 18.33, top10Index: 375.9, bottom10Index: 343.9, sp500Index: 362.8, mom12_1Pct: 40.53, mom12_1Index: 426.3, mom12_1Tickers: ["AMD", "XRX", "LRCX", "TGT", "CMG", "KLAC", "CPRT", "COTY", "AMAT", "MSCI"],  },
-      { holdYear: 2021, selectionYear: 2020, top10Tickers: ["NVDA","PYPL","ALB","AMD","FCX","CDNS","NOW","ALGN","IDXX","SNPS"], bottom10Tickers: ["APA","SLB","AAL","NOV","FANG","UAL","FTI","NCLH","OXY","CCL"], top10Pct: 43.54, bottom10Pct: 29.89, sp500Pct: 28.73, top10Index: 539.6, bottom10Index: 446.6, sp500Index: 467.0, mom12_1Pct: 34.6, mom12_1Index: 573.8, mom12_1Tickers: ["NVDA", "AMD", "PYPL", "FDX", "NOW", "ALB", "FCX", "IDXX", "ROL", "ALGN"],  },
-      { holdYear: 2022, selectionYear: 2021, top10Tickers: ["DVN","FTNT","F","FANG","NVDA","NUE","IT","EXR","ANET","SPG"], bottom10Tickers: ["NCLH","PYPL","TFX","FIS","IPGP","WYNN","VTRS","MKTX","LVS","GPN"], top10Pct: -9.06, bottom10Pct: -25.53, sp500Pct: -18.18, top10Index: 490.7, bottom10Index: 332.6, sp500Index: 382.1, mom12_1Pct: 1.38, mom12_1Index: 581.7, mom12_1Tickers: ["DVN", "NVDA", "FANG", "FTNT", "F", "NUE", "IT", "SPG", "APA", "ODFL"],  },
-      { holdYear: 2023, selectionYear: 2022, top10Tickers: ["OXY","XOM","MPC","SLB","APA","VLO","HAL","COP","CVX","EOG"], bottom10Tickers: ["CZR","ZBRA","SWK","CCL","VFC","PYPL","TSLA","ALGN","MTCH","GNRC"], top10Pct: -1.62, bottom10Pct: 29.06, sp500Pct: 26.18, top10Index: 482.8, bottom10Index: 429.3, sp500Index: 482.1, mom12_1Pct: -5.27, mom12_1Index: 551.1, mom12_1Tickers: ["OXY", "MPC", "XOM", "VLO", "COP", "APA", "ENPH", "SLB", "EOG", "HAL"],  },
-      { holdYear: 2024, selectionYear: 2023, top10Tickers: ["NVDA","META","RCL","CCL","PHM","AMD","AVGO","TSLA","CRM","GE"], bottom10Tickers: ["ETSY","ALB","PAYC","EL","PFE","DG","MRNA","FMC","ENPH","PARA"], top10Pct: 60.45, bottom10Pct: -39.15, sp500Pct: 24.89, top10Index: 774.6, bottom10Index: 261.2, sp500Index: 602.1, mom12_1Pct: 46.85, mom12_1Index: 809.3, mom12_1Tickers: ["NVDA", "META", "RCL", "PHM", "TSLA", "CRM", "AMD", "CCL", "GE", "ADBE"],  },
-      { holdYear: 2025, selectionYear: 2024, top10Tickers: ["NVDA","UAL","AXON","AVGO","TRGP","HWM","CEG","ANET","NFLX","TPR"], bottom10Tickers: ["BIIB","DG","HUM","DLTR","EL","ENPH","CE","MRNA","INTC","PARA"], top10Pct: 37.51, bottom10Pct: 7.39, sp500Pct: 17.72, top10Index: 1065.2, bottom10Index: 280.5, sp500Index: 708.8, mom12_1Pct: 29.35, mom12_1Index: 1046.8, mom12_1Tickers: ["NVDA", "AXON", "TRGP", "UAL", "CEG", "HWM", "FICO", "NRG", "RCL", "NFLX"],  },
+      { holdYear: 2011, selectionYear: 2010, top10Tickers: ["GR","CMI","WYNN","AIG","HBAN","ZION","AKAM","BKNG","CRM","VIAV"], bottom10Tickers: ["ADBE","NVDA","HPQ","V","WDC","MU","PHM","HRB","CPWR","EP"], top10Pct: -24.16, bottom10Pct: -12.37, sp500Pct: 1.89, top10Index: 75.8, bottom10Index: 87.6, sp500Index: 101.9, mom12_1Pct: -17.75, mom12_1Index: 82.2, mom12_1Tickers: ["GR", "CMI", "AKAM", "CRM", "WYNN", "BKNG", "AZO", "HBAN", "F", "TMUS"], top3Pct: -24.5, top3Index: 75.5, top3Tickers: ["GR", "CMI", "WYNN"],  },
+      { holdYear: 2012, selectionYear: 2011, top10Tickers: ["ISRG","MA","BIIB","HUM","OKE","ROST","VFC","FAST","TJX","V"], bottom10Tickers: ["WHR","GS","GNW","DXC","AIG","BAC","NFLX","GR","FSLR","CPWR"], top10Pct: 18.16, bottom10Pct: 82.54, sp500Pct: 15.99, top10Index: 89.6, bottom10Index: 160.0, sp500Index: 118.2, mom12_1Pct: 10.78, mom12_1Index: 91.1, mom12_1Tickers: ["BIIB", "ISRG", "MA", "VFC", "HUM", "RRC", "OKE", "EL", "ROST", "FAST"], top3Pct: 23.67, top3Index: 93.4, top3Tickers: ["ISRG", "MA", "BIIB"],  },
+      { holdYear: 2013, selectionYear: 2012, top10Tickers: ["PHM","WHR","EXPE","BAC","LEN","MPC","GILD","EMN","SHW","DXC"], bottom10Tickers: ["NEM","HUM","WU","EXC","ATI","CLF","PBI","HPQ","BBY","AMD"], top10Pct: 35.81, bottom10Pct: 55.94, sp500Pct: 32.31, top10Index: 121.7, bottom10Index: 249.4, sp500Index: 156.4, mom12_1Pct: 40.21, mom12_1Index: 127.8, mom12_1Tickers: ["PHM", "WHR", "EXPE", "LEN", "MPC", "GILD", "BAC", "EBAY", "STZ", "SHW"], top3Pct: 28.23, top3Index: 119.7, top3Tickers: ["PHM", "WHR", "EXPE"],  },
+      { holdYear: 2014, selectionYear: 2013, top10Tickers: ["NFLX","BBY","MU","PBI","BSX","GNW","GILD","GME","LNC","HPQ"], bottom10Tickers: ["VTR","JBL","WELL","MOS","FE","ISRG","TDC","EW","CLF","NEM"], top10Pct: 8.2, bottom10Pct: 16.75, sp500Pct: 13.46, top10Index: 131.7, bottom10Index: 291.2, sp500Index: 177.4, mom12_1Pct: 9.47, mom12_1Index: 139.9, mom12_1Tickers: ["NFLX", "BBY", "MU", "PBI", "TRIP", "GILD", "BSX", "GNW", "LNC", "STZ"], top3Pct: 17.94, top3Index: 141.2, top3Tickers: ["NFLX", "BBY", "MU"],  },
+      { holdYear: 2015, selectionYear: 2014, top10Tickers: ["LUV","EW","DAL","KR","MU","MAR","VRTX","MNST","KDP","ORLY"], bottom10Tickers: ["FMC","OI","APA","GME","TPR","MAT","FCX","RRC","GNW","RIG"], top10Pct: 9.78, bottom10Pct: -33.19, sp500Pct: 1.23, top10Index: 144.6, bottom10Index: 194.6, sp500Index: 179.6, mom12_1Pct: 6.8, mom12_1Index: 149.4, mom12_1Tickers: ["LUV", "EW", "DAL", "MNST", "MU", "MAR", "VRTX", "GD", "KDP", "KR"], top3Pct: 10.16, top3Index: 155.6, top3Tickers: ["LUV", "EW", "DAL"],  },
+      { holdYear: 2016, selectionYear: 2015, top10Tickers: ["NFLX","AMZN","NVDA","HRL","VRSN","SBUX","FSLR","VLO","EXPE","GOOGL"], bottom10Tickers: ["OKE","WYNN","RRC","MUR","NRG","MU","KMI","FOSL","FCX","CNX"], top10Pct: 15.96, bottom10Pct: 56.4, sp500Pct: 12.0, top10Index: 167.6, bottom10Index: 304.3, sp500Index: 201.1, mom12_1Pct: 30.55, mom12_1Index: 195.0, mom12_1Tickers: ["NFLX", "AMZN", "NVDA", "VRSN", "VMC", "SBUX", "VLO", "HRL", "EXPE", "MLM"], top3Pct: 82.05, top3Index: 283.2, top3Tickers: ["NFLX", "AMZN", "NVDA"],  },
+      { holdYear: 2017, selectionYear: 2016, top10Tickers: ["NVDA","OKE","FCX","NEM","AMAT","DHR","PWR","MLM","HAL","CMI"], bottom10Tickers: ["GILD","UAA","MCK","HRB","REGN","ILMN","VRTX","PRGO","TRIP","FSLR"], top10Pct: 25.17, bottom10Pct: 24.96, sp500Pct: 21.71, top10Index: 209.8, bottom10Index: 380.3, sp500Index: 244.8, mom12_1Pct: 26.33, mom12_1Index: 246.3, mom12_1Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "CMI", "PWR", "MLM", "MUR"], top3Pct: 41.21, top3Index: 399.9, top3Tickers: ["NVDA", "OKE", "FCX"],  },
+      { holdYear: 2018, selectionYear: 2017, top10Tickers: ["NRG","VRTX","WYNN","BA","DHI","MU","PYPL","PHM","NVDA","CNC"], bottom10Tickers: ["BHGE","NWL","APA","SIG","AAP","MAT","GE","UA","RRC","UAA"], top10Pct: -5.57, bottom10Pct: -17.85, sp500Pct: -4.57, top10Index: 198.1, bottom10Index: 312.4, sp500Index: 233.6, mom12_1Pct: -7.46, mom12_1Index: 228.0, mom12_1Tickers: ["NRG", "VRTX", "MU", "PYPL", "ISRG", "DHI", "NVDA", "PHM", "WYNN", "LRCX"], top3Pct: 3.33, top3Index: 413.2, top3Tickers: ["NRG", "VRTX", "WYNN"],  },
+      { holdYear: 2019, selectionYear: 2018, top10Tickers: ["AMD","AAP","TRIP","CMG","HCA","ORLY","BSX","LLY","MRK","NRG"], bottom10Tickers: ["UNM","PCG","BHF","WDC","IVZ","AMG","PRGO","GE","MHK","COTY"], top10Pct: 32.21, bottom10Pct: 24.27, sp500Pct: 31.22, top10Index: 262.0, bottom10Index: 388.2, sp500Index: 306.6, mom12_1Pct: 33.08, mom12_1Index: 303.4, mom12_1Tickers: ["AMD", "TRIP", "AAP", "UA", "HCA", "UAA", "CMG", "ILMN", "BSX", "MKC"], top3Pct: 37.88, top3Index: 569.7, top3Tickers: ["AMD", "AAP", "TRIP"],  },
+      { holdYear: 2020, selectionYear: 2019, top10Tickers: ["AMD","LRCX","KLAC","TGT","CMG","IR","XRX","QRVO","CPRT","AMAT"], bottom10Tickers: ["BEN","AAL","FFIV","TPR","KSS","KHC","MOS","DXC","OXY","M"], top10Pct: 43.51, bottom10Pct: -11.42, sp500Pct: 18.33, top10Index: 375.9, bottom10Index: 343.9, sp500Index: 362.8, mom12_1Pct: 40.53, mom12_1Index: 426.3, mom12_1Tickers: ["AMD", "XRX", "LRCX", "TGT", "CMG", "KLAC", "CPRT", "COTY", "AMAT", "MSCI"], top3Pct: 70.7, top3Index: 972.5, top3Tickers: ["AMD", "LRCX", "KLAC"],  },
+      { holdYear: 2021, selectionYear: 2020, top10Tickers: ["NVDA","PYPL","ALB","AMD","FCX","CDNS","NOW","ALGN","IDXX","SNPS"], bottom10Tickers: ["APA","SLB","AAL","NOV","FANG","UAL","FTI","NCLH","OXY","CCL"], top10Pct: 43.54, bottom10Pct: 29.89, sp500Pct: 28.73, top10Index: 539.6, bottom10Index: 446.6, sp500Index: 467.0, mom12_1Pct: 34.6, mom12_1Index: 573.8, mom12_1Tickers: ["NVDA", "AMD", "PYPL", "FDX", "NOW", "ALB", "FCX", "IDXX", "ROL", "ALGN"], top3Pct: 55.25, top3Index: 1509.9, top3Tickers: ["NVDA", "PYPL", "ALB"],  },
+      { holdYear: 2022, selectionYear: 2021, top10Tickers: ["DVN","FTNT","F","FANG","NVDA","NUE","IT","EXR","ANET","SPG"], bottom10Tickers: ["NCLH","PYPL","TFX","FIS","IPGP","WYNN","VTRS","MKTX","LVS","GPN"], top10Pct: -9.06, bottom10Pct: -25.53, sp500Pct: -18.18, top10Index: 490.7, bottom10Index: 332.6, sp500Index: 382.1, mom12_1Pct: 1.38, mom12_1Index: 581.7, mom12_1Tickers: ["DVN", "NVDA", "FANG", "FTNT", "F", "NUE", "IT", "SPG", "APA", "ODFL"], top3Pct: -7.77, top3Index: 1392.5, top3Tickers: ["DVN", "FTNT", "F"],  },
+      { holdYear: 2023, selectionYear: 2022, top10Tickers: ["OXY","XOM","MPC","SLB","APA","VLO","HAL","COP","CVX","EOG"], bottom10Tickers: ["CZR","ZBRA","SWK","CCL","VFC","PYPL","TSLA","ALGN","MTCH","GNRC"], top10Pct: -1.62, bottom10Pct: 29.06, sp500Pct: 26.18, top10Index: 482.8, bottom10Index: 429.3, sp500Index: 482.1, mom12_1Pct: -5.27, mom12_1Index: 551.1, mom12_1Tickers: ["OXY", "MPC", "XOM", "VLO", "COP", "APA", "ENPH", "SLB", "EOG", "HAL"], top3Pct: 6.71, top3Index: 1486.0, top3Tickers: ["OXY", "XOM", "MPC"],  },
+      { holdYear: 2024, selectionYear: 2023, top10Tickers: ["NVDA","META","RCL","CCL","PHM","AMD","AVGO","TSLA","CRM","GE"], bottom10Tickers: ["ETSY","ALB","PAYC","EL","PFE","DG","MRNA","FMC","ENPH","PARA"], top10Pct: 60.45, bottom10Pct: -39.15, sp500Pct: 24.89, top10Index: 774.6, bottom10Index: 261.2, sp500Index: 602.1, mom12_1Pct: 46.85, mom12_1Index: 809.3, mom12_1Tickers: ["NVDA", "META", "RCL", "PHM", "TSLA", "CRM", "AMD", "CCL", "GE", "ADBE"], top3Pct: 105.43, top3Index: 3052.6, top3Tickers: ["NVDA", "META", "RCL"],  },
+      { holdYear: 2025, selectionYear: 2024, top10Tickers: ["NVDA","UAL","AXON","AVGO","TRGP","HWM","CEG","ANET","NFLX","TPR"], bottom10Tickers: ["BIIB","DG","HUM","DLTR","EL","ENPH","CE","MRNA","INTC","PARA"], top10Pct: 37.51, bottom10Pct: 7.39, sp500Pct: 17.72, top10Index: 1065.2, bottom10Index: 280.5, sp500Index: 708.8, mom12_1Pct: 29.35, mom12_1Index: 1046.8, mom12_1Tickers: ["NVDA", "AXON", "TRGP", "UAL", "CEG", "HWM", "FICO", "NRG", "RCL", "NFLX"], top3Pct: 16.55, top3Index: 3557.9, top3Tickers: ["NVDA", "UAL", "AXON"],  },
+    ];
+    const SCATTER = [
+      {ticker:"GR", holdYear:2011, selectionYear:2010, priorReturnPct:164.71, holdReturnPct:-66.67},
+      {ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:142.69, holdReturnPct:-18.92},
+      {ticker:"WYNN", holdYear:2011, selectionYear:2010, priorReturnPct:93.6, holdReturnPct:12.09},
+      {ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:79.64, holdReturnPct:5.91},
+      {ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:66.72, holdReturnPct:32.09},
+      {ticker:"BIIB", holdYear:2012, selectionYear:2011, priorReturnPct:64.13, holdReturnPct:33.0},
+      {ticker:"PHM", holdYear:2013, selectionYear:2012, priorReturnPct:187.8, holdReturnPct:13.14},
+      {ticker:"WHR", holdYear:2013, selectionYear:2012, priorReturnPct:120.26, holdReturnPct:57.07},
+      {ticker:"EXPE", holdYear:2013, selectionYear:2012, priorReturnPct:115.59, holdReturnPct:14.49},
+      {ticker:"NFLX", holdYear:2014, selectionYear:2013, priorReturnPct:297.63, holdReturnPct:-7.21},
+      {ticker:"BBY", holdYear:2014, selectionYear:2013, priorReturnPct:244.2, holdReturnPct:0.08},
+      {ticker:"MU", holdYear:2014, selectionYear:2013, priorReturnPct:243.06, holdReturnPct:60.97},
+      {ticker:"LUV", holdYear:2015, selectionYear:2014, priorReturnPct:126.31, holdReturnPct:2.44},
+      {ticker:"EW", holdYear:2015, selectionYear:2014, priorReturnPct:93.7, holdReturnPct:24.01},
+      {ticker:"DAL", holdYear:2015, selectionYear:2014, priorReturnPct:80.53, holdReturnPct:4.05},
+      {ticker:"NFLX", holdYear:2016, selectionYear:2015, priorReturnPct:134.38, holdReturnPct:8.24},
+      {ticker:"AMZN", holdYear:2016, selectionYear:2015, priorReturnPct:117.78, holdReturnPct:10.95},
+      {ticker:"NVDA", holdYear:2016, selectionYear:2015, priorReturnPct:67.12, holdReturnPct:226.96},
+      {ticker:"NVDA", holdYear:2017, selectionYear:2016, priorReturnPct:226.96, holdReturnPct:81.99},
+      {ticker:"OKE", holdYear:2017, selectionYear:2016, priorReturnPct:149.62, holdReturnPct:-2.12},
+      {ticker:"FCX", holdYear:2017, selectionYear:2016, priorReturnPct:94.83, holdReturnPct:43.75},
+      {ticker:"NRG", holdYear:2018, selectionYear:2017, priorReturnPct:133.69, holdReturnPct:39.59},
+      {ticker:"VRTX", holdYear:2018, selectionYear:2017, priorReturnPct:103.42, holdReturnPct:10.58},
+      {ticker:"WYNN", holdYear:2018, selectionYear:2017, priorReturnPct:98.09, holdReturnPct:-40.18},
+      {ticker:"AMD", holdYear:2019, selectionYear:2018, priorReturnPct:79.57, holdReturnPct:148.43},
+      {ticker:"AAP", holdYear:2019, selectionYear:2018, priorReturnPct:58.22, holdReturnPct:1.87},
+      {ticker:"TRIP", holdYear:2019, selectionYear:2018, priorReturnPct:56.53, holdReturnPct:-36.67},
+      {ticker:"AMD", holdYear:2020, selectionYear:2019, priorReturnPct:148.43, holdReturnPct:99.98},
+      {ticker:"LRCX", holdYear:2020, selectionYear:2019, priorReturnPct:119.33, holdReturnPct:64.18},
+      {ticker:"KLAC", holdYear:2020, selectionYear:2019, priorReturnPct:103.99, holdReturnPct:47.94},
+      {ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:122.3, holdReturnPct:125.48},
+      {ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:116.51, holdReturnPct:-19.48},
+      {ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:105.39, holdReturnPct:59.76},
+      {ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:195.89, holdReturnPct:50.86},
+      {ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:141.97, holdReturnPct:-31.98},
+      {ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:137.48, holdReturnPct:-42.18},
+      {ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:119.1, holdReturnPct:-4.08},
+      {ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:87.41, holdReturnPct:-6.26},
+      {ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:86.62, holdReturnPct:30.46},
+      {ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:239.02, holdReturnPct:171.25},
+      {ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:194.13, holdReturnPct:66.05},
+      {ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:161.97, holdReturnPct:78.98},
+      {ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:171.25, holdReturnPct:38.92},
+      {ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:135.34, holdReturnPct:15.16},
+      {ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:130.06, holdReturnPct:-4.44},
     ];
     const YTD_2026 = {
       holdYear: 2026, selectionYear: 2025,
       top10Tickers: ["WDC","MU","STX","NEM","WBD","LRCX","PLTR","GEV","TPR","APH"],
       bottom10Tickers: ["GDDY","DOW","CMG","FDS","CHTR","MOH","LULU","ARE","IT","DECK"],
-      top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 1.24, mom12_1Pct: 102.49, mom12_1Tickers: ["WDC", "STX", "MU", "NEM", "WBD", "PLTR", "LRCX", "APH", "INTC", "NRG"],
+      top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 1.24, mom12_1Pct: 102.49, mom12_1Tickers: ["WDC", "STX", "MU", "NEM", "WBD", "PLTR", "LRCX", "APH", "INTC", "NRG"], top3Pct: 229.11, top3Tickers: ["WDC", "MU", "STX"],
       isPartial: true, chartLabel: "23. sep.", periodLabel: "YTD 2026 pr. 23. september",
     };
     const CHART_ROWS = [...DATA, YTD_2026];
-    const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, SP500_TOTAL = 608.8;
+    const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, TOP3_TOTAL = 3457.9, SP500_TOTAL = 608.8;
 
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
     const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "—");
@@ -290,6 +368,7 @@
 
     const SHARPE = {
       top10: sharpeRatio(DATA.map((d) => d.top10Pct)),
+      top3: sharpeRatio(DATA.map((d) => d.top3Pct)),
       bottom10: sharpeRatio(DATA.map((d) => d.bottom10Pct)),
       sp500: sharpeRatio(DATA.map((d) => d.sp500Pct)),
       mom12_1: sharpeRatio(DATA.map((d) => d.mom12_1Pct)),
@@ -300,6 +379,7 @@
     function renderSharpe() {
       document.getElementById("sharpe-stats").innerHTML = `
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Sharpe · Top-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">Sharpe · Top-3</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Sharpe · Bund-10</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Sharpe · Jegadeesh-Titman</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">Sharpe · S&P 500</div></div>
@@ -310,6 +390,7 @@
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
           <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">Top-3</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bund-10</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">Jegadeesh-Titman</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
@@ -324,7 +405,7 @@
       const y = DATA.find(d => d.holdYear === year) || DATA[DATA.length - 1];
       document.getElementById("year-card-title").textContent = `Portefølje ${y.holdYear}`;
       document.getElementById("year-detail").innerHTML = `
-        <p class="year-meta">Udvælgelsesår ${y.selectionYear} · 10 aktier à 10% vægt</p>
+        <p class="year-meta">Udvælgelsesår ${y.selectionYear}</p>
         <div class="portfolio-split">
           <div class="portfolio-block top">
             <div class="portfolio-block-hd">
@@ -332,6 +413,13 @@
               <span class="ret ${retClass(y.top10Pct)}">${fmt(y.top10Pct)}</span>
             </div>
             <div class="pills">${pills(y.top10Tickers)}</div>
+          </div>
+          <div class="portfolio-block top3">
+            <div class="portfolio-block-hd">
+              <span class="name">Top-3 momentum</span>
+              <span class="ret ${retClass(y.top3Pct)}">${fmt(y.top3Pct)}</span>
+            </div>
+            <div class="pills">${pills(y.top3Tickers, "top3")}</div>
           </div>
           <div class="portfolio-block bottom">
             <div class="portfolio-block-hd">
@@ -359,6 +447,7 @@
         return `<tr class="${cls}">
           <td>${d.isPartial ? "2026" : d.holdYear}</td>
           <td class="num">${fmt(d.top10Pct)}</td>
+          <td class="num">${fmt(d.top3Pct)}</td>
           <td class="num">${fmt(d.bottom10Pct)}</td>
           <td class="num">${fmt(d.mom12_1Pct)}</td>
           <td class="num">${fmt(d.sp500Pct)}</td>
@@ -370,6 +459,7 @@
         <thead><tr>
           <th>År</th>
           <th class="num">Top-10</th>
+          <th class="num">Top-3</th>
           <th class="num">Bund-10</th>
           <th class="num">Jegadeesh-Titman</th>
           <th class="num">S&P 500</th>
@@ -377,19 +467,20 @@
           <th>Periode</th>
         </tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr><td colspan="7" class="footnote" style="padding-top:14px;border:none">
-          Samlet 2011–2025: top-10 ${fmt(TOP10_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+        <tfoot><tr><td colspan="8" class="footnote" style="padding-top:14px;border:none">
+          Samlet 2011–2025: Top-10 ${fmt(TOP10_TOTAL,0)} · Top-3 ${fmt(TOP3_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
 
     const LEGEND_ITEMS = [
-      { label: "Top-10", color: "var(--top)", width: 78 },
-      { label: "Bund-10", color: "var(--bottom)", width: 92 },
-      { label: "Jegadeesh-Titman", color: "var(--mom121)", width: 128 },
-      { label: "S&P 500", color: "var(--spy)", width: 82 },
+      { label: "Top-10", color: "var(--top)", width: 68 },
+      { label: "Top-3", color: "var(--top3)", width: 58 },
+      { label: "Bund-10", color: "var(--bottom)", width: 78 },
+      { label: "Jegadeesh-Titman", color: "var(--mom121)", width: 118 },
+      { label: "S&P 500", color: "var(--spy)", width: 72 },
     ];
 
-    function chartLegend(W, m, offset = 400) {
+    function chartLegend(W, m, offset = 500) {
       const startX = W - m.r - offset;
       const items = LEGEND_ITEMS.map((item, i) => {
         const x = LEGEND_ITEMS.slice(0, i).reduce((sum, it) => sum + it.width, 0);
@@ -403,7 +494,7 @@
 
     function renderAnnualChart() {
       const data = CHART_ROWS;
-      const vals = data.flatMap(d => [d.top10Pct, d.bottom10Pct, d.mom12_1Pct, d.sp500Pct]);
+      const vals = data.flatMap(d => [d.top10Pct, d.top3Pct, d.bottom10Pct, d.mom12_1Pct, d.sp500Pct]);
       const yMin = Math.floor(Math.min(...vals) - 5);
       const yMax = Math.ceil(Math.max(...vals) + 5);
       const W = 1040, H = 480;
@@ -412,8 +503,9 @@
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
-      const barW = Math.min(10, groupW * 0.14);
-      const gap = 3;
+      const barW = Math.min(8, groupW * 0.11);
+      const gap = 2;
+      const offsets = [-2, -1, 0, 1, 2];
       const ticks = [-40,-20,0,20,40,60,80,100].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
@@ -422,10 +514,12 @@
         const bx = m.l + groupW * i + 2;
         const partial = row.isPartial;
         const dash = partial ? 'stroke-dasharray="5 3" stroke="var(--chart-axis)" stroke-width="1.2"' : "";
-        [[row.top10Pct, cx - 1.5 * (barW + gap), "var(--top)"],
-         [row.bottom10Pct, cx - 0.5 * (barW + gap), "var(--bottom)"],
-         [row.mom12_1Pct, cx + 0.5 * (barW + gap), "var(--mom121)"],
-         [row.sp500Pct, cx + 1.5 * (barW + gap), "var(--spy)"]].forEach(([v, x, col]) => {
+        [[row.top10Pct, "var(--top)"],
+         [row.top3Pct, "var(--top3)"],
+         [row.bottom10Pct, "var(--bottom)"],
+         [row.mom12_1Pct, "var(--mom121)"],
+         [row.sp500Pct, "var(--spy)"]].forEach(([v, col], j) => {
+          const x = cx + offsets[j] * (barW + gap);
           const tip = yScale(v);
           const y = v >= 0 ? tip : zeroY;
           const h = Math.max(2, Math.abs(zeroY - tip));
@@ -453,6 +547,7 @@
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
       const series = [
         { name: "Top-10", data: [100, ...DATA.map(d => d.top10Index)], color: "var(--top)" },
+        { name: "Top-3", data: [100, ...DATA.map(d => d.top3Index)], color: "var(--top3)" },
         { name: "Bund-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
         { name: "Jegadeesh-Titman", data: [100, ...DATA.map(d => d.mom12_1Index)], color: "var(--mom121)" },
         { name: "S&P 500", data: [100, ...DATA.map(d => d.sp500Index)], color: "var(--spy)" },
@@ -478,7 +573,7 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
-          ${chartLegend(W, m, 430)}
+          ${chartLegend(W, m, 520)}
           <text x="${m.l}" y="40" font-size="11" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
@@ -495,7 +590,7 @@
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
           tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>
-            Top-10: ${fmt(row.top10Pct)}<br>Bund-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
+            Top-10: ${fmt(row.top10Pct)}<br>Top-3: ${fmt(row.top3Pct)}<br>Bund-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
@@ -506,8 +601,56 @@
       cumulative ? renderCumulativeChart() : renderAnnualChart();
     }
 
+    function renderScatterChart() {
+      const pts = typeof SCATTER !== "undefined" ? SCATTER : [];
+      const xs = pts.map(p => p.priorReturnPct);
+      const ys = pts.map(p => p.holdReturnPct);
+      const xMin = Math.floor(Math.min(...xs, 0) - 10);
+      const xMax = Math.ceil(Math.max(...xs, 0) + 10);
+      const yMin = Math.floor(Math.min(...ys, 0) - 10);
+      const yMax = Math.ceil(Math.max(...ys, 0) + 10);
+      const W = 1040, H = 480;
+      const m = { t: 40, r: 24, b: 56, l: 64 };
+      const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+      const xScale = v => m.l + ((v - xMin) / (xMax - xMin)) * plotW;
+      const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+      const zeroX = xScale(0), zeroY = yScale(0);
+      const xTicks = [-50, 0, 50, 100, 150, 200].filter(t => t >= xMin && t <= xMax);
+      const yTicks = [-50, 0, 50, 100, 150, 200].filter(t => t >= yMin && t <= yMax);
+
+      const dots = pts.map((p, i) =>
+        `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="5" fill="var(--top3)" fill-opacity="0.75" stroke="var(--surface)" stroke-width="1.5"/>`
+      ).join("");
+
+      document.getElementById("scatter-chart").innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scatterplot momentum">
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
+          <line x1="${zeroX}" x2="${zeroX}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
+          <line x1="${m.l}" x2="${W - m.r}" y1="${zeroY}" y2="${zeroY}" stroke="var(--chart-axis)" stroke-width="1.5"/>
+          ${xTicks.map(t => `<line x1="${xScale(t)}" x2="${xScale(t)}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
+            <text x="${xScale(t)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
+          ${yTicks.map(t => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
+            <text x="${m.l - 12}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
+          ${dots}
+          <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-weight="600">Afkast i udvælgelsesåret (%)</text>
+          <text x="16" y="${m.t + plotH / 2}" font-size="11" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Afkast i holdåret (%)</text>
+        </svg>`;
+
+      const tip = document.getElementById("scatter-tooltip");
+      document.querySelectorAll(".scatter-dot").forEach(el => {
+        el.addEventListener("mouseenter", () => {
+          const p = pts[+el.dataset.i];
+          tip.innerHTML = `<strong>${p.ticker}</strong> · holdår ${p.holdYear}<br>
+            Udvælgelsesår ${p.selectionYear}: ${fmt(p.priorReturnPct)}<br>
+            Holdår ${p.holdYear}: ${fmt(p.holdReturnPct)}`;
+          tip.classList.add("show");
+        });
+        el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+      });
+    }
+
     const sel = document.getElementById("year-select");
-    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`).join("");
+    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} · ${fmt(d.top3Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`).join("");
     sel.value = "2024";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
 
@@ -522,6 +665,7 @@
     renderYearDetail(2024);
     renderTable();
     renderChart();
+    renderScatterChart();
   </script>
 </body>
 </html>
