@@ -374,7 +374,7 @@
       <ul class="intro-list">
         <li><strong>Top-10, Top-3 og Bund-10:</strong> hele forudgående år som udvælgelsesperiode, køb 1. januar, hold et år.</li>
         <li><strong>Jegadeesh-Titman:</strong> jan–nov (december udelades), køb 1. januar.</li>
-        <li><strong>6M halvårlig:</strong> top 10 efter forudgående 6 måneder, rebalance 1. januar og 1. juli.</li>
+        <li><strong>Top-10 halvårlig:</strong> top 10 efter forudgående 6 måneder, rebalance 1. januar og 1. juli.</li>
         <li>Kun aktier med fuldt års S&P 500-medlemskab (årlige porteføljer); 6M kræver medlemskab i hele formationsvinduet.</li>
       </ul>
       <p class="intro-meta"><span class="period-badge">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
@@ -1340,7 +1340,7 @@
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">Top-3</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Bund-10</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Jegadeesh-Titman</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">6M halvårlig</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">Top-10 halvårlig</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">S&P 500</div></div>
         <p class="footnote" style="grid-column:1/-1;margin:0">Årlige afkast 2011–2025 · risikofri rente sat til 0%</p>`;
     }
@@ -1352,7 +1352,7 @@
           <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">Top-3</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bund-10</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">Jegadeesh-Titman</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">6M halvårlig</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">Top-10 halvårlig</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
         </div>`;
     }
@@ -1397,7 +1397,7 @@
           </div>
           <div class="portfolio-block mom6">
             <div class="portfolio-block-hd">
-              <span class="name">6M halvårlig</span>
+              <span class="name">Top-10 halvårlig</span>
               <span class="ret ${retClass(y.mom6Pct)}">${fmt(y.mom6Pct)}</span>
             </div>
             <p class="half-meta">1. jan–30. jun · ${fmt(y.mom6H1Pct)}</p>
@@ -1433,14 +1433,14 @@
           <th class="num">Top-3</th>
           <th class="num">Bund-10</th>
           <th class="num">Jegadeesh-Titman</th>
-          <th class="num">6M halvårlig</th>
+          <th class="num">Top-10 halvårlig</th>
           <th class="num">S&P 500</th>
           <th class="num">Udv.år</th>
           <th>Periode</th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr><td colspan="9" class="footnote" style="padding-top:14px;border:none">
-          Samlet 2011–2025: Top-10 ${fmt(TOP10_TOTAL,0)} · Top-3 ${fmt(TOP3_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · 6M halvårlig ${fmt(MOM6_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+          Samlet 2011–2025: Top-10 ${fmt(TOP10_TOTAL,0)} · Top-3 ${fmt(TOP3_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · Top-10 halvårlig ${fmt(MOM6_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
 
@@ -1449,7 +1449,7 @@
       { id: "top3", label: "Top-3", color: "var(--top3)", pctKey: "top3Pct", indexKey: "top3Index" },
       { id: "bottom10", label: "Bund-10", color: "var(--bottom)", pctKey: "bottom10Pct", indexKey: "bottom10Index" },
       { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
-      { id: "mom6", label: "6M halvårlig", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
+      { id: "mom6", label: "Top-10 halvårlig", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
       { id: "sp500", label: "S&P 500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
     const chartSeriesActive = new Set(CHART_SERIES.map(s => s.id));
@@ -1693,7 +1693,7 @@
       { id: "top3", label: "Top-3", color: "var(--top3)" },
       { id: "bottom10", label: "Bund-10", color: "var(--bottom)" },
       { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)" },
-      { id: "mom6", label: "6M halvårlig", color: "var(--mom6)" },
+      { id: "mom6", label: "Top-10 halvårlig", color: "var(--mom6)" },
     ];
     const scatterActive = new Set(SCATTER_PORTFOLIOS.map(p => p.id));
     let scatterRegression = false;
