@@ -210,6 +210,13 @@
     .scatter-filter.top3.on { border-color: var(--top3); background: rgba(242, 142, 43, 0.12); }
     .scatter-filter.bottom10.on { border-color: var(--bottom); background: rgba(225, 87, 89, 0.12); }
     .scatter-filter.mom12_1.on { border-color: var(--mom121); background: rgba(89, 161, 79, 0.12); }
+    .scatter-filter.sp500.on { border-color: var(--spy); background: rgba(121, 112, 110, 0.12); }
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
     .source-box {
       margin-top: 8px;
       padding: 14px 16px;
@@ -251,6 +258,7 @@
         </div>
       </div>
       <div class="card-bd">
+        <div class="chart-legend" id="chart-legend"></div>
         <div class="chart-wrap">
           <div class="tooltip" id="tooltip"></div>
           <div id="chart"></div>
@@ -945,41 +953,54 @@
         </td></tr></tfoot>`;
     }
 
-    const LEGEND_ITEMS = [
-      { label: "Top-10", color: "var(--top)", width: 68 },
-      { label: "Top-3", color: "var(--top3)", width: 58 },
-      { label: "Bund-10", color: "var(--bottom)", width: 78 },
-      { label: "Jegadeesh-Titman", color: "var(--mom121)", width: 118 },
-      { label: "S&P 500", color: "var(--spy)", width: 72 },
+    const CHART_SERIES = [
+      { id: "top10", label: "Top-10", color: "var(--top)", pctKey: "top10Pct", indexKey: "top10Index" },
+      { id: "top3", label: "Top-3", color: "var(--top3)", pctKey: "top3Pct", indexKey: "top3Index" },
+      { id: "bottom10", label: "Bund-10", color: "var(--bottom)", pctKey: "bottom10Pct", indexKey: "bottom10Index" },
+      { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
+      { id: "sp500", label: "S&P 500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
+    const chartSeriesActive = new Set(CHART_SERIES.map(s => s.id));
 
-    function chartLegend(W, m, offset = 500) {
-      const startX = W - m.r - offset;
-      const items = LEGEND_ITEMS.map((item, i) => {
-        const x = LEGEND_ITEMS.slice(0, i).reduce((sum, it) => sum + it.width, 0);
-        return `<g transform="translate(${x}, 0)">
-          <rect x="0" y="2" width="10" height="10" fill="${item.color}" rx="2"></rect>
-          <text x="16" y="11" font-size="11" fill="var(--chart-label)">${item.label}</text>
-        </g>`;
+    function activeChartSeries() {
+      return CHART_SERIES.filter(s => chartSeriesActive.has(s.id));
+    }
+
+    function renderChartLegend() {
+      document.getElementById("chart-legend").innerHTML = CHART_SERIES.map(s => {
+        const on = chartSeriesActive.has(s.id);
+        return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${s.label}</button>`;
       }).join("");
-      return `<g transform="translate(${startX}, 22)">${items}</g>`;
+      document.querySelectorAll("#chart-legend .scatter-filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          if (chartSeriesActive.has(id)) {
+            if (chartSeriesActive.size === 1) return;
+            chartSeriesActive.delete(id);
+          } else {
+            chartSeriesActive.add(id);
+          }
+          renderChartLegend();
+          renderChart();
+        });
+      });
     }
 
     function renderAnnualChart() {
       const data = CHART_ROWS;
-      const vals = data.flatMap(d => [d.top10Pct, d.top3Pct, d.bottom10Pct, d.mom12_1Pct, d.sp500Pct]);
-      const yMin = Math.floor(Math.min(...vals) - 5);
-      const yMax = Math.ceil(Math.max(...vals) + 5);
-      const W = 1040, H = 480;
-      const m = { t: 58, r: 24, b: 56, l: 64 };
+      const active = activeChartSeries();
+      const vals = data.flatMap(d => active.map(s => d[s.pctKey]));
+      const yMin = Math.floor(Math.min(...vals, 0) - 5);
+      const yMax = Math.ceil(Math.max(...vals, 0) + 5);
+      const W = 1040, H = 440;
+      const m = { t: 24, r: 24, b: 56, l: 64 };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
-      const barW = Math.min(8, groupW * 0.11);
+      const barW = Math.min(10, groupW * 0.12 / Math.max(active.length, 1));
       const gap = 2;
-      const offsets = [-2, -1, 0, 1, 2];
-      const ticks = [-40,-20,0,20,40,60,80,100].filter(t => t >= yMin && t <= yMax);
+      const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
       data.forEach((row, i) => {
@@ -987,16 +1008,14 @@
         const bx = m.l + groupW * i + 2;
         const partial = row.isPartial;
         const dash = partial ? 'stroke-dasharray="5 3" stroke="var(--chart-axis)" stroke-width="1.2"' : "";
-        [[row.top10Pct, "var(--top)"],
-         [row.top3Pct, "var(--top3)"],
-         [row.bottom10Pct, "var(--bottom)"],
-         [row.mom12_1Pct, "var(--mom121)"],
-         [row.sp500Pct, "var(--spy)"]].forEach(([v, col], j) => {
-          const x = cx + offsets[j] * (barW + gap);
+        active.forEach((s, j) => {
+          const v = row[s.pctKey];
+          const offset = j - (active.length - 1) / 2;
+          const x = cx + offset * (barW + gap);
           const tip = yScale(v);
           const y = v >= 0 ? tip : zeroY;
           const h = Math.max(2, Math.abs(zeroY - tip));
-          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${col}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
+          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${s.color}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
         });
         bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
         bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${row.holdYear}</text>`;
@@ -1005,7 +1024,6 @@
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Årligt afkast">
-          ${chartLegend(W, m)}
           <text x="16" y="${m.t + plotH / 2}" font-size="11" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
@@ -1013,20 +1031,18 @@
           ${bars}
           <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-weight="600">Kalenderår</text>
         </svg>`;
-      bindTooltip(data);
+      bindTooltip(data, active);
     }
 
     function renderCumulativeChart() {
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
-      const series = [
-        { name: "Top-10", data: [100, ...DATA.map(d => d.top10Index)], color: "var(--top)" },
-        { name: "Top-3", data: [100, ...DATA.map(d => d.top3Index)], color: "var(--top3)" },
-        { name: "Bund-10", data: [100, ...DATA.map(d => d.bottom10Index)], color: "var(--bottom)" },
-        { name: "Jegadeesh-Titman", data: [100, ...DATA.map(d => d.mom12_1Index)], color: "var(--mom121)" },
-        { name: "S&P 500", data: [100, ...DATA.map(d => d.sp500Index)], color: "var(--spy)" },
-      ];
+      const active = activeChartSeries();
+      const series = active.map(s => ({
+        ...s,
+        data: [100, ...DATA.map(d => d[s.indexKey])],
+      }));
       const W = 1040, H = 420;
-      const m = { t: 58, r: 58, b: 48, l: 64 };
+      const m = { t: 24, r: 58, b: 48, l: 64 };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const last = cats.length - 1;
       const all = series.flatMap(s => s.data);
@@ -1034,20 +1050,20 @@
       const yMax = Math.max(...all) * 1.06;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const xScale = i => m.l + (i / last) * plotW;
-      const yTicks = [100,200,400,600,800,1000].filter(t => t >= yMin && t <= yMax);
+      const yTicks = [100,200,400,600,800,1000,2000,4000].filter(t => t >= yMin && t <= yMax);
 
-      const paths = series.map(s => {
+      const paths = series.map((s, idx) => {
         const d = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
         const end = s.data[last];
+        const labelX = xScale(last) + 8 + idx * 4;
         return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>
           <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>
-          <text x="${xScale(last)+8}" y="${yScale(end)+4}" fill="var(--chart-label)" font-size="10">${Math.round(end)}%</text>`;
+          <text x="${labelX}" y="${yScale(end)+4}" fill="var(--chart-label)" font-size="10">${Math.round(end)}%</text>`;
       }).join("");
 
       document.getElementById("chart").innerHTML = `
         <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Akkumuleret afkast">
-          ${chartLegend(W, m, 520)}
-          <text x="${m.l}" y="40" font-size="11" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
+          <text x="${m.l}" y="14" font-size="11" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}</text>`).join("")}
@@ -1057,13 +1073,13 @@
       document.getElementById("tooltip").classList.remove("show");
     }
 
-    function bindTooltip(data) {
+    function bindTooltip(data, active = activeChartSeries()) {
       const tip = document.getElementById("tooltip");
       document.querySelectorAll(".band, .bar").forEach(el => {
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
-          tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>
-            Top-10: ${fmt(row.top10Pct)}<br>Top-3: ${fmt(row.top3Pct)}<br>Bund-10: ${fmt(row.bottom10Pct)}<br>Jegadeesh-Titman: ${fmt(row.mom12_1Pct)}<br>SPY: ${fmt(row.sp500Pct)}`;
+          const lines = active.map(s => `${s.label}: ${fmt(row[s.pctKey])}`).join("<br>");
+          tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>${lines}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
@@ -1164,6 +1180,7 @@
     renderSummary();
     renderYearDetail(2024);
     renderTable();
+    renderChartLegend();
     renderChart();
     renderScatterFilters();
     renderScatterChart();
