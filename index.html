@@ -32,37 +32,77 @@
       padding: 24px 16px 48px;
     }
     .wrap { max-width: 1100px; margin: 0 auto; }
-    .hero { margin-bottom: 28px; }
+    .hero {
+      margin-bottom: 24px;
+      padding: 28px 24px 22px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+    }
     h1 {
       font-size: clamp(1.85rem, 4vw, 2.35rem);
       font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.15;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
       color: var(--text);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .intro {
-      color: var(--text);
-      font-size: 1rem;
-      line-height: 1.65;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
       margin-bottom: 0;
+      max-width: 42rem;
     }
     .intro-list {
-      margin: 12px 0 0;
-      padding-left: 1.2rem;
-      color: var(--text);
-      font-size: 0.95rem;
-      line-height: 1.65;
-      list-style-position: outside;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      max-width: 44rem;
     }
-    .intro-list li { margin-bottom: 6px; }
-    @media (min-width: 720px) {
-      .intro-list li { white-space: nowrap; }
+    .intro-list li {
+      position: relative;
+      padding-left: 16px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .intro-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.58em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--top);
+      opacity: 0.85;
+    }
+    .intro-list strong {
+      font-weight: 600;
+      color: var(--text);
     }
     .intro-meta {
-      margin-top: 12px;
-      font-size: 0.95rem;
-      color: var(--text);
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .period-badge {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 12px;
+    }
+    @media (min-width: 720px) {
+      .hero { padding: 32px 32px 24px; }
     }
     .stats {
       display: grid;
@@ -303,7 +343,7 @@
         <li><strong>Jegadeesh-Titman:</strong> jan–nov (december udelades), køb 1. januar.</li>
         <li>Kun aktier med fuldt års S&P 500-medlemskab.</li>
       </ul>
-      <p class="intro-meta">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</p>
+      <p class="intro-meta"><span class="period-badge">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
     </header>
 
     <div class="card">
@@ -336,7 +376,10 @@
           <div class="tooltip" id="tooltip"></div>
           <div id="chart"></div>
         </div>
-        <p class="chart-tip">Tip: Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</p>
+        <ul class="chart-tips">
+          <li>Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
+          <li>Log y-akse gør akkumulerede afkast lettere at aflæse.</li>
+        </ul>
       </div>
     </div>
 
