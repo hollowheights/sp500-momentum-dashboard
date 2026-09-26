@@ -193,6 +193,13 @@
       flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .scatter-filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     .scatter-filter {
       border: 1px solid var(--border);
@@ -922,7 +929,7 @@
     }
 
     function renderTable() {
-      const rows = [...DATA, YTD_2026].map(d => {
+      const rows = YEAR_ROWS.map(d => {
         const win = d.top10Pct > d.sp500Pct;
         const loss = d.top10Pct < d.sp500Pct;
         const cls = win ? "win" : loss ? "loss" : "";
@@ -1098,12 +1105,37 @@
       { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)" },
     ];
     const scatterActive = new Set(SCATTER_PORTFOLIOS.map(p => p.id));
+    let scatterRegression = false;
+
+    function linearRegression(points) {
+      const n = points.length;
+      if (n < 2) return null;
+      const sumX = points.reduce((s, p) => s + p.priorReturnPct, 0);
+      const sumY = points.reduce((s, p) => s + p.holdReturnPct, 0);
+      const sumXY = points.reduce((s, p) => s + p.priorReturnPct * p.holdReturnPct, 0);
+      const sumX2 = points.reduce((s, p) => s + p.priorReturnPct ** 2, 0);
+      const denom = n * sumX2 - sumX ** 2;
+      if (denom === 0) return null;
+      const b = (n * sumXY - sumX * sumY) / denom;
+      const a = (sumY - b * sumX) / n;
+      const yMean = sumY / n;
+      const ssTot = points.reduce((s, p) => s + (p.holdReturnPct - yMean) ** 2, 0);
+      const ssRes = points.reduce((s, p) => s + (p.holdReturnPct - (a + b * p.priorReturnPct)) ** 2, 0);
+      const r2 = ssTot === 0 ? 0 : 1 - ssRes / ssTot;
+      return { a, b, r2 };
+    }
 
     function renderScatterFilters() {
-      document.getElementById("scatter-filters").innerHTML = SCATTER_PORTFOLIOS.map(p => {
+      const portfolioBtns = SCATTER_PORTFOLIOS.map(p => {
         const on = scatterActive.has(p.id);
         return `<button type="button" class="scatter-filter ${p.id} ${on ? "on" : "off"}" data-id="${p.id}">${p.label}</button>`;
       }).join("");
+      document.getElementById("scatter-filters").innerHTML = `
+        <div class="scatter-filter-group">${portfolioBtns}</div>
+        <div class="toggle-row">
+          <span>Regressionslinje</span>
+          <button class="toggle ${scatterRegression ? "on" : ""}" id="scatter-regression-toggle" type="button" aria-label="Vis regressionslinje"></button>
+        </div>`;
       document.querySelectorAll(".scatter-filter").forEach(btn => {
         btn.addEventListener("click", () => {
           const id = btn.dataset.id;
@@ -1112,6 +1144,11 @@
           renderScatterFilters();
           renderScatterChart();
         });
+      });
+      document.getElementById("scatter-regression-toggle").addEventListener("click", (e) => {
+        scatterRegression = !scatterRegression;
+        e.target.classList.toggle("on", scatterRegression);
+        renderScatterChart();
       });
     }
 
@@ -1135,6 +1172,16 @@
       const xTicks = [-100, -50, 0, 50, 100, 150, 200, 300].filter(t => t >= xMin && t <= xMax);
       const yTicks = [-100, -50, 0, 50, 100, 150, 200, 300].filter(t => t >= yMin && t <= yMax);
 
+      const reg = scatterRegression ? linearRegression(pts) : null;
+      let regressionLine = "";
+      let regressionLabel = "";
+      if (reg) {
+        const y1 = reg.a + reg.b * xMin;
+        const y2 = reg.a + reg.b * xMax;
+        regressionLine = `<line x1="${xScale(xMin)}" y1="${yScale(y1)}" x2="${xScale(xMax)}" y2="${yScale(y2)}" stroke="var(--text)" stroke-width="2" stroke-dasharray="7 5" opacity="0.55"/>`;
+        regressionLabel = `<text x="${W - m.r - 8}" y="${m.t + 16}" text-anchor="end" fill="var(--chart-label)" font-size="11">R² = ${reg.r2.toFixed(2)}</text>`;
+      }
+
       const dots = pts.map((p, i) =>
         `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="4.5" fill="${portfolioColor(p.portfolio)}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="1.2"/>`
       ).join("");
@@ -1148,6 +1195,8 @@
             <text x="${xScale(t)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l - 12}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="11">${t}%</text>`).join("")}
+          ${regressionLine}
+          ${regressionLabel}
           ${dots}
           <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="11" font-weight="600">Afkast i udvælgelsesåret (%)</text>
           <text x="16" y="${m.t + plotH / 2}" font-size="11" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Afkast i holdåret (%)</text>
@@ -1167,7 +1216,10 @@
     }
 
     const sel = document.getElementById("year-select");
-    sel.innerHTML = DATA.map(d => `<option value="${d.holdYear}">${d.holdYear} (${fmt(d.top10Pct)} · ${fmt(d.top3Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`).join("");
+    sel.innerHTML = YEAR_ROWS.map(d => {
+      const yr = d.isPartial ? "2026 YTD" : String(d.holdYear);
+      return `<option value="${d.holdYear}">${yr} (${fmt(d.top10Pct)} · ${fmt(d.top3Pct)} · ${fmt(d.bottom10Pct)} · ${fmt(d.mom12_1Pct)} · ${fmt(d.sp500Pct)})</option>`;
+    }).join("");
     sel.value = "2024";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
 
