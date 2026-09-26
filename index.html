@@ -310,15 +310,38 @@
       gap: 8px;
       margin-bottom: 14px;
     }
+    .chart-tips-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 14px 0 8px;
+    }
     .chart-tips {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+    .chart-tips li {
+      position: relative;
+      padding-left: 14px;
       font-size: 0.8rem;
       color: var(--muted);
-      margin: 12px 0 0;
-      padding-left: 1.15rem;
-      list-style: disc;
+      line-height: 1.45;
     }
-    .chart-tips li { margin-bottom: 4px; }
-    .chart-tips li:last-child { margin-bottom: 0; }
+    .chart-tips li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
     .source-box {
       margin-top: 8px;
       padding: 14px 16px;
@@ -376,6 +399,7 @@
           <div class="tooltip" id="tooltip"></div>
           <div id="chart"></div>
         </div>
+        <p class="chart-tips-label">Tips</p>
         <ul class="chart-tips">
           <li>Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
           <li>Log y-akse gør akkumulerede afkast lettere at aflæse.</li>
