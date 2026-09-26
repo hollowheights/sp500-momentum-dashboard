@@ -134,6 +134,8 @@
       .chart-zoom-toggle { display: flex; }
       .card-hd { flex-wrap: wrap; gap: 10px; }
       .chart-zoom-hint.is-visible { display: block; }
+      .card-bd--chart { padding-left: 8px; padding-right: 8px; }
+      .card-bd--chart .chart-wrap { margin-left: -4px; margin-right: -4px; }
     }
     .footnote { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
     .grid2 {
@@ -313,7 +315,7 @@
           </div>
         </div>
       </div>
-      <div class="card-bd">
+      <div class="card-bd card-bd--chart">
         <div class="chart-legend" id="chart-legend"></div>
         <p class="chart-zoom-hint" id="chart-zoom-hint">Swipe for at se hele grafen</p>
         <div class="chart-wrap" id="chart-wrap">
@@ -1044,6 +1046,20 @@
       };
     }
 
+    function getChartLayout(pointCount, base, zoomed) {
+      if (zoomed) return getZoomedLayout(pointCount, base);
+      if (isMobileChart()) {
+        return {
+          W: 1040,
+          H: base.h + 160,
+          font: 11,
+          ml: 46,
+          mr: base.r === 72 ? 44 : 6,
+        };
+      }
+      return { W: 1040, H: base.h, font: 11, ml: 64, mr: base.r };
+    }
+
     function chartSvgOpen(W, H, label, zoomed) {
       const style = zoomed ? ` style="min-width:${W}px;width:${W}px;height:auto;display:block"` : "";
       return `<svg viewBox="0 0 ${W} ${H}"${style} role="img" aria-label="${label}">`;
@@ -1089,7 +1105,7 @@
       const yMax = Math.ceil(Math.max(...vals, 0) + 5);
       const zoomed = chartZoomActive();
       const base = { w: 1040, h: 440, r: 24 };
-      const layout = zoomed ? getZoomedLayout(data.length, base) : { W: 1040, H: 440, font: 11, ml: 64, mr: 24 };
+      const layout = getChartLayout(data.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
       const m = { t: 24, r: mr, b: 56, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
@@ -1122,7 +1138,7 @@
         if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${row.chartLabel}</text>`;
       });
 
-      const yTitle = zoomed ? "" : `<text x="16" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 16, ${m.t + plotH / 2})">Årligt afkast (%)</text>`;
+      const yTitle = zoomed ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">Årligt afkast (%)</text>`;
 
       document.getElementById("chart").innerHTML = `
         ${chartSvgOpen(W, H, "Årligt afkast", zoomed)}
@@ -1160,7 +1176,7 @@
       }));
       const zoomed = chartZoomActive();
       const base = { w: 1040, h: 420, r: 72 };
-      const layout = zoomed ? getZoomedLayout(cats.length, base) : { W: 1040, H: 420, font: 11, ml: 64, mr: 72 };
+      const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
       const m = { t: 24, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
