@@ -845,7 +845,7 @@
     const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, TOP3_TOTAL = 3457.9, SP500_TOTAL = 608.8;
 
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
-    const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "—");
+    const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "-");
     const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
 
     function sharpeRatio(pcts, rf = 0) {
@@ -869,11 +869,11 @@
 
     function renderSharpe() {
       document.getElementById("sharpe-stats").innerHTML = `
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Sharpe · Top-10</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">Sharpe · Top-3</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Sharpe · Bund-10</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Sharpe · Jegadeesh-Titman</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">Sharpe · S&P 500</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Top-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">Top-3</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Bund-10</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Jegadeesh-Titman</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">S&P 500</div></div>
         <p class="footnote" style="grid-column:1/-1;margin:0">Årlige afkast 2011–2025 · risikofri rente sat til 0%</p>`;
     }
 
