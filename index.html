@@ -1983,8 +1983,8 @@
       const min = Math.min(...finite);
       const max = Math.max(...finite);
       const span = max - min || 1;
-      const hMin = 104;
-      const hMax = 220;
+      const hMin = 132;
+      const hMax = 280;
       document.getElementById("sharpe-stats").innerHTML = sorted.map(({ id, val }) => {
         const h = Number.isFinite(val) ? hMin + ((val - min) / span) * (hMax - hMin) : hMin;
         return `<div class="stat ${id}" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div><div class="label">${pLabel(id)}</div></div>`;
