@@ -147,6 +147,21 @@
     }
     .stat .val { font-size: 1.35rem; font-weight: 700; color: var(--text); }
     .stat .label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    #sharpe-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+    #sharpe-stats .stat {
+      flex: 1 1 140px;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      box-sizing: border-box;
+    }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -1929,13 +1944,24 @@
     }
 
     function renderSharpe() {
-      document.getElementById("sharpe-stats").innerHTML = `
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">${pLabel("top10")}</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">${pLabel("top3")}</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">${pLabel("bottom10")}</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">${pLabel("mom12_1")}</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">${pLabel("mom6")}</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">${pLabel("sp500")}</div></div>`;
+      const rows = [
+        { id: "top10", val: SHARPE.top10 },
+        { id: "top3", val: SHARPE.top3 },
+        { id: "bottom10", val: SHARPE.bottom10 },
+        { id: "mom12_1", val: SHARPE.mom12_1 },
+        { id: "mom6", val: SHARPE.mom6 },
+        { id: "sp500", val: SHARPE.sp500 },
+      ];
+      const finite = rows.map(r => r.val).filter(Number.isFinite);
+      const min = Math.min(...finite);
+      const max = Math.max(...finite);
+      const span = max - min || 1;
+      const hMin = 80;
+      const hMax = 168;
+      document.getElementById("sharpe-stats").innerHTML = rows.map(({ id, val }) => {
+        const h = Number.isFinite(val) ? hMin + ((val - min) / span) * (hMax - hMin) : hMin;
+        return `<div class="stat" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div><div class="label">${pLabel(id)}</div></div>`;
+      }).join("");
     }
 
     function renderSummary() {
