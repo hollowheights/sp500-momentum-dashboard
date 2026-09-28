@@ -189,10 +189,34 @@
       grid-template-columns: minmax(0, 1fr) 132px;
       align-items: start;
     }
+    .year-picker-card { grid-column: 2; grid-row: 1; }
+    .year-detail-card { grid-column: 1; grid-row: 1; }
     .year-picker-card .card-bd { padding: 14px 12px; }
     .year-picker-card select { width: 100%; }
     @media (max-width: 520px) {
       .grid-year { grid-template-columns: 1fr; }
+      .year-picker-card,
+      .year-detail-card { grid-column: auto; grid-row: auto; }
+    }
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+    .mode-toggle .mode-label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .mode-toggle .mode-label.active {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .section-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: -4px 0 12px;
+      max-width: 40rem;
     }
     .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .pill {
@@ -375,15 +399,10 @@
         <li><strong>Top-10, Top-3 og Bund-10:</strong> hele forudgående år som udvælgelsesperiode, køb 1. januar, hold et år.</li>
         <li><strong>Jegadeesh-Titman:</strong> jan–nov (december udelades), køb 1. januar.</li>
         <li><strong>Top-10 halvårlig:</strong> top 10 efter forudgående 6 måneder, rebalance 1. januar og 1. juli.</li>
-        <li>Kun aktier med fuldt års S&P 500-medlemskab (årlige porteføljer); 6M kræver medlemskab i hele formationsvinduet.</li>
+        <li>Kun aktier med fuldt års S&P 500-medlemskab (årlige porteføljer); Top-10 halvårlig kræver medlemskab i hele formationsvinduet.</li>
       </ul>
       <p class="intro-meta"><span class="period-badge">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
     </header>
-
-    <div class="card">
-      <div class="card-hd">YTD 2026 · pr. 23. september</div>
-      <div class="card-bd" id="ytd-panel"></div>
-    </div>
 
     <div class="card">
       <div class="card-hd">
@@ -393,9 +412,10 @@
             <span>Zoom</span>
             <button class="toggle" id="chart-zoom-toggle" type="button" aria-label="Zoom graf"></button>
           </div>
-          <div class="toggle-row">
-            <span>Akkumuleret</span>
-            <button class="toggle" id="mode-toggle" type="button" aria-label="Skift visning"></button>
+          <div class="mode-toggle">
+            <span class="mode-label active" id="mode-label-annual">Årligt</span>
+            <button class="toggle" id="mode-toggle" type="button" aria-label="Skift mellem årligt og akkumuleret afkast"></button>
+            <span class="mode-label" id="mode-label-cumulative">Akkumuleret</span>
           </div>
           <div class="toggle-row" id="log-scale-toggle-row" hidden>
             <span>Log y-akse</span>
@@ -418,17 +438,31 @@
       </div>
     </div>
 
+    <h2>Porteføljer pr. år</h2>
+    <p class="section-desc">Vælg et holdår for at se hvilke aktier der indgik, og hvordan hver portefølje klarede sig.</p>
     <div class="grid2 grid-year">
-      <div class="card">
-        <div class="card-hd" id="year-card-title">Portefølje</div>
-        <div class="card-bd" id="year-detail"></div>
-      </div>
       <div class="card year-picker-card">
         <div class="card-hd">Vælg år</div>
         <div class="card-bd">
           <select id="year-select"></select>
         </div>
       </div>
+      <div class="card year-detail-card">
+        <div class="card-hd" id="year-card-title">Portefølje</div>
+        <div class="card-bd" id="year-detail"></div>
+      </div>
+    </div>
+
+    <h2>Alle år</h2>
+    <div class="card">
+      <div class="card-bd" style="overflow-x:auto">
+        <table id="all-years"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">YTD 2026 · pr. 23. september</div>
+      <div class="card-bd" id="ytd-panel"></div>
     </div>
 
     <h2>Momentum og næste års afkast</h2>
@@ -445,14 +479,8 @@
     </div>
 
     <h2>Sharpe-ratio</h2>
+    <p class="section-desc">Afkast i forhold til svingninger — højere tal betyder mere afkast pr. risiko.</p>
     <div class="stats" id="sharpe-stats"></div>
-
-    <h2>Alle år</h2>
-    <div class="card">
-      <div class="card-bd" style="overflow-x:auto">
-        <table id="all-years"></table>
-      </div>
-    </div>
 
     <p class="source-box">
       Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter).
@@ -1334,6 +1362,12 @@
       btn.classList.toggle("on", chartLogScale);
     }
 
+    function updateModeToggleUi() {
+      document.getElementById("mode-label-annual").classList.toggle("active", !cumulative);
+      document.getElementById("mode-label-cumulative").classList.toggle("active", cumulative);
+      document.getElementById("mode-toggle").classList.toggle("on", cumulative);
+    }
+
     function renderSharpe() {
       document.getElementById("sharpe-stats").innerHTML = `
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Top-10</div></div>
@@ -1369,21 +1403,21 @@
         <div class="portfolio-split">
           <div class="portfolio-block top">
             <div class="portfolio-block-hd">
-              <span class="name">Top-10 momentum</span>
+              <span class="name">Top-10</span>
               <span class="ret ${retClass(y.top10Pct)}">${fmt(y.top10Pct)}</span>
             </div>
             <div class="pills">${pills(y.top10Tickers)}</div>
           </div>
           <div class="portfolio-block top3">
             <div class="portfolio-block-hd">
-              <span class="name">Top-3 momentum</span>
+              <span class="name">Top-3</span>
               <span class="ret ${retClass(y.top3Pct)}">${fmt(y.top3Pct)}</span>
             </div>
             <div class="pills">${pills(y.top3Tickers, "top3")}</div>
           </div>
           <div class="portfolio-block bottom">
             <div class="portfolio-block-hd">
-              <span class="name">Bund-10 anti-momentum</span>
+              <span class="name">Bund-10</span>
               <span class="ret ${retClass(y.bottom10Pct)}">${fmt(y.bottom10Pct)}</span>
             </div>
             <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>
@@ -1435,7 +1469,7 @@
           <th class="num">Jegadeesh-Titman</th>
           <th class="num">Top-10 halvårlig</th>
           <th class="num">S&P 500</th>
-          <th class="num">Udv.år</th>
+          <th class="num">Udvælgelsesår</th>
           <th>Periode</th>
         </tr></thead>
         <tbody>${rows}</tbody>
@@ -1838,12 +1872,12 @@
       const yr = d.isPartial ? "2026 YTD" : String(d.holdYear);
       return `<option value="${d.holdYear}">${yr}</option>`;
     }).join("");
-    sel.value = "2024";
+    sel.value = "2026";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
 
-    document.getElementById("mode-toggle").addEventListener("click", (e) => {
+    document.getElementById("mode-toggle").addEventListener("click", () => {
       cumulative = !cumulative;
-      e.target.classList.toggle("on", cumulative);
+      updateModeToggleUi();
       renderChart();
     });
 
@@ -1874,9 +1908,10 @@
 
     renderSharpe();
     renderSummary();
-    renderYearDetail(2024);
+    renderYearDetail(2026);
     renderTable();
     renderChartLegend();
+    updateModeToggleUi();
     renderChart();
     renderScatterFilters();
     renderScatterChart();
