@@ -289,6 +289,7 @@
       pointer-events: none; display: none; min-width: 200px;
     }
     .tooltip.show { display: block; }
+    #cum-tooltip { top: auto; left: auto; min-width: 0; }
     h2 {
       font-size: 1.3rem;
       font-weight: 700;
@@ -2336,17 +2337,30 @@
       bindCumTooltip(series);
     }
 
+    function positionTooltipAtCursor(tip, wrap, e) {
+      const rect = wrap.getBoundingClientRect();
+      const pad = 12;
+      tip.classList.add("show");
+      const maxX = Math.max(pad, rect.width - tip.offsetWidth - pad);
+      const maxY = Math.max(pad, rect.height - tip.offsetHeight - pad);
+      tip.style.left = `${Math.min(Math.max(e.clientX - rect.left + pad, pad), maxX)}px`;
+      tip.style.top = `${Math.min(Math.max(e.clientY - rect.top + pad, pad), maxY)}px`;
+    }
+
     function bindCumTooltip(activeSeries) {
       const tip = document.getElementById("cum-tooltip");
+      const wrap = document.getElementById("cum-wrap");
       document.querySelectorAll("#cum-chart .series-hit[data-id]").forEach(el => {
         const id = el.dataset.id;
         const s = activeSeries.find(row => row.id === id);
         if (!s) return;
-        el.addEventListener("mouseenter", () => {
+        const show = (e) => {
           const end = s.data[s.data.length - 1];
           tip.innerHTML = `<strong>${pLabel(id)}</strong><br>${Math.round(end)}%`;
-          tip.classList.add("show");
-        });
+          positionTooltipAtCursor(tip, wrap, e);
+        };
+        el.addEventListener("mouseenter", show);
+        el.addEventListener("mousemove", show);
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
       });
     }
