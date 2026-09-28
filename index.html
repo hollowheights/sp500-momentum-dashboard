@@ -33,11 +33,14 @@
       padding: 24px 16px 48px;
     }
     .wrap { max-width: 1100px; margin: 0 auto; }
-    .lang-bar {
+    .hero-top {
       display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
     }
+    .hero-top h1 { margin-bottom: 0; }
     .lang-switch {
       display: inline-flex;
       border: 1px solid var(--border);
@@ -402,14 +405,14 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="lang-bar">
-      <div class="lang-switch" role="group" aria-label="Language">
-        <button type="button" data-lang="da" class="active">DA</button>
-        <button type="button" data-lang="en">EN</button>
-      </div>
-    </div>
     <header class="hero">
-      <h1 data-i18n="title">S&P 500 momentum-backtest</h1>
+      <div class="hero-top">
+        <h1 data-i18n="title">S&P 500 momentum-backtest</h1>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" data-lang="da" class="active">DA</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </div>
       <p class="intro" data-i18n="intro">
         Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?
       </p>
