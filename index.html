@@ -494,6 +494,10 @@
             <button class="toggle" id="cum-zoom-toggle" type="button" data-i18n-aria="zoomCumAria" aria-label="Zoom akkumuleret graf"></button>
           </div>
           <div class="toggle-row">
+            <span data-i18n="cumAnim">Animation</span>
+            <button class="toggle on" id="cum-anim-toggle" type="button" data-i18n-aria="cumAnimAria" aria-label="Afspil akkumuleret afkast som animation"></button>
+          </div>
+          <div class="toggle-row">
             <span data-i18n="logY">Log y-akse</span>
             <button class="toggle" id="log-scale-toggle" type="button" data-i18n-aria="logYAria" aria-label="Logaritmisk y-akse"></button>
           </div>
@@ -1688,6 +1692,8 @@
         tips: "Tip",
         tipFilter: "Klik på knapperne over grafen eller på søjlerne for at slå en portefølje til og fra.",
         cumulativeReturns: "Akkumuleret afkast",
+        cumAnim: "Animation",
+        cumAnimAria: "Afspil akkumuleret afkast som animation",
         logY: "Log y-akse",
         logYAria: "Logaritmisk y-akse",
         cumNote: "Y-aksen er som standard logaritmisk, for at gøre aflæsning lettere — brug knappen øverst til højre for at se afkast lineært.",
@@ -1756,6 +1762,8 @@
         tips: "Tip",
         tipFilter: "Click the buttons above the chart or the bars to show or hide a portfolio.",
         cumulativeReturns: "Cumulative returns",
+        cumAnim: "Animation",
+        cumAnimAria: "Play cumulative returns as animation",
         logY: "Log y-axis",
         logYAria: "Logarithmic y-axis",
         cumNote: "The y-axis is logarithmic by default to make the chart easier to read — use the button at the top right for a linear scale.",
@@ -1862,6 +1870,43 @@
     };
 
     let chartLogScale = true;
+    let cumAnimEnabled = true;
+    let cumAnimStep = 0;
+    let cumAnimTimer = null;
+    const CUM_ANIM_MS = 3000;
+
+    function cumFullStep() {
+      return DATA.length + 1;
+    }
+
+    function cumAnimComplete() {
+      return !cumAnimEnabled || cumAnimStep >= cumFullStep();
+    }
+
+    function stopCumAnimation() {
+      if (cumAnimTimer) {
+        clearInterval(cumAnimTimer);
+        cumAnimTimer = null;
+      }
+    }
+
+    function startCumAnimation() {
+      stopCumAnimation();
+      cumAnimStep = 0;
+      renderCumulativeChart();
+      cumAnimTimer = setInterval(() => {
+        if (cumAnimStep >= cumFullStep()) {
+          stopCumAnimation();
+          return;
+        }
+        cumAnimStep += 1;
+        renderCumulativeChart();
+      }, CUM_ANIM_MS);
+    }
+
+    function updateCumAnimToggleUi() {
+      document.getElementById("cum-anim-toggle").classList.toggle("on", cumAnimEnabled);
+    }
 
     function logYTicks(yMin, yMax) {
       return [50, 75, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 10000]
@@ -2216,56 +2261,71 @@
 
     function renderCumulativeChart() {
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
+      const fullLast = cats.length - 1;
+      const step = cumAnimEnabled ? Math.min(cumAnimStep, fullLast) : fullLast;
+      const showEndLabels = cumAnimComplete();
       const active = activeChartSeries();
-      const series = active.map(s => ({
+      const fullSeries = active.map(s => ({
         ...s,
         data: [100, ...DATA.map(d => d[s.indexKey])],
       }));
+      const series = fullSeries.map(s => ({ ...s, data: s.data.slice(0, step + 1) }));
       const zoomed = chartZoomActive("cum");
       const base = { w: 1040, h: 520, r: 72 };
       const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
       const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
-      const last = cats.length - 1;
-      const all = series.flatMap(s => s.data);
+      const all = fullSeries.flatMap(s => s.data);
       const yMin = Math.min(100, ...all) * 0.92;
       const yMax = Math.max(...all) * 1.06;
       const useLog = chartLogScale;
       const yScale = useLog ? makeLogYScale(yMin, yMax, m, plotH) : makeLinearYScale(yMin, yMax, m, plotH);
-      const xScale = i => m.l + (i / last) * plotW;
+      const xScale = i => m.l + (i / fullLast) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
         : [100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
-      const labelX = xScale(last) + 10;
-      const endLabels = layoutEndLabels(
-        series.map(s => ({ s, end: s.data[last], y: yScale(s.data[last]) })),
+      const labelX = xScale(fullLast) + 10;
+      const endLabels = showEndLabels ? layoutEndLabels(
+        fullSeries.map(s => ({ s, end: s.data[fullLast], y: yScale(s.data[fullLast]) })),
         16,
         m.t + 8,
         m.t + plotH - 6,
-      );
+      ) : [];
       const paths = series.map(s => {
-        const line = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
-        const end = s.data[last];
+        const pts = s.data;
+        const end = pts[pts.length - 1];
+        const endIdx = pts.length - 1;
+        if (pts.length === 1) {
+          return `<circle class="series-hit" data-id="${s.id}" cx="${xScale(0)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+        }
+        const line = pts.map((v, i) => `${i === 0 ? "M" : "L"}${xScale(i)},${yScale(v)}`).join(" ");
         return `<path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cum-plot-clip)"/>
           <path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="${s.color}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" filter="url(#cum-line-depth)" clip-path="url(#cum-plot-clip)"/>
-          <circle class="series-hit" data-id="${s.id}" cx="${xScale(last)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+          <circle class="series-hit" data-id="${s.id}" cx="${xScale(endIdx)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
       }).join("");
 
       const endLabelSvg = endLabels.map(({ s, end, y }) =>
         `<text class="series-hit" data-id="${s.id}" x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
       ).join("");
 
+      const yearBadge = !showEndLabels && step > 0
+        ? `<text x="${W - m.r - 8}" y="${m.t + 20}" text-anchor="end" fill="var(--chart-label)" font-size="${font + 1}" font-weight="700">${cats[step]}</text>`
+        : "";
+
       document.getElementById("cum-chart").innerHTML = `
         ${chartSvgOpen(W, H, t("cumAria"), zoomed)}
-          ${chartDefs(series, { x: m.l, y: m.t, w: plotW, h: plotH }, "cum")}
+          ${chartDefs(fullSeries, { x: m.l, y: m.t, w: plotW, h: plotH }, "cum")}
           <text x="${m.l}" y="16" font-size="${font}" font-weight="600" fill="var(--chart-label)">${useLog ? t("cumAxisLog") : t("cumAxis")}</text>
+          ${yearBadge}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
           ${yTicks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="var(--chart-grid)" stroke-width="1" opacity="0.7" stroke-dasharray="3 5"/>
             <text x="${m.l-12}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}</text>`).join("")}
           ${paths}
           ${endLabelSvg}
-          ${cats.map((l,i) => (!zoomed && (i%2===0||i===last)) || (zoomed && showZoomedYearLabel(i, cats.length))?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
+          ${cats.map((l, i) => i <= step && ((!zoomed && (i % 2 === 0 || i === step)) || (zoomed && showZoomedYearLabel(i, step + 1)))
+            ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${i === step && !showEndLabels ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${i === step && !showEndLabels ? 700 : 400}">${l}</text>`
+            : "").join("")}
         </svg>`;
       document.getElementById("cum-tooltip").classList.remove("show");
       bindSeriesClicks(document.getElementById("cum-chart"));
@@ -2290,6 +2350,7 @@
       updateChartZoomUi("annual");
       updateChartZoomUi("cum");
       updateLogScaleToggleUi();
+      updateCumAnimToggleUi();
     }
 
     const SCATTER_PORTFOLIOS = [
@@ -2461,6 +2522,18 @@
       renderChart();
     });
 
+    document.getElementById("cum-anim-toggle").addEventListener("click", () => {
+      cumAnimEnabled = !cumAnimEnabled;
+      if (cumAnimEnabled) {
+        startCumAnimation();
+      } else {
+        stopCumAnimation();
+        cumAnimStep = cumFullStep();
+        renderCumulativeChart();
+        updateCumAnimToggleUi();
+      }
+    });
+
     window.addEventListener("resize", () => {
       if (!isMobileChart()) {
         Object.keys(chartZoomed).forEach(key => { chartZoomed[key] = false; });
@@ -2493,6 +2566,7 @@
     });
 
     applyLang();
+    if (cumAnimEnabled) startCumAnimation();
   </script>
 </body>
 </html>
