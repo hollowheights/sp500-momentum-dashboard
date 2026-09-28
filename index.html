@@ -376,37 +376,17 @@
       gap: 8px;
       margin-bottom: 14px;
     }
-    .chart-tips-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 14px 0 8px;
-    }
-    .chart-tips {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 8px;
-    }
-    .chart-tips li {
-      position: relative;
-      padding-left: 14px;
+    .chart-tip {
+      margin: 14px 0 0;
       font-size: 0.8rem;
       color: var(--muted);
       line-height: 1.45;
     }
-    .chart-tips li::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--muted);
+    .chart-tip-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
     .source-box {
       margin-top: 36px;
@@ -477,10 +457,7 @@
           <div class="tooltip" id="annual-tooltip"></div>
           <div id="annual-chart"></div>
         </div>
-        <p class="chart-tips-label" data-i18n="tips">Tips</p>
-        <ul class="chart-tips">
-          <li data-i18n="tipFilter">Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
-        </ul>
+        <p class="chart-tip"><span class="chart-tip-label" data-i18n="tips">Tips</span>: <span data-i18n="tipFilter">Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</span></p>
       </div>
     </div>
 
