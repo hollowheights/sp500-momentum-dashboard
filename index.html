@@ -1756,7 +1756,7 @@
     }
 
     function getScatterLayout(zoomed) {
-      const base = { w: 1040, h: 480, r: 24 };
+      const base = { w: 1040, h: 540, r: 24 };
       if (zoomed) {
         return {
           W: 1200,
@@ -2089,13 +2089,16 @@
       const yMax = Math.ceil(Math.max(...ys, 0) + 10);
       const zoomed = scatterZoomActive();
       const { W, H, font, ml, mr } = getScatterLayout(zoomed);
-      const m = { t: 40, r: mr, b: 56, l: ml };
+      const m = { t: 28, r: mr, b: 56, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const xScale = v => m.l + ((v - xMin) / (xMax - xMin)) * plotW;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
-      const zeroX = xScale(0), zeroY = yScale(0);
       const xTicks = [-100, -50, 0, 50, 100, 150, 200, 300].filter(t => t >= xMin && t <= xMax);
       const yTicks = [-100, -50, 0, 50, 100, 150, 200, 300].filter(t => t >= yMin && t <= yMax);
+      const scatterSeries = SCATTER_PORTFOLIOS.map(p => ({
+        id: p.id,
+        color: CHART_SERIES.find(s => s.id === p.id)?.color || "var(--text)",
+      }));
 
       const reg = scatterRegression ? linearRegression(pts) : null;
       let regressionLine = "";
@@ -2103,31 +2106,30 @@
       if (reg) {
         const y1 = reg.a + reg.b * xMin;
         const y2 = reg.a + reg.b * xMax;
-        regressionLine = `<line x1="${xScale(xMin)}" y1="${yScale(y1)}" x2="${xScale(xMax)}" y2="${yScale(y2)}" stroke="var(--text)" stroke-width="2" stroke-dasharray="7 5" opacity="0.55"/>`;
-        regressionLabel = `<text x="${W - m.r - 8}" y="${m.t + 16}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">R² = ${reg.r2.toFixed(2)}</text>`;
+        regressionLine = `<line x1="${xScale(xMin)}" y1="${yScale(y1)}" x2="${xScale(xMax)}" y2="${yScale(y2)}" stroke="var(--text)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="6 6" opacity="0.45" clip-path="url(#scatter-plot-clip)"/>`;
+        regressionLabel = `<text x="${W - m.r - 10}" y="${m.t + 18}" text-anchor="end" fill="var(--chart-label)" font-size="${font}" font-weight="600">R² = ${reg.r2.toFixed(2)}</text>`;
       }
 
-      const dotR = zoomed ? 5.5 : 4.5;
+      const dotR = zoomed ? 5.5 : 4.6;
       const dots = pts.map((p, i) =>
-        `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="${dotR}" fill="${portfolioColor(p.portfolio)}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="1.2"/>`
+        `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="${dotR}" fill="${portfolioColor(p.portfolio)}" fill-opacity="0.82" stroke="var(--surface)" stroke-width="1.15" clip-path="url(#scatter-plot-clip)"/>`
       ).join("");
 
       const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">${t("holdReturnAxis")}</text>`;
 
       document.getElementById("scatter-chart").innerHTML = `
         ${chartSvgOpen(W, H, t("scatterAria"), zoomed)}
-          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
-          <line x1="${zeroX}" x2="${zeroX}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-          <line x1="${m.l}" x2="${W - m.r}" y1="${zeroY}" y2="${zeroY}" stroke="var(--chart-axis)" stroke-width="1.5"/>
-          ${xTicks.map(t => `<line x1="${xScale(t)}" x2="${xScale(t)}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-            <text x="${xScale(t)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
-          ${yTicks.map(t => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-            <text x="${m.l - 14}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
+          ${chartDefs(scatterSeries, { x: m.l, y: m.t, w: plotW, h: plotH }, "scatter")}
+          ${yTitle}
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
+          ${xTicks.map(tick => `<line x1="${xScale(tick)}" x2="${xScale(tick)}" y1="${m.t}" y2="${m.t + plotH}" stroke="${tick===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${tick===0?1.4:1}" opacity="${tick===0?0.9:0.7}" ${tick!==0?'stroke-dasharray="3 5"':''}/>
+            <text x="${xScale(tick)}" y="${H - 18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${tick}%</text>`).join("")}
+          ${yTicks.map(tick => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="${tick===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${tick===0?1.4:1}" opacity="${tick===0?0.9:0.7}" ${tick!==0?'stroke-dasharray="3 5"':''}/>
+            <text x="${m.l - 14}" y="${yScale(tick) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}%</text>`).join("")}
           ${regressionLine}
           ${regressionLabel}
           ${dots}
           <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("priorReturnAxis")}</text>
-          ${yTitle}
         </svg>`;
 
       const tip = document.getElementById("scatter-tooltip");
