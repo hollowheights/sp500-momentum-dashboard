@@ -407,7 +407,7 @@
 
     <div class="card">
       <div class="card-hd">
-        <span>Årligt afkast</span>
+        <span>Årlige afkast</span>
         <div class="card-hd-toggles">
           <div class="toggle-row chart-zoom-toggle">
             <span>Zoom</span>
@@ -450,7 +450,7 @@
           <div class="tooltip" id="cum-tooltip"></div>
           <div id="cum-chart"></div>
         </div>
-        <p class="footnote">Alle porteføljer starter ved 100. Log y-akse gør det lettere at sammenligne vækst over hele perioden.</p>
+        <p class="footnote">Alle porteføljer starter ved 100. Y-aksen er logaritmisk, så samme procentvise vækst giver samme hældning uanset niveau — slå log fra for at se de absolutte forskelle.</p>
       </div>
     </div>
 
@@ -1351,7 +1351,7 @@
       mom6: sharpeRatio(DATA.map((d) => d.mom6Pct)),
     };
 
-    let chartLogScale = false;
+    let chartLogScale = true;
 
     function logYTicks(yMin, yMax) {
       return [50, 75, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 10000]
