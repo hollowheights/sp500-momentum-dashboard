@@ -222,6 +222,7 @@
       margin: -4px 0 12px;
       max-width: 40rem;
     }
+    .ytd-card { margin-bottom: 16px; }
     .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .pill {
       font-size: 0.75rem; padding: 4px 10px; border-radius: 999px;
@@ -461,7 +462,7 @@
       </div>
     </div>
 
-    <h2>Alle år</h2>
+    <h2>Fuld afkastdata</h2>
     <div class="card">
       <div class="card-bd" style="overflow-x:auto">
         <table id="all-years"></table>
@@ -1460,7 +1461,6 @@
           <td class="num">${fmt(d.mom6Pct)}</td>
           <td class="num">${fmt(d.sp500Pct)}</td>
           <td class="num">${d.selectionYear}</td>
-          <td>${d.isPartial ? "YTD 23. sep." : "Fuldt år"}</td>
         </tr>`;
       }).join("");
       document.getElementById("all-years").innerHTML = `
@@ -1473,10 +1473,9 @@
           <th class="num">Top-10 halvårlig</th>
           <th class="num">S&P 500</th>
           <th class="num">Udvælgelsesår</th>
-          <th>Periode</th>
         </tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr><td colspan="9" class="footnote" style="padding-top:14px;border:none">
+        <tfoot><tr><td colspan="8" class="footnote" style="padding-top:14px;border:none">
           Samlet 2011–2025: Top-10 ${fmt(TOP10_TOTAL,0)} · Top-3 ${fmt(TOP3_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · Top-10 halvårlig ${fmt(MOM6_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
