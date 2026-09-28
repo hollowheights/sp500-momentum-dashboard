@@ -159,14 +159,25 @@
       flex: 0 1 108px;
       max-width: 120px;
       min-width: 96px;
-      padding: 12px 10px;
+      padding: 12px 10px 14px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
       box-sizing: border-box;
     }
-    #sharpe-stats .stat .val { font-size: 1.2rem; }
-    #sharpe-stats .stat .label { font-size: 0.75rem; }
+    #sharpe-stats .stat .val {
+      font-size: 1.2rem;
+      margin-top: 0;
+      width: 100%;
+    }
+    #sharpe-stats .stat .label {
+      font-size: 0.75rem;
+      margin-top: auto;
+      width: 100%;
+      line-height: 1.25;
+    }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
