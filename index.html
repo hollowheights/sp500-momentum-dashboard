@@ -367,6 +367,7 @@
       transition: background 0.15s, border-color 0.15s, opacity 0.15s;
     }
     .scatter-filter.off { opacity: 0.45; }
+    .series-hit { cursor: pointer; }
     .scatter-filter.top10.on { border-color: var(--top); background: rgba(78, 121, 167, 0.12); }
     .scatter-filter.top3.on { border-color: var(--top3); background: rgba(242, 142, 43, 0.12); }
     .scatter-filter.bottom10.on { border-color: var(--bottom); background: rgba(225, 87, 89, 0.12); }
@@ -1793,6 +1794,27 @@
       document.getElementById(ids.toggle).classList.toggle("on", chartZoomed[key]);
     }
 
+    function toggleChartSeries(id) {
+      if (!id) return;
+      if (chartSeriesActive.has(id)) {
+        if (chartSeriesActive.size === 1) return;
+        chartSeriesActive.delete(id);
+      } else {
+        chartSeriesActive.add(id);
+      }
+      renderChartLegend();
+      renderChart();
+    }
+
+    function bindSeriesClicks(root) {
+      root.querySelectorAll(".series-hit").forEach(el => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleChartSeries(el.dataset.id);
+        });
+      });
+    }
+
     function renderChartLegend() {
       Object.values(CHARTS).forEach(ids => {
         const el = document.getElementById(ids.legend);
@@ -1801,17 +1823,7 @@
           return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${pLabel(s.id)}</button>`;
         }).join("");
         el.querySelectorAll(".scatter-filter").forEach(btn => {
-          btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            if (chartSeriesActive.has(id)) {
-              if (chartSeriesActive.size === 1) return;
-              chartSeriesActive.delete(id);
-            } else {
-              chartSeriesActive.add(id);
-            }
-            renderChartLegend();
-            renderChart();
-          });
+          btn.addEventListener("click", () => toggleChartSeries(btn.dataset.id));
         });
       });
     }
@@ -1836,6 +1848,7 @@
       const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
+      let bands = "";
       data.forEach((row, i) => {
         const cx = m.l + groupW * i + groupW / 2;
         const bx = m.l + groupW * i + 2;
@@ -1849,9 +1862,9 @@
           const y = v >= 0 ? tip : zeroY;
           const h = Math.max(2, Math.abs(zeroY - tip));
           const grad = v >= 0 ? `url(#annual-bar-${s.id})` : `url(#annual-bar-${s.id}-neg)`;
-          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${grad}" rx="${Math.min(4, barW / 2)}" filter="url(#annual-bar-depth)" ${dash} opacity="${partial ? 0.9 : 1}"/>`;
+          bars += `<rect class="bar series-hit" data-id="${s.id}" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${grad}" rx="${Math.min(4, barW / 2)}" filter="url(#annual-bar-depth)" ${dash} opacity="${partial ? 0.9 : 1}"/>`;
         });
-        bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
+        bands += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
         if (!zoomed || showZoomedYearLabel(i, data.length)) {
           bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${row.holdYear}</text>`;
         }
@@ -1867,10 +1880,12 @@
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
           ${ticks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="${tick===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${tick===0?1.4:1}" opacity="${tick===0?0.9:0.7}" ${tick!==0?'stroke-dasharray="3 5"':''}/>
             <text x="${m.l - 14}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}%</text>`).join("")}
+          ${bands}
           ${bars}
           <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("calendarYear")}</text>
         </svg>`;
       bindTooltip(data, active);
+      bindSeriesClicks(document.getElementById("annual-chart"));
     }
 
     function layoutEndLabels(labels, minGap, top, bottom) {
@@ -1921,12 +1936,13 @@
       const paths = series.map(s => {
         const line = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
         const end = s.data[last];
-        return `<path d="${line}" fill="none" stroke="${s.color}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" filter="url(#cum-line-depth)" clip-path="url(#cum-plot-clip)"/>
-          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+        return `<path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cum-plot-clip)"/>
+          <path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="${s.color}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" filter="url(#cum-line-depth)" clip-path="url(#cum-plot-clip)"/>
+          <circle class="series-hit" data-id="${s.id}" cx="${xScale(last)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
       }).join("");
 
       const endLabelSvg = endLabels.map(({ s, end, y }) =>
-        `<text x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
+        `<text class="series-hit" data-id="${s.id}" x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
       ).join("");
 
       document.getElementById("cum-chart").innerHTML = `
@@ -1941,6 +1957,7 @@
           ${cats.map((l,i) => (!zoomed && (i%2===0||i===last)) || (zoomed && showZoomedYearLabel(i, cats.length))?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
         </svg>`;
       document.getElementById("cum-tooltip").classList.remove("show");
+      bindSeriesClicks(document.getElementById("cum-chart"));
     }
 
     function bindTooltip(data, active = activeChartSeries()) {
