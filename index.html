@@ -202,20 +202,6 @@
       .year-picker-card,
       .year-detail-card { grid-column: auto; grid-row: auto; }
     }
-    .mode-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-    }
-    .mode-toggle .mode-label {
-      color: var(--muted);
-      font-weight: 500;
-    }
-    .mode-toggle .mode-label.active {
-      color: var(--text);
-      font-weight: 600;
-    }
     .section-desc {
       font-size: 0.92rem;
       color: var(--muted);
@@ -421,35 +407,50 @@
 
     <div class="card">
       <div class="card-hd">
-        <span>Porteføljernes afkast</span>
+        <span>Årligt afkast</span>
         <div class="card-hd-toggles">
           <div class="toggle-row chart-zoom-toggle">
             <span>Zoom</span>
-            <button class="toggle" id="chart-zoom-toggle" type="button" aria-label="Zoom graf"></button>
+            <button class="toggle" id="annual-zoom-toggle" type="button" aria-label="Zoom årlig graf"></button>
           </div>
-          <div class="mode-toggle">
-            <span class="mode-label active" id="mode-label-annual">Årligt</span>
-            <button class="toggle" id="mode-toggle" type="button" aria-label="Skift mellem årligt og akkumuleret afkast"></button>
-            <span class="mode-label" id="mode-label-cumulative">Akkumuleret</span>
+        </div>
+      </div>
+      <div class="card-bd card-bd--chart">
+        <div class="chart-legend" id="annual-legend"></div>
+        <p class="chart-zoom-hint" id="annual-zoom-hint">Swipe for at se hele grafen</p>
+        <div class="chart-wrap" id="annual-wrap">
+          <div class="tooltip" id="annual-tooltip"></div>
+          <div id="annual-chart"></div>
+        </div>
+        <p class="chart-tips-label">Tips</p>
+        <ul class="chart-tips">
+          <li>Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <span>Akkumuleret afkast</span>
+        <div class="card-hd-toggles">
+          <div class="toggle-row chart-zoom-toggle">
+            <span>Zoom</span>
+            <button class="toggle" id="cum-zoom-toggle" type="button" aria-label="Zoom akkumuleret graf"></button>
           </div>
-          <div class="toggle-row" id="log-scale-toggle-row" hidden>
+          <div class="toggle-row">
             <span>Log y-akse</span>
             <button class="toggle" id="log-scale-toggle" type="button" aria-label="Logaritmisk y-akse"></button>
           </div>
         </div>
       </div>
       <div class="card-bd card-bd--chart">
-        <div class="chart-legend" id="chart-legend"></div>
-        <p class="chart-zoom-hint" id="chart-zoom-hint">Swipe for at se hele grafen</p>
-        <div class="chart-wrap" id="chart-wrap">
-          <div class="tooltip" id="tooltip"></div>
-          <div id="chart"></div>
+        <div class="chart-legend" id="cum-legend"></div>
+        <p class="chart-zoom-hint" id="cum-zoom-hint">Swipe for at se hele grafen</p>
+        <div class="chart-wrap" id="cum-wrap">
+          <div class="tooltip" id="cum-tooltip"></div>
+          <div id="cum-chart"></div>
         </div>
-        <p class="chart-tips-label">Tips</p>
-        <ul class="chart-tips">
-          <li>Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
-          <li>Log y-akse gør akkumulerede afkast lettere at aflæse.</li>
-        </ul>
+        <p class="footnote">Alle porteføljer starter ved 100. Log y-akse gør det lettere at sammenligne vækst over hele perioden.</p>
       </div>
     </div>
 
@@ -1350,7 +1351,6 @@
       mom6: sharpeRatio(DATA.map((d) => d.mom6Pct)),
     };
 
-    let cumulative = false;
     let chartLogScale = false;
 
     function logYTicks(yMin, yMax) {
@@ -1369,17 +1369,7 @@
     }
 
     function updateLogScaleToggleUi() {
-      const row = document.getElementById("log-scale-toggle-row");
-      const btn = document.getElementById("log-scale-toggle");
-      if (!row || !btn) return;
-      row.hidden = !cumulative;
-      btn.classList.toggle("on", chartLogScale);
-    }
-
-    function updateModeToggleUi() {
-      document.getElementById("mode-label-annual").classList.toggle("active", !cumulative);
-      document.getElementById("mode-label-cumulative").classList.toggle("active", cumulative);
-      document.getElementById("mode-toggle").classList.toggle("on", cumulative);
+      document.getElementById("log-scale-toggle").classList.toggle("on", chartLogScale);
     }
 
     function renderSharpe() {
@@ -1505,14 +1495,18 @@
     }
 
     const MOBILE_CHART_BREAKPOINT = 640;
-    let chartZoomed = false;
+    const CHARTS = {
+      annual: { wrap: "annual-wrap", hint: "annual-zoom-hint", toggle: "annual-zoom-toggle", legend: "annual-legend", chart: "annual-chart", tooltip: "annual-tooltip" },
+      cum: { wrap: "cum-wrap", hint: "cum-zoom-hint", toggle: "cum-zoom-toggle", legend: "cum-legend", chart: "cum-chart", tooltip: "cum-tooltip" },
+    };
+    const chartZoomed = { annual: false, cum: false };
 
     function isMobileChart() {
       return window.innerWidth < MOBILE_CHART_BREAKPOINT;
     }
 
-    function chartZoomActive() {
-      return chartZoomed && isMobileChart();
+    function chartZoomActive(key) {
+      return chartZoomed[key] && isMobileChart();
     }
 
     function getZoomedLayout(pointCount, base) {
@@ -1562,30 +1556,33 @@
       return i % 2 === 0 || i === total - 1;
     }
 
-    function updateChartZoomUi() {
-      const active = chartZoomActive();
-      document.getElementById("chart-wrap").classList.toggle("is-zoomed", active);
-      document.getElementById("chart-zoom-hint").classList.toggle("is-visible", active);
-      const btn = document.getElementById("chart-zoom-toggle");
-      if (btn) btn.classList.toggle("on", chartZoomed);
+    function updateChartZoomUi(key) {
+      const ids = CHARTS[key];
+      const active = chartZoomActive(key);
+      document.getElementById(ids.wrap).classList.toggle("is-zoomed", active);
+      document.getElementById(ids.hint).classList.toggle("is-visible", active);
+      document.getElementById(ids.toggle).classList.toggle("on", chartZoomed[key]);
     }
 
     function renderChartLegend() {
-      document.getElementById("chart-legend").innerHTML = CHART_SERIES.map(s => {
-        const on = chartSeriesActive.has(s.id);
-        return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${s.label}</button>`;
-      }).join("");
-      document.querySelectorAll("#chart-legend .scatter-filter").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
-          if (chartSeriesActive.has(id)) {
-            if (chartSeriesActive.size === 1) return;
-            chartSeriesActive.delete(id);
-          } else {
-            chartSeriesActive.add(id);
-          }
-          renderChartLegend();
-          renderChart();
+      Object.values(CHARTS).forEach(ids => {
+        const el = document.getElementById(ids.legend);
+        el.innerHTML = CHART_SERIES.map(s => {
+          const on = chartSeriesActive.has(s.id);
+          return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${s.label}</button>`;
+        }).join("");
+        el.querySelectorAll(".scatter-filter").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            if (chartSeriesActive.has(id)) {
+              if (chartSeriesActive.size === 1) return;
+              chartSeriesActive.delete(id);
+            } else {
+              chartSeriesActive.add(id);
+            }
+            renderChartLegend();
+            renderChart();
+          });
         });
       });
     }
@@ -1596,7 +1593,7 @@
       const vals = data.flatMap(d => active.map(s => d[s.pctKey]));
       const yMin = Math.floor(Math.min(...vals, 0) - 5);
       const yMax = Math.ceil(Math.max(...vals, 0) + 5);
-      const zoomed = chartZoomActive();
+      const zoomed = chartZoomActive("annual");
       const base = { w: 1040, h: 440, r: 24 };
       const layout = getChartLayout(data.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
@@ -1633,7 +1630,7 @@
 
       const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">Årligt afkast (%)</text>`;
 
-      document.getElementById("chart").innerHTML = `
+      document.getElementById("annual-chart").innerHTML = `
         ${chartSvgOpen(W, H, "Årligt afkast", zoomed)}
           ${yTitle}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
@@ -1667,7 +1664,7 @@
         ...s,
         data: [100, ...DATA.map(d => d[s.indexKey])],
       }));
-      const zoomed = chartZoomActive();
+      const zoomed = chartZoomActive("cum");
       const base = { w: 1040, h: 420, r: 72 };
       const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
@@ -1702,7 +1699,7 @@
         `<text x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
       ).join("");
 
-      document.getElementById("chart").innerHTML = `
+      document.getElementById("cum-chart").innerHTML = `
         ${chartSvgOpen(W, H, "Akkumuleret afkast", zoomed)}
           <text x="${m.l}" y="14" font-size="${font}" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)${useLog ? " · log skala" : ""}</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
@@ -1712,12 +1709,12 @@
           ${endLabelSvg}
           ${cats.map((l,i) => (!zoomed && (i%2===0||i===last)) || (zoomed && showZoomedYearLabel(i, cats.length))?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
         </svg>`;
-      document.getElementById("tooltip").classList.remove("show");
+      document.getElementById("cum-tooltip").classList.remove("show");
     }
 
     function bindTooltip(data, active = activeChartSeries()) {
-      const tip = document.getElementById("tooltip");
-      document.querySelectorAll(".band, .bar").forEach(el => {
+      const tip = document.getElementById("annual-tooltip");
+      document.querySelectorAll("#annual-chart .band, #annual-chart .bar").forEach(el => {
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
           const lines = active.map(s => `${s.label}: ${fmt(row[s.pctKey])}`).join("<br>");
@@ -1729,8 +1726,10 @@
     }
 
     function renderChart() {
-      cumulative ? renderCumulativeChart() : renderAnnualChart();
-      updateChartZoomUi();
+      renderAnnualChart();
+      renderCumulativeChart();
+      updateChartZoomUi("annual");
+      updateChartZoomUi("cum");
       updateLogScaleToggleUi();
     }
 
@@ -1887,30 +1886,21 @@
     sel.value = "2026";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
 
-    document.getElementById("mode-toggle").addEventListener("click", () => {
-      cumulative = !cumulative;
-      updateModeToggleUi();
-      renderChart();
+    Object.keys(CHARTS).forEach(key => {
+      document.getElementById(CHARTS[key].toggle).addEventListener("click", () => {
+        chartZoomed[key] = !chartZoomed[key];
+        renderChart();
+      });
     });
 
-    document.getElementById("chart-zoom-toggle").addEventListener("click", (e) => {
-      chartZoomed = !chartZoomed;
-      e.target.classList.toggle("on", chartZoomed);
-      renderChart();
-    });
-
-    document.getElementById("log-scale-toggle").addEventListener("click", (e) => {
+    document.getElementById("log-scale-toggle").addEventListener("click", () => {
       chartLogScale = !chartLogScale;
-      e.target.classList.toggle("on", chartLogScale);
       renderChart();
     });
 
     window.addEventListener("resize", () => {
       if (!isMobileChart()) {
-        if (chartZoomed) {
-          chartZoomed = false;
-          document.getElementById("chart-zoom-toggle").classList.remove("on");
-        }
+        Object.keys(chartZoomed).forEach(key => { chartZoomed[key] = false; });
         if (scatterZoomed) scatterZoomed = false;
       }
       renderChart();
@@ -1923,7 +1913,6 @@
     renderYearDetail(2026);
     renderTable();
     renderChartLegend();
-    updateModeToggleUi();
     renderChart();
     renderScatterFilters();
     renderScatterChart();
