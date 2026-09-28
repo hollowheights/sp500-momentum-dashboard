@@ -155,14 +155,21 @@
       justify-content: center;
       margin-bottom: 24px;
     }
-    #sharpe-stats .stat {
+    #sharpe-stats .sharpe-col {
       flex: 0 1 108px;
       max-width: 120px;
       min-width: 96px;
-      padding: 12px 10px 14px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    #sharpe-stats .stat {
+      width: 100%;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
       align-items: center;
       text-align: center;
       box-sizing: border-box;
@@ -172,11 +179,12 @@
       margin-top: 0;
       width: 100%;
     }
-    #sharpe-stats .stat .label {
+    #sharpe-stats .sharpe-label {
       font-size: 0.75rem;
-      margin-top: auto;
-      width: 100%;
+      color: var(--muted);
+      text-align: center;
       line-height: 1.25;
+      width: 100%;
     }
     #sharpe-stats .stat.top10 { border-color: var(--top); background: rgba(78, 121, 167, 0.14); }
     #sharpe-stats .stat.top3 { border-color: var(--top3); background: rgba(242, 142, 43, 0.14); }
@@ -1987,7 +1995,7 @@
       const hMax = 280;
       document.getElementById("sharpe-stats").innerHTML = sorted.map(({ id, val }) => {
         const h = Number.isFinite(val) ? hMin + ((val - min) / span) * (hMax - hMin) : hMin;
-        return `<div class="stat ${id}" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div><div class="label">${pLabel(id)}</div></div>`;
+        return `<div class="sharpe-col"><div class="stat ${id}" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div></div><div class="sharpe-label">${pLabel(id)}</div></div>`;
       }).join("");
     }
 
