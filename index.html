@@ -2333,6 +2333,22 @@
         </svg>`;
       document.getElementById("cum-tooltip").classList.remove("show");
       bindSeriesClicks(document.getElementById("cum-chart"));
+      bindCumTooltip(series);
+    }
+
+    function bindCumTooltip(activeSeries) {
+      const tip = document.getElementById("cum-tooltip");
+      document.querySelectorAll("#cum-chart .series-hit[data-id]").forEach(el => {
+        const id = el.dataset.id;
+        const s = activeSeries.find(row => row.id === id);
+        if (!s) return;
+        el.addEventListener("mouseenter", () => {
+          const end = s.data[s.data.length - 1];
+          tip.innerHTML = `<strong>${pLabel(id)}</strong><br>${Math.round(end)}%`;
+          tip.classList.add("show");
+        });
+        el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+      });
     }
 
     function bindTooltip(data, active = activeChartSeries()) {
