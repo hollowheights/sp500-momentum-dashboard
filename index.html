@@ -33,6 +33,32 @@
       padding: 24px 16px 48px;
     }
     .wrap { max-width: 1100px; margin: 0 auto; }
+    .lang-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .lang-switch button {
+      border: none;
+      background: transparent;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .lang-switch button.active {
+      background: var(--text);
+      color: #fff;
+    }
     .hero {
       margin-bottom: 24px;
       padding: 28px 24px 22px;
@@ -396,101 +422,107 @@
 </head>
 <body>
   <div class="wrap">
+    <div class="lang-bar">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="da" class="active">DA</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
     <header class="hero">
-      <h1>S&P 500 momentum-backtest</h1>
-      <p class="intro">
+      <h1 data-i18n="title">S&P 500 momentum-backtest</h1>
+      <p class="intro" data-i18n="intro">
         Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?
       </p>
-      <p class="strategy-lead">Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
+      <p class="strategy-lead" data-i18n="strategyLead">Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
       <div class="strategy-grid">
         <div class="strategy top10">
-          <span class="strategy-name">Top-10</span>
-          <span class="strategy-rule">De 10 bedste aktier året før. Køb 1. januar, hold et år.</span>
+          <span class="strategy-name" data-i18n="labelTop10">Top-10</span>
+          <span class="strategy-rule" data-i18n="ruleTop10">De 10 bedste aktier året før. Køb 1. januar, hold et år.</span>
         </div>
         <div class="strategy top3">
-          <span class="strategy-name">Top-3</span>
-          <span class="strategy-rule">De 3 bedste aktier året før. Køb 1. januar, hold et år.</span>
+          <span class="strategy-name" data-i18n="labelTop3">Top-3</span>
+          <span class="strategy-rule" data-i18n="ruleTop3">De 3 bedste aktier året før. Køb 1. januar, hold et år.</span>
         </div>
         <div class="strategy bottom10">
-          <span class="strategy-name">Bund-10</span>
-          <span class="strategy-rule">De 10 dårligste aktier året før. Køb 1. januar, hold et år.</span>
+          <span class="strategy-name" data-i18n="labelBottom10">Bund-10</span>
+          <span class="strategy-rule" data-i18n="ruleBottom10">De 10 dårligste aktier året før. Køb 1. januar, hold et år.</span>
         </div>
         <div class="strategy mom12_1">
-          <span class="strategy-name">Jegadeesh-Titman</span>
-          <span class="strategy-rule">De 10 bedste jan–nov (december udelades). Køb 1. januar.</span>
+          <span class="strategy-name" data-i18n="labelMom121">Jegadeesh-Titman</span>
+          <span class="strategy-rule" data-i18n="ruleMom121">De 10 bedste jan–nov (december udelades). Køb 1. januar.</span>
         </div>
         <div class="strategy mom6">
-          <span class="strategy-name">Top-10 halvårlig</span>
-          <span class="strategy-rule">De 10 bedste aktier seneste 6 mdr. Køb 1. januar/juli, hold 6 mdr.</span>
+          <span class="strategy-name" data-i18n="labelMom6">Top-10 halvårlig</span>
+          <span class="strategy-rule" data-i18n="ruleMom6">De 10 bedste aktier seneste 6 mdr. Køb 1. januar/juli, hold 6 mdr.</span>
         </div>
       </div>
-      <p class="hero-note">Kun aktier med fuldt medlemskab af S&P 500 i formationsperioden medtages.</p>
-      <p class="intro-meta"><span class="period-badge">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
+      <p class="hero-note" data-i18n="heroNote">Kun aktier med fuldt medlemskab af S&P 500 i formationsperioden medtages.</p>
+      <p class="intro-meta"><span class="period-badge" data-i18n="period">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
     </header>
 
     <div class="card">
       <div class="card-hd">
-        <span>Årlige afkast</span>
+        <span data-i18n="annualReturns">Årlige afkast</span>
         <div class="card-hd-toggles">
           <div class="toggle-row chart-zoom-toggle">
-            <span>Zoom</span>
-            <button class="toggle" id="annual-zoom-toggle" type="button" aria-label="Zoom årlig graf"></button>
+            <span data-i18n="zoom">Zoom</span>
+            <button class="toggle" id="annual-zoom-toggle" type="button" data-i18n-aria="zoomAnnualAria" aria-label="Zoom årlig graf"></button>
           </div>
         </div>
       </div>
       <div class="card-bd card-bd--chart">
         <div class="chart-legend" id="annual-legend"></div>
-        <p class="chart-zoom-hint" id="annual-zoom-hint">Swipe for at se hele grafen</p>
+        <p class="chart-zoom-hint" id="annual-zoom-hint" data-i18n="zoomHint">Swipe for at se hele grafen</p>
         <div class="chart-wrap" id="annual-wrap">
           <div class="tooltip" id="annual-tooltip"></div>
           <div id="annual-chart"></div>
         </div>
-        <p class="chart-tips-label">Tips</p>
+        <p class="chart-tips-label" data-i18n="tips">Tips</p>
         <ul class="chart-tips">
-          <li>Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
+          <li data-i18n="tipFilter">Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.</li>
         </ul>
       </div>
     </div>
 
     <div class="card">
       <div class="card-hd">
-        <span>Akkumuleret afkast</span>
+        <span data-i18n="cumulativeReturns">Akkumuleret afkast</span>
         <div class="card-hd-toggles">
           <div class="toggle-row chart-zoom-toggle">
-            <span>Zoom</span>
-            <button class="toggle" id="cum-zoom-toggle" type="button" aria-label="Zoom akkumuleret graf"></button>
+            <span data-i18n="zoom">Zoom</span>
+            <button class="toggle" id="cum-zoom-toggle" type="button" data-i18n-aria="zoomCumAria" aria-label="Zoom akkumuleret graf"></button>
           </div>
           <div class="toggle-row">
-            <span>Log y-akse</span>
-            <button class="toggle" id="log-scale-toggle" type="button" aria-label="Logaritmisk y-akse"></button>
+            <span data-i18n="logY">Log y-akse</span>
+            <button class="toggle" id="log-scale-toggle" type="button" data-i18n-aria="logYAria" aria-label="Logaritmisk y-akse"></button>
           </div>
         </div>
       </div>
       <div class="card-bd card-bd--chart">
         <div class="chart-legend" id="cum-legend"></div>
-        <p class="chart-zoom-hint" id="cum-zoom-hint">Swipe for at se hele grafen</p>
+        <p class="chart-zoom-hint" id="cum-zoom-hint" data-i18n="zoomHint">Swipe for at se hele grafen</p>
         <div class="chart-wrap" id="cum-wrap">
           <div class="tooltip" id="cum-tooltip"></div>
           <div id="cum-chart"></div>
         </div>
-        <p class="footnote">Y-aksen er som standard logaritmisk, for at gøre aflæsning lettere — brug knappen øverst til højre for at se afkast lineært.</p>
+        <p class="footnote" data-i18n="cumNote">Y-aksen er som standard logaritmisk, for at gøre aflæsning lettere — brug knappen øverst til højre for at se afkast lineært.</p>
       </div>
     </div>
 
-    <h2>Sharpe-ratio</h2>
-    <p class="section-desc">Afkast i forhold til svingninger — højere tal betyder mere afkast pr. risiko.</p>
+    <h2 data-i18n="sharpe">Sharpe-ratio</h2>
+    <p class="section-desc" data-i18n="sharpeDesc">Afkast i forhold til svingninger — højere tal betyder mere afkast pr. risiko.</p>
     <div class="stats" id="sharpe-stats"></div>
-    <p class="sharpe-note">Ratioer beregnet på fuld dataperiode | Risikofri rente sat til 1% for simplicitet</p>
+    <p class="sharpe-note" data-i18n="sharpeNote">Ratioer beregnet på fuld dataperiode | Risikofri rente sat til 1% for simplicitet</p>
 
-    <h2>Porteføljer pr. år</h2>
-    <p class="section-desc">Seneste status og valgt holdår — vælg år for at se hvilke aktier der indgik.</p>
+    <h2 data-i18n="portfoliosByYear">Porteføljer pr. år</h2>
+    <p class="section-desc" data-i18n="portfoliosDesc">Seneste status og valgt holdår — vælg år for at se hvilke aktier der indgik.</p>
     <div class="card ytd-card">
-      <div class="card-hd">YTD 2026 · pr. 23. september</div>
+      <div class="card-hd" data-i18n="ytdHd">YTD 2026 · pr. 23. september</div>
       <div class="card-bd" id="ytd-panel"></div>
     </div>
     <div class="grid2 grid-year">
       <div class="card year-picker-card">
-        <div class="card-hd">Vælg år</div>
+        <div class="card-hd" data-i18n="selectYear">Vælg år</div>
         <div class="card-bd">
           <select id="year-select"></select>
         </div>
@@ -501,27 +533,27 @@
       </div>
     </div>
 
-    <h2>Fuld afkastdata</h2>
+    <h2 data-i18n="fullReturnData">Fuld afkastdata</h2>
     <div class="card">
       <div class="card-bd" style="overflow-x:auto">
         <table id="all-years"></table>
       </div>
     </div>
 
-    <h2>Momentum og næste års afkast</h2>
+    <h2 data-i18n="scatterTitle">Momentum og næste års afkast</h2>
     <div class="card">
       <div class="card-bd card-bd--chart">
         <div class="scatter-filters" id="scatter-filters"></div>
-        <p class="chart-zoom-hint" id="scatter-zoom-hint">Swipe for at se hele grafen</p>
+        <p class="chart-zoom-hint" id="scatter-zoom-hint" data-i18n="zoomHint">Swipe for at se hele grafen</p>
         <div class="chart-wrap" id="scatter-chart-wrap">
           <div class="tooltip" id="scatter-tooltip"></div>
           <div id="scatter-chart"></div>
         </div>
-        <p class="footnote">Én prik per aktie i porteføljen (2011–2025). X = afkast i udvælgelsesåret, Y = afkast i holdåret.</p>
+        <p class="footnote" data-i18n="scatterNote">Én prik per aktie i porteføljen (2011–2025). X = afkast i udvælgelsesåret, Y = afkast i holdåret.</p>
       </div>
     </div>
 
-    <p class="source-box">
+    <p class="source-box" data-i18n="source">
       Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter).
       S&P 500-medlemskab er baseret på historiske indeksdata (fja05680/sp500).
     </p>
@@ -1353,6 +1385,170 @@
     const CHART_ROWS = YEAR_ROWS;
     const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, TOP3_TOTAL = 3457.9, MOM6_TOTAL = 707.5, SP500_TOTAL = 608.8;
 
+    const I18N = {
+      da: {
+        title: "S&P 500 momentum-backtest",
+        intro: "Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?",
+        strategyLead: "Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.",
+        ruleTop10: "De 10 bedste aktier året før. Køb 1. januar, hold et år.",
+        ruleTop3: "De 3 bedste aktier året før. Køb 1. januar, hold et år.",
+        ruleBottom10: "De 10 dårligste aktier året før. Køb 1. januar, hold et år.",
+        ruleMom121: "De 10 bedste jan–nov (december udelades). Køb 1. januar.",
+        ruleMom6: "De 10 bedste aktier seneste 6 mdr. Køb 1. januar/juli, hold 6 mdr.",
+        heroNote: "Kun aktier med fuldt medlemskab af S&P 500 i formationsperioden medtages.",
+        period: "2011–2025 (fulde år) og YTD 2026 pr. 23. september.",
+        annualReturns: "Årlige afkast",
+        zoom: "Zoom",
+        zoomAnnualAria: "Zoom årlig graf",
+        zoomCumAria: "Zoom akkumuleret graf",
+        zoomScatterAria: "Zoom scattergraf",
+        zoomHint: "Swipe for at se hele grafen",
+        tips: "Tips",
+        tipFilter: "Hver portefølje kan deaktiveres ved at klikke på knapperne over grafen.",
+        cumulativeReturns: "Akkumuleret afkast",
+        logY: "Log y-akse",
+        logYAria: "Logaritmisk y-akse",
+        cumNote: "Y-aksen er som standard logaritmisk, for at gøre aflæsning lettere — brug knappen øverst til højre for at se afkast lineært.",
+        sharpe: "Sharpe-ratio",
+        sharpeDesc: "Afkast i forhold til svingninger — højere tal betyder mere afkast pr. risiko.",
+        sharpeNote: "Ratioer beregnet på fuld dataperiode | Risikofri rente sat til 1% for simplicitet",
+        portfoliosByYear: "Porteføljer pr. år",
+        portfoliosDesc: "Seneste status og valgt holdår — vælg år for at se hvilke aktier der indgik.",
+        ytdHd: "YTD 2026 · pr. 23. september",
+        selectYear: "Vælg år",
+        fullReturnData: "Fuld afkastdata",
+        scatterTitle: "Momentum og næste års afkast",
+        scatterNote: "Én prik per aktie i porteføljen (2011–2025). X = afkast i udvælgelsesåret, Y = afkast i holdåret.",
+        source: "Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter). S&P 500-medlemskab er baseret på historiske indeksdata (fja05680/sp500).",
+        labelTop10: "Top-10",
+        labelTop3: "Top-3",
+        labelBottom10: "Bund-10",
+        labelMom121: "Jegadeesh-Titman",
+        labelMom6: "Top-10 halvårlig",
+        labelSp500: "S&P 500",
+        portfolioTitle: "Portefølje {year}",
+        portfolioTitleYtd: "Portefølje {year} · YTD",
+        selectionYear: "Udvælgelsesår {year}",
+        periodYtd: "YTD 2026 pr. 23. september",
+        chartLabelYtd: "23. sep.",
+        h1JanJun: "1. jan–30. jun",
+        h2JulDec: "1. jul–31. dec",
+        h2JulSep: "1. jul–23. sep.",
+        benchmark: "Benchmark",
+        year: "År",
+        selectionYearCol: "Udvælgelsesår",
+        total: "Samlet 2011–2025",
+        annualAxis: "Årligt afkast (%)",
+        calendarYear: "Kalenderår",
+        calendarYearN: "Kalenderår {year}",
+        cumAxis: "Akkumuleret afkast (%)",
+        cumAxisLog: "Akkumuleret afkast (%) · log skala",
+        regression: "Regressionslinje",
+        regressionAria: "Vis regressionslinje",
+        holdReturnAxis: "Afkast i holdåret (%)",
+        priorReturnAxis: "Afkast i udvælgelsesåret (%)",
+        holdYear: "holdår",
+        selectionYearShort: "Udvælgelsesår",
+        holdYearCap: "Holdår",
+        scatterAria: "Scatterplot momentum",
+        annualAria: "Årligt afkast",
+        cumAria: "Akkumuleret afkast",
+      },
+      en: {
+        title: "S&P 500 momentum backtest",
+        intro: "What happens if we buy the stocks that did best or worst the year before?",
+        strategyLead: "Five portfolios are simulated and compared with the S&P 500 index return.",
+        ruleTop10: "The 10 best stocks of the prior year. Buy 1 January, hold one year.",
+        ruleTop3: "The 3 best stocks of the prior year. Buy 1 January, hold one year.",
+        ruleBottom10: "The 10 worst stocks of the prior year. Buy 1 January, hold one year.",
+        ruleMom121: "The 10 best stocks Jan–Nov (December skipped). Buy 1 January.",
+        ruleMom6: "The 10 best stocks of the past 6 months. Buy 1 January / 1 July, hold 6 months.",
+        heroNote: "Only stocks with full S&P 500 membership throughout the formation period are included.",
+        period: "2011–2025 (full years) and YTD 2026 as of 23 September.",
+        annualReturns: "Annual returns",
+        zoom: "Zoom",
+        zoomAnnualAria: "Zoom annual chart",
+        zoomCumAria: "Zoom cumulative chart",
+        zoomScatterAria: "Zoom scatter chart",
+        zoomHint: "Swipe to see the full chart",
+        tips: "Tips",
+        tipFilter: "Click a button above the chart to hide a portfolio.",
+        cumulativeReturns: "Cumulative returns",
+        logY: "Log y-axis",
+        logYAria: "Logarithmic y-axis",
+        cumNote: "The y-axis is logarithmic by default to make the chart easier to read — use the button at the top right for a linear scale.",
+        sharpe: "Sharpe ratio",
+        sharpeDesc: "Return relative to volatility — a higher number means more return per unit of risk.",
+        sharpeNote: "Ratios calculated over the full data period | Risk-free rate set to 1% for simplicity",
+        portfoliosByYear: "Portfolios by year",
+        portfoliosDesc: "Latest status and selected holding year — pick a year to see which stocks were included.",
+        ytdHd: "YTD 2026 · as of 23 September",
+        selectYear: "Select year",
+        fullReturnData: "Full return data",
+        scatterTitle: "Momentum and next-year returns",
+        scatterNote: "One dot per stock in the portfolio (2011–2025). X = return in the selection year, Y = return in the holding year.",
+        source: "All price data is from Yahoo Finance (adjusted close, including splits and dividends). S&P 500 membership is based on historical index data (fja05680/sp500).",
+        labelTop10: "Top-10",
+        labelTop3: "Top-3",
+        labelBottom10: "Bottom-10",
+        labelMom121: "Jegadeesh-Titman",
+        labelMom6: "Top-10 semiannual",
+        labelSp500: "S&P 500",
+        portfolioTitle: "Portfolio {year}",
+        portfolioTitleYtd: "Portfolio {year} · YTD",
+        selectionYear: "Selection year {year}",
+        periodYtd: "YTD 2026 as of 23 September",
+        chartLabelYtd: "23 Sep",
+        h1JanJun: "1 Jan–30 Jun",
+        h2JulDec: "1 Jul–31 Dec",
+        h2JulSep: "1 Jul–23 Sep",
+        benchmark: "Benchmark",
+        year: "Year",
+        selectionYearCol: "Selection year",
+        total: "Total 2011–2025",
+        annualAxis: "Annual return (%)",
+        calendarYear: "Calendar year",
+        calendarYearN: "Calendar year {year}",
+        cumAxis: "Cumulative return (%)",
+        cumAxisLog: "Cumulative return (%) · log scale",
+        regression: "Regression line",
+        regressionAria: "Show regression line",
+        holdReturnAxis: "Holding-year return (%)",
+        priorReturnAxis: "Selection-year return (%)",
+        holdYear: "hold year",
+        selectionYearShort: "Selection year",
+        holdYearCap: "Hold year",
+        scatterAria: "Momentum scatterplot",
+        annualAria: "Annual returns",
+        cumAria: "Cumulative returns",
+      },
+    };
+    const LABEL_KEY = {
+      top10: "labelTop10",
+      top3: "labelTop3",
+      bottom10: "labelBottom10",
+      mom12_1: "labelMom121",
+      mom6: "labelMom6",
+      sp500: "labelSp500",
+    };
+    let lang = localStorage.getItem("sp500-lang") === "en" ? "en" : "da";
+
+    function t(key, vars) {
+      let s = (I18N[lang] && I18N[lang][key]) || I18N.da[key] || key;
+      if (vars) Object.keys(vars).forEach(k => { s = s.replaceAll("{" + k + "}", vars[k]); });
+      return s;
+    }
+    function pLabel(id) { return t(LABEL_KEY[id] || id); }
+    function applyStaticI18n() {
+      document.documentElement.lang = lang;
+      document.title = t("title");
+      document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+      document.querySelectorAll(".lang-switch button").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+    }
+
     const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
     const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "-");
     const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
@@ -1400,23 +1596,23 @@
 
     function renderSharpe() {
       document.getElementById("sharpe-stats").innerHTML = `
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">Top-10</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">Top-3</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Bund-10</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Jegadeesh-Titman</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">Top-10 halvårlig</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">S&P 500</div></div>`;
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top10)}</div><div class="label">${pLabel("top10")}</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.top3)}</div><div class="label">${pLabel("top3")}</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">${pLabel("bottom10")}</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">${pLabel("mom12_1")}</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">${pLabel("mom6")}</div></div>
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">${pLabel("sp500")}</div></div>`;
     }
 
     function renderSummary() {
       document.getElementById("ytd-panel").innerHTML = `
         <div class="ytd-grid">
-          <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">Top-10</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">Top-3</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">Bund-10</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">Jegadeesh-Titman</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">Top-10 halvårlig</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">S&P 500</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">${pLabel("top10")}</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">${pLabel("top3")}</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">${pLabel("bottom10")}</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">${pLabel("mom12_1")}</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">${pLabel("mom6")}</div></div>
+          <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">${pLabel("sp500")}</div></div>
         </div>`;
     }
 
@@ -1426,50 +1622,52 @@
 
     function renderYearDetail(year) {
       const y = YEAR_ROWS.find(d => d.holdYear === year) || YEAR_ROWS[YEAR_ROWS.length - 1];
-      document.getElementById("year-card-title").textContent = y.isPartial ? `Portefølje ${y.holdYear} · YTD` : `Portefølje ${y.holdYear}`;
+      document.getElementById("year-card-title").textContent = y.isPartial
+        ? t("portfolioTitleYtd", { year: y.holdYear })
+        : t("portfolioTitle", { year: y.holdYear });
       document.getElementById("year-detail").innerHTML = `
-        <p class="year-meta">${y.isPartial ? y.periodLabel : `Udvælgelsesår ${y.selectionYear}`}</p>
+        <p class="year-meta">${y.isPartial ? t("periodYtd") : t("selectionYear", { year: y.selectionYear })}</p>
         <div class="portfolio-split">
           <div class="portfolio-block top">
             <div class="portfolio-block-hd">
-              <span class="name">Top-10</span>
+              <span class="name">${pLabel("top10")}</span>
               <span class="ret ${retClass(y.top10Pct)}">${fmt(y.top10Pct)}</span>
             </div>
             <div class="pills">${pills(y.top10Tickers)}</div>
           </div>
           <div class="portfolio-block top3">
             <div class="portfolio-block-hd">
-              <span class="name">Top-3</span>
+              <span class="name">${pLabel("top3")}</span>
               <span class="ret ${retClass(y.top3Pct)}">${fmt(y.top3Pct)}</span>
             </div>
             <div class="pills">${pills(y.top3Tickers, "top3")}</div>
           </div>
           <div class="portfolio-block bottom">
             <div class="portfolio-block-hd">
-              <span class="name">Bund-10</span>
+              <span class="name">${pLabel("bottom10")}</span>
               <span class="ret ${retClass(y.bottom10Pct)}">${fmt(y.bottom10Pct)}</span>
             </div>
             <div class="pills">${pills(y.bottom10Tickers, "warn")}</div>
           </div>
           <div class="portfolio-block mom121">
             <div class="portfolio-block-hd">
-              <span class="name">Jegadeesh-Titman</span>
+              <span class="name">${pLabel("mom12_1")}</span>
               <span class="ret ${retClass(y.mom12_1Pct)}">${fmt(y.mom12_1Pct)}</span>
             </div>
             <div class="pills">${pills(y.mom12_1Tickers, "mom121")}</div>
           </div>
           <div class="portfolio-block mom6">
             <div class="portfolio-block-hd">
-              <span class="name">Top-10 halvårlig</span>
+              <span class="name">${pLabel("mom6")}</span>
               <span class="ret ${retClass(y.mom6Pct)}">${fmt(y.mom6Pct)}</span>
             </div>
-            <p class="half-meta">1. jan–30. jun · ${fmt(y.mom6H1Pct)}</p>
+            <p class="half-meta">${t("h1JanJun")} · ${fmt(y.mom6H1Pct)}</p>
             <div class="pills">${pills(y.mom6H1Tickers, "mom6")}</div>
-            <p class="half-meta">1. jul–${y.isPartial ? "23. sep." : "31. dec"} · ${fmt(y.mom6H2Pct)}</p>
+            <p class="half-meta">${y.isPartial ? t("h2JulSep") : t("h2JulDec")} · ${fmt(y.mom6H2Pct)}</p>
             <div class="pills">${pills(y.mom6H2Tickers, "mom6")}</div>
           </div>
         </div>
-        <p class="benchmark-row">Benchmark <strong>S&P 500 (SPY):</strong> ${fmt(y.sp500Pct)}</p>`;
+        <p class="benchmark-row">${t("benchmark")} <strong>S&P 500 (SPY):</strong> ${fmt(y.sp500Pct)}</p>`;
     }
 
     function renderTable() {
@@ -1490,33 +1688,33 @@
       }).join("");
       document.getElementById("all-years").innerHTML = `
         <thead><tr>
-          <th>År</th>
-          <th class="num">Top-10</th>
-          <th class="num">Top-3</th>
-          <th class="num">Bund-10</th>
-          <th class="num">Jegadeesh-Titman</th>
-          <th class="num">Top-10 halvårlig</th>
-          <th class="num">S&P 500</th>
-          <th class="num">Udvælgelsesår</th>
+          <th>${t("year")}</th>
+          <th class="num">${pLabel("top10")}</th>
+          <th class="num">${pLabel("top3")}</th>
+          <th class="num">${pLabel("bottom10")}</th>
+          <th class="num">${pLabel("mom12_1")}</th>
+          <th class="num">${pLabel("mom6")}</th>
+          <th class="num">${pLabel("sp500")}</th>
+          <th class="num">${t("selectionYearCol")}</th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr><td colspan="8" class="footnote" style="padding-top:14px;border:none">
-          Samlet 2011–2025: Top-10 ${fmt(TOP10_TOTAL,0)} · Top-3 ${fmt(TOP3_TOTAL,0)} · Bund-10 ${fmt(BOTTOM10_TOTAL,0)} · Jegadeesh-Titman ${fmt(MOM12_1_TOTAL,0)} · Top-10 halvårlig ${fmt(MOM6_TOTAL,0)} · S&P 500 ${fmt(SP500_TOTAL,0)}
+          ${t("total")}: ${pLabel("top10")} ${fmt(TOP10_TOTAL,0)} · ${pLabel("top3")} ${fmt(TOP3_TOTAL,0)} · ${pLabel("bottom10")} ${fmt(BOTTOM10_TOTAL,0)} · ${pLabel("mom12_1")} ${fmt(MOM12_1_TOTAL,0)} · ${pLabel("mom6")} ${fmt(MOM6_TOTAL,0)} · ${pLabel("sp500")} ${fmt(SP500_TOTAL,0)}
         </td></tr></tfoot>`;
     }
 
     const CHART_SERIES = [
-      { id: "top10", label: "Top-10", color: "var(--top)", pctKey: "top10Pct", indexKey: "top10Index" },
-      { id: "top3", label: "Top-3", color: "var(--top3)", pctKey: "top3Pct", indexKey: "top3Index" },
-      { id: "bottom10", label: "Bund-10", color: "var(--bottom)", pctKey: "bottom10Pct", indexKey: "bottom10Index" },
-      { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
-      { id: "mom6", label: "Top-10 halvårlig", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
-      { id: "sp500", label: "S&P 500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
+      { id: "top10", color: "var(--top)", pctKey: "top10Pct", indexKey: "top10Index" },
+      { id: "top3", color: "var(--top3)", pctKey: "top3Pct", indexKey: "top3Index" },
+      { id: "bottom10", color: "var(--bottom)", pctKey: "bottom10Pct", indexKey: "bottom10Index" },
+      { id: "mom12_1", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
+      { id: "mom6", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
+      { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
     const chartSeriesActive = new Set(CHART_SERIES.map(s => s.id));
 
     function activeChartSeries() {
-      return CHART_SERIES.filter(s => chartSeriesActive.has(s.id));
+      return CHART_SERIES.filter(s => chartSeriesActive.has(s.id)).map(s => ({ ...s, label: pLabel(s.id) }));
     }
 
     const MOBILE_CHART_BREAKPOINT = 640;
@@ -1594,7 +1792,7 @@
         const el = document.getElementById(ids.legend);
         el.innerHTML = CHART_SERIES.map(s => {
           const on = chartSeriesActive.has(s.id);
-          return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${s.label}</button>`;
+          return `<button type="button" class="scatter-filter ${s.id} ${on ? "on" : "off"}" data-id="${s.id}" aria-pressed="${on}">${pLabel(s.id)}</button>`;
         }).join("");
         el.querySelectorAll(".scatter-filter").forEach(btn => {
           btn.addEventListener("click", () => {
@@ -1650,19 +1848,19 @@
         if (!zoomed || showZoomedYearLabel(i, data.length)) {
           bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${row.holdYear}</text>`;
         }
-        if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${row.chartLabel}</text>`;
+        if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${t("chartLabelYtd")}</text>`;
       });
 
-      const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">Årligt afkast (%)</text>`;
+      const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">${t("annualAxis")}</text>`;
 
       document.getElementById("annual-chart").innerHTML = `
-        ${chartSvgOpen(W, H, "Årligt afkast", zoomed)}
+        ${chartSvgOpen(W, H, t("annualAria"), zoomed)}
           ${yTitle}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
             <text x="${m.l - 14}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
           ${bars}
-          <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">Kalenderår</text>
+          <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("calendarYear")}</text>
         </svg>`;
       bindTooltip(data, active);
     }
@@ -1725,8 +1923,8 @@
       ).join("");
 
       document.getElementById("cum-chart").innerHTML = `
-        ${chartSvgOpen(W, H, "Akkumuleret afkast", zoomed)}
-          <text x="${m.l}" y="14" font-size="${font}" font-weight="600" fill="var(--chart-label)">Akkumuleret afkast (%)${useLog ? " · log skala" : ""}</text>
+        ${chartSvgOpen(W, H, t("cumAria"), zoomed)}
+          <text x="${m.l}" y="14" font-size="${font}" font-weight="600" fill="var(--chart-label)">${useLog ? t("cumAxisLog") : t("cumAxis")}</text>
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
             <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}</text>`).join("")}
@@ -1743,7 +1941,7 @@
         el.addEventListener("mouseenter", () => {
           const row = data[+el.dataset.i];
           const lines = active.map(s => `${s.label}: ${fmt(row[s.pctKey])}`).join("<br>");
-          tip.innerHTML = `<strong>${row.periodLabel || `Kalenderår ${row.holdYear}`}</strong><br>${lines}`;
+          tip.innerHTML = `<strong>${row.isPartial ? t("periodYtd") : t("calendarYearN", { year: row.holdYear })}</strong><br>${lines}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
@@ -1759,11 +1957,11 @@
     }
 
     const SCATTER_PORTFOLIOS = [
-      { id: "top10", label: "Top-10", color: "var(--top)" },
-      { id: "top3", label: "Top-3", color: "var(--top3)" },
-      { id: "bottom10", label: "Bund-10", color: "var(--bottom)" },
-      { id: "mom12_1", label: "Jegadeesh-Titman", color: "var(--mom121)" },
-      { id: "mom6", label: "Top-10 halvårlig", color: "var(--mom6)" },
+      { id: "top10" },
+      { id: "top3" },
+      { id: "bottom10" },
+      { id: "mom12_1" },
+      { id: "mom6" },
     ];
     const scatterActive = new Set(SCATTER_PORTFOLIOS.map(p => p.id));
     let scatterRegression = false;
@@ -1800,18 +1998,18 @@
     function renderScatterFilters() {
       const portfolioBtns = SCATTER_PORTFOLIOS.map(p => {
         const on = scatterActive.has(p.id);
-        return `<button type="button" class="scatter-filter ${p.id} ${on ? "on" : "off"}" data-id="${p.id}">${p.label}</button>`;
+        return `<button type="button" class="scatter-filter ${p.id} ${on ? "on" : "off"}" data-id="${p.id}">${pLabel(p.id)}</button>`;
       }).join("");
       document.getElementById("scatter-filters").innerHTML = `
         <div class="scatter-filter-group">${portfolioBtns}</div>
         <div class="scatter-toggles">
           <div class="toggle-row chart-zoom-toggle">
-            <span>Zoom</span>
-            <button class="toggle ${scatterZoomed ? "on" : ""}" id="scatter-zoom-toggle" type="button" aria-label="Zoom scattergraf"></button>
+            <span data-i18n="zoom">${t("zoom")}</span>
+            <button class="toggle ${scatterZoomed ? "on" : ""}" id="scatter-zoom-toggle" type="button" data-i18n-aria="zoomScatterAria" aria-label="${t("zoomScatterAria")}"></button>
           </div>
           <div class="toggle-row">
-            <span>Regressionslinje</span>
-            <button class="toggle ${scatterRegression ? "on" : ""}" id="scatter-regression-toggle" type="button" aria-label="Vis regressionslinje"></button>
+            <span data-i18n="regression">${t("regression")}</span>
+            <button class="toggle ${scatterRegression ? "on" : ""}" id="scatter-regression-toggle" type="button" data-i18n-aria="regressionAria" aria-label="${t("regressionAria")}"></button>
           </div>
         </div>`;
       document.querySelectorAll(".scatter-filter").forEach(btn => {
@@ -1838,8 +2036,8 @@
     function renderScatterChart() {
       const all = typeof SCATTER !== "undefined" ? SCATTER : [];
       const pts = all.filter(p => scatterActive.has(p.portfolio));
-      const portfolioLabel = id => SCATTER_PORTFOLIOS.find(p => p.id === id)?.label || id;
-      const portfolioColor = id => SCATTER_PORTFOLIOS.find(p => p.id === id)?.color || "var(--text)";
+      const portfolioLabel = id => pLabel(id);
+      const portfolioColor = id => CHART_SERIES.find(s => s.id === id)?.color || "var(--text)";
       const xs = pts.length ? pts.map(p => p.priorReturnPct) : [0];
       const ys = pts.length ? pts.map(p => p.holdReturnPct) : [0];
       const xMin = Math.floor(Math.min(...xs, 0) - 10);
@@ -1871,10 +2069,10 @@
         `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="${dotR}" fill="${portfolioColor(p.portfolio)}" fill-opacity="0.7" stroke="var(--surface)" stroke-width="1.2"/>`
       ).join("");
 
-      const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">Afkast i holdåret (%)</text>`;
+      const yTitle = isMobileChart() ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">${t("holdReturnAxis")}</text>`;
 
       document.getElementById("scatter-chart").innerHTML = `
-        ${chartSvgOpen(W, H, "Scatterplot momentum", zoomed)}
+        ${chartSvgOpen(W, H, t("scatterAria"), zoomed)}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
           <line x1="${zeroX}" x2="${zeroX}" y1="${m.t}" y2="${m.t + plotH}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
           <line x1="${m.l}" x2="${W - m.r}" y1="${zeroY}" y2="${zeroY}" stroke="var(--chart-axis)" stroke-width="1.5"/>
@@ -1885,7 +2083,7 @@
           ${regressionLine}
           ${regressionLabel}
           ${dots}
-          <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">Afkast i udvælgelsesåret (%)</text>
+          <text x="${W / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("priorReturnAxis")}</text>
           ${yTitle}
         </svg>`;
 
@@ -1893,9 +2091,9 @@
       document.querySelectorAll(".scatter-dot").forEach(el => {
         el.addEventListener("mouseenter", () => {
           const p = pts[+el.dataset.i];
-          tip.innerHTML = `<strong>${p.ticker}</strong> · ${portfolioLabel(p.portfolio)} · holdår ${p.holdYear}<br>
-            Udvælgelsesår ${p.selectionYear}: ${fmt(p.priorReturnPct)}<br>
-            Holdår ${p.holdYear}: ${fmt(p.holdReturnPct)}`;
+          tip.innerHTML = `<strong>${p.ticker}</strong> · ${portfolioLabel(p.portfolio)} · ${t("holdYear")} ${p.holdYear}<br>
+            ${t("selectionYearShort")} ${p.selectionYear}: ${fmt(p.priorReturnPct)}<br>
+            ${t("holdYearCap")} ${p.holdYear}: ${fmt(p.holdReturnPct)}`;
           tip.classList.add("show");
         });
         el.addEventListener("mouseleave", () => tip.classList.remove("show"));
@@ -1933,14 +2131,28 @@
       renderScatterChart();
     });
 
-    renderSharpe();
-    renderSummary();
-    renderYearDetail(2026);
-    renderTable();
-    renderChartLegend();
-    renderChart();
-    renderScatterFilters();
-    renderScatterChart();
+    function applyLang() {
+      applyStaticI18n();
+      renderSharpe();
+      renderSummary();
+      renderYearDetail(+sel.value);
+      renderTable();
+      renderChartLegend();
+      renderChart();
+      renderScatterFilters();
+      renderScatterChart();
+    }
+
+    document.querySelectorAll(".lang-switch button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.lang === lang) return;
+        lang = btn.dataset.lang;
+        localStorage.setItem("sp500-lang", lang);
+        applyLang();
+      });
+    });
+
+    applyLang();
   </script>
 </body>
 </html>
