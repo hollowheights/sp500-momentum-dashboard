@@ -179,6 +179,12 @@
       .card-bd--chart .chart-wrap { margin-left: -4px; margin-right: -4px; }
     }
     .footnote { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+    .sharpe-note {
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.7;
+      margin: 4px 0 0;
+    }
     .grid2 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -457,6 +463,7 @@
     <h2>Sharpe-ratio</h2>
     <p class="section-desc">Afkast i forhold til svingninger — højere tal betyder mere afkast pr. risiko.</p>
     <div class="stats" id="sharpe-stats"></div>
+    <p class="sharpe-note">Årlige afkast 2011–2025 · risikofri rente: 1%</p>
 
     <h2>Porteføljer pr. år</h2>
     <p class="section-desc">Seneste status og valgt holdår — vælg år for at se hvilke aktier der indgik.</p>
@@ -1333,7 +1340,9 @@
     const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "-");
     const pills = (arr, cls = "") => arr.map(t => `<span class="pill ${cls}">${t}</span>`).join("");
 
-    function sharpeRatio(pcts, rf = 0) {
+    const RISK_FREE = 0.01;
+
+    function sharpeRatio(pcts, rf = RISK_FREE) {
       const returns = pcts.map((p) => p / 100 - rf);
       if (returns.length < 2) return NaN;
       const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
@@ -1379,8 +1388,7 @@
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.bottom10)}</div><div class="label">Bund-10</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom12_1)}</div><div class="label">Jegadeesh-Titman</div></div>
         <div class="stat"><div class="val">${fmtSharpe(SHARPE.mom6)}</div><div class="label">Top-10 halvårlig</div></div>
-        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">S&P 500</div></div>
-        <p class="footnote" style="grid-column:1/-1;margin:0">Årlige afkast 2011–2025 · risikofri rente sat til 0%</p>`;
+        <div class="stat"><div class="val">${fmtSharpe(SHARPE.sp500)}</div><div class="label">S&P 500</div></div>`;
     }
 
     function renderSummary() {
