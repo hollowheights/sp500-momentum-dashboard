@@ -258,7 +258,18 @@
     }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+    th {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      border-bottom: 2px solid var(--text);
+    }
+    tfoot .total-row td {
+      font-weight: 700;
+      border-bottom: none;
+      border-top: 2px solid var(--border);
+      background: var(--chart-bg);
+    }
     th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.win td:first-child { border-left: 3px solid var(--success); }
     tr.loss td:first-child { border-left: 3px solid var(--danger); }
@@ -1418,7 +1429,7 @@
         benchmark: "Benchmark",
         year: "År",
         selectionYearCol: "Udvælgelsesår",
-        total: "Samlet 2011–2025",
+        total: "Total",
         annualAxis: "Årligt afkast (%)",
         calendarYear: "Kalenderår",
         calendarYearN: "Kalenderår {year}",
@@ -1486,7 +1497,7 @@
         benchmark: "Benchmark",
         year: "Year",
         selectionYearCol: "Selection year",
-        total: "Total 2011–2025",
+        total: "Total",
         annualAxis: "Annual return (%)",
         calendarYear: "Calendar year",
         calendarYearN: "Calendar year {year}",
@@ -1679,9 +1690,16 @@
           <th class="num">${t("selectionYearCol")}</th>
         </tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr><td colspan="8" class="footnote" style="padding-top:14px;border:none">
-          ${t("total")}: ${pLabel("top10")} ${fmt(TOP10_TOTAL,0)} · ${pLabel("top3")} ${fmt(TOP3_TOTAL,0)} · ${pLabel("bottom10")} ${fmt(BOTTOM10_TOTAL,0)} · ${pLabel("mom12_1")} ${fmt(MOM12_1_TOTAL,0)} · ${pLabel("mom6")} ${fmt(MOM6_TOTAL,0)} · ${pLabel("sp500")} ${fmt(SP500_TOTAL,0)}
-        </td></tr></tfoot>`;
+        <tfoot><tr class="total-row">
+          <td>${t("total")}</td>
+          <td class="num">${fmt(TOP10_TOTAL,0)}</td>
+          <td class="num">${fmt(TOP3_TOTAL,0)}</td>
+          <td class="num">${fmt(BOTTOM10_TOTAL,0)}</td>
+          <td class="num">${fmt(MOM12_1_TOTAL,0)}</td>
+          <td class="num">${fmt(MOM6_TOTAL,0)}</td>
+          <td class="num">${fmt(SP500_TOTAL,0)}</td>
+          <td class="num"></td>
+        </tr></tfoot>`;
     }
 
     const CHART_SERIES = [
