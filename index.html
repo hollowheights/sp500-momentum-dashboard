@@ -186,13 +186,17 @@
       margin-bottom: 20px;
     }
     .grid-year {
-      grid-template-columns: minmax(0, 1fr) 132px;
+      grid-template-columns: minmax(0, 1fr) 156px;
       align-items: start;
     }
     .year-picker-card { grid-column: 2; grid-row: 1; }
     .year-detail-card { grid-column: 1; grid-row: 1; }
-    .year-picker-card .card-bd { padding: 14px 12px; }
-    .year-picker-card select { width: 100%; }
+    .year-picker-card .card-bd { padding: 14px 10px; }
+    .year-picker-card select {
+      width: 100%;
+      padding-right: 2rem;
+      text-overflow: clip;
+    }
     @media (max-width: 520px) {
       .grid-year { grid-template-columns: 1fr; }
       .year-picker-card,
