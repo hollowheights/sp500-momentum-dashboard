@@ -1987,7 +1987,7 @@
       const hMax = 220;
       document.getElementById("sharpe-stats").innerHTML = sorted.map(({ id, val }) => {
         const h = Number.isFinite(val) ? hMin + ((val - min) / span) * (hMax - hMin) : hMin;
-        return `<div class="stat" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div><div class="label">${pLabel(id)}</div></div>`;
+        return `<div class="stat ${id}" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div><div class="label">${pLabel(id)}</div></div>`;
       }).join("");
     }
 
