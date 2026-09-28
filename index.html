@@ -1873,7 +1873,7 @@
     let cumAnimEnabled = true;
     let cumAnimStep = 0;
     let cumAnimTimer = null;
-    const CUM_ANIM_MS = 3000;
+    const CUM_ANIM_MS = 2000;
 
     function cumFullStep() {
       return DATA.length + 1;
@@ -2323,9 +2323,13 @@
             <text x="${m.l-12}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}</text>`).join("")}
           ${paths}
           ${endLabelSvg}
-          ${cats.map((l, i) => i <= step && ((!zoomed && (i % 2 === 0 || i === step)) || (zoomed && showZoomedYearLabel(i, step + 1)))
-            ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${i === step && !showEndLabels ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${i === step && !showEndLabels ? 700 : 400}">${l}</text>`
-            : "").join("")}
+          ${cats.map((l, i) => {
+            if (i > step) return "";
+            const show = !showEndLabels || ((!zoomed && (i % 2 === 0 || i === fullLast)) || (zoomed && showZoomedYearLabel(i, cats.length)));
+            return show
+              ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${i === step && !showEndLabels ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${i === step && !showEndLabels ? 700 : 400}">${l}</text>`
+              : "";
+          }).join("")}
         </svg>`;
       document.getElementById("cum-tooltip").classList.remove("show");
       bindSeriesClicks(document.getElementById("cum-chart"));
