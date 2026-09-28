@@ -56,40 +56,34 @@
       margin-bottom: 0;
       max-width: 42rem;
     }
-    .intro-list {
-      margin: 20px 0 0;
-      padding: 0;
-      list-style: none;
+    .intro-meta { margin-top: 14px; }
+    .strategy-grid {
       display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 10px;
-      max-width: 44rem;
+      margin-top: 24px;
     }
-    .intro-list li {
-      position: relative;
-      padding-left: 16px;
-      font-size: 0.92rem;
-      line-height: 1.55;
-      color: var(--text);
+    .strategy {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px 14px;
+      background: var(--chart-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--c);
+      border-radius: 8px;
     }
-    .intro-list li::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.58em;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--top);
-      opacity: 0.85;
-    }
-    .intro-list strong {
-      font-weight: 600;
-      color: var(--text);
-    }
-    .intro-meta {
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
+    .strategy.top10 { --c: var(--top); }
+    .strategy.top3 { --c: var(--top3); }
+    .strategy.bottom10 { --c: var(--bottom); }
+    .strategy.mom12_1 { --c: var(--mom121); }
+    .strategy.mom6 { --c: var(--mom6); }
+    .strategy-name { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+    .strategy-rule { font-size: 0.82rem; line-height: 1.45; color: var(--muted); }
+    .hero-note {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: var(--muted);
     }
     .period-badge {
       display: inline-block;
@@ -402,13 +396,30 @@
       <p class="intro">
         Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?
       </p>
-      <ul class="intro-list">
-        <li><strong>Top-10, Top-3 og Bund-10:</strong> hele forudgående år som udvælgelsesperiode, køb 1. januar, hold et år.</li>
-        <li><strong>Jegadeesh-Titman:</strong> jan–nov (december udelades), køb 1. januar.</li>
-        <li><strong>Top-10 halvårlig:</strong> top 10 efter forudgående 6 måneder, rebalance 1. januar og 1. juli.</li>
-        <li>Kun aktier med fuldt års S&P 500-medlemskab (årlige porteføljer); Top-10 halvårlig kræver medlemskab i hele formationsvinduet.</li>
-      </ul>
       <p class="intro-meta"><span class="period-badge">2011–2025 (fulde år) og YTD 2026 pr. 23. september.</span></p>
+      <div class="strategy-grid">
+        <div class="strategy top10">
+          <span class="strategy-name">Top-10</span>
+          <span class="strategy-rule">De 10 bedste aktier året før. Køb 1. januar, hold et år.</span>
+        </div>
+        <div class="strategy top3">
+          <span class="strategy-name">Top-3</span>
+          <span class="strategy-rule">De 3 bedste aktier året før. Køb 1. januar, hold et år.</span>
+        </div>
+        <div class="strategy bottom10">
+          <span class="strategy-name">Bund-10</span>
+          <span class="strategy-rule">De 10 dårligste aktier året før. Køb 1. januar, hold et år.</span>
+        </div>
+        <div class="strategy mom12_1">
+          <span class="strategy-name">Jegadeesh-Titman</span>
+          <span class="strategy-rule">De 10 bedste jan–nov (december udelades). Køb 1. januar.</span>
+        </div>
+        <div class="strategy mom6">
+          <span class="strategy-name">Top-10 halvårlig</span>
+          <span class="strategy-rule">De 10 bedste de forudgående 6 måneder. Rebalance 1. januar og 1. juli.</span>
+        </div>
+      </div>
+      <p class="hero-note">Kun aktier med fuldt års S&P 500-medlemskab (årlige porteføljer); Top-10 halvårlig kræver medlemskab i hele formationsvinduet.</p>
     </header>
 
     <div class="card">
