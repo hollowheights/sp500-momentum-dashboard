@@ -176,7 +176,7 @@
     }
     .toggle.on::after { transform: translateX(20px); }
     .chart-wrap { position: relative; }
-    svg { display: block; width: 100%; height: auto; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
     .card-hd-toggles {
       display: flex;
       align-items: center;
@@ -1755,6 +1755,32 @@
       return `<svg viewBox="0 0 ${W} ${H}"${style} role="img" aria-label="${label}">`;
     }
 
+    function chartDefs(series, plot, prefix) {
+      const grads = series.map(s => `
+        <linearGradient id="${prefix}-bar-${s.id}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${s.color}" stop-opacity="1"/>
+          <stop offset="100%" stop-color="${s.color}" stop-opacity="0.68"/>
+        </linearGradient>
+        <linearGradient id="${prefix}-bar-${s.id}-neg" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="${s.color}" stop-opacity="1"/>
+          <stop offset="100%" stop-color="${s.color}" stop-opacity="0.68"/>
+        </linearGradient>
+        <linearGradient id="${prefix}-area-${s.id}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${s.color}" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="${s.color}" stop-opacity="0"/>
+        </linearGradient>`).join("");
+      return `<defs>
+        <filter id="${prefix}-bar-depth" x="-30%" y="-15%" width="160%" height="140%">
+          <feDropShadow dx="0" dy="1.4" stdDeviation="1.1" flood-color="#1a2332" flood-opacity="0.16"/>
+        </filter>
+        <filter id="${prefix}-line-depth" x="-25%" y="-25%" width="150%" height="150%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1.3" flood-color="#1a2332" flood-opacity="0.2"/>
+        </filter>
+        ${plot ? `<clipPath id="${prefix}-plot-clip"><rect x="${plot.x}" y="${plot.y}" width="${plot.w}" height="${plot.h}" rx="10"/></clipPath>` : ""}
+        ${grads}
+      </defs>`;
+    }
+
     function showZoomedYearLabel(i, total) {
       return i % 2 === 0 || i === total - 1;
     }
@@ -1797,16 +1823,16 @@
       const yMin = Math.floor(Math.min(...vals, 0) - 5);
       const yMax = Math.ceil(Math.max(...vals, 0) + 5);
       const zoomed = chartZoomActive("annual");
-      const base = { w: 1040, h: 440, r: 24 };
+      const base = { w: 1040, h: 540, r: 24 };
       const layout = getChartLayout(data.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
-      const m = { t: 24, r: mr, b: 56, l: ml };
+      const m = { t: 28, r: mr, b: 56, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
-      const gap = 2;
-      const barW = Math.min(zoomed ? 14 : 12, Math.max(zoomed ? 6 : 5, (groupW * 0.85 - gap * (active.length - 1)) / active.length));
+      const gap = 2.5;
+      const barW = Math.min(zoomed ? 15 : 13, Math.max(zoomed ? 7 : 5.5, (groupW * 0.82 - gap * (active.length - 1)) / active.length));
       const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
@@ -1814,7 +1840,7 @@
         const cx = m.l + groupW * i + groupW / 2;
         const bx = m.l + groupW * i + 2;
         const partial = row.isPartial;
-        const dash = partial ? 'stroke-dasharray="5 3" stroke="var(--chart-axis)" stroke-width="1.2"' : "";
+        const dash = partial ? 'stroke-dasharray="5 3" stroke="var(--chart-axis)" stroke-width="1"' : "";
         active.forEach((s, j) => {
           const v = row[s.pctKey];
           const offset = j - (active.length - 1) / 2;
@@ -1822,7 +1848,8 @@
           const tip = yScale(v);
           const y = v >= 0 ? tip : zeroY;
           const h = Math.max(2, Math.abs(zeroY - tip));
-          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${s.color}" rx="3" ${dash} opacity="${partial ? 0.88 : 1}"/>`;
+          const grad = v >= 0 ? `url(#annual-bar-${s.id})` : `url(#annual-bar-${s.id}-neg)`;
+          bars += `<rect class="bar" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${grad}" rx="${Math.min(4, barW / 2)}" filter="url(#annual-bar-depth)" ${dash} opacity="${partial ? 0.9 : 1}"/>`;
         });
         bars += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
         if (!zoomed || showZoomedYearLabel(i, data.length)) {
@@ -1835,10 +1862,11 @@
 
       document.getElementById("annual-chart").innerHTML = `
         ${chartSvgOpen(W, H, t("annualAria"), zoomed)}
+          ${chartDefs(active, { x: m.l, y: m.t, w: plotW, h: plotH }, "annual")}
           ${yTitle}
-          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
-          ${ticks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="${t===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${t===0?1.5:1}" ${t!==0?'stroke-dasharray="4 4"':''}/>
-            <text x="${m.l - 14}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}%</text>`).join("")}
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
+          ${ticks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="${tick===0?'var(--chart-axis)':'var(--chart-grid)'}" stroke-width="${tick===0?1.4:1}" opacity="${tick===0?0.9:0.7}" ${tick!==0?'stroke-dasharray="3 5"':''}/>
+            <text x="${m.l - 14}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}%</text>`).join("")}
           ${bars}
           <text x="${W/2}" y="${H-4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("calendarYear")}</text>
         </svg>`;
@@ -1868,10 +1896,10 @@
         data: [100, ...DATA.map(d => d[s.indexKey])],
       }));
       const zoomed = chartZoomActive("cum");
-      const base = { w: 1040, h: 420, r: 72 };
+      const base = { w: 1040, h: 520, r: 72 };
       const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
-      const m = { t: 24, r: mr, b: 48, l: ml };
+      const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const last = cats.length - 1;
       const all = series.flatMap(s => s.data);
@@ -1886,16 +1914,15 @@
       const labelX = xScale(last) + 10;
       const endLabels = layoutEndLabels(
         series.map(s => ({ s, end: s.data[last], y: yScale(s.data[last]) })),
-        15,
+        16,
         m.t + 8,
         m.t + plotH - 6,
       );
-
       const paths = series.map(s => {
-        const d = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
+        const line = s.data.map((v, i) => `${i===0?"M":"L"}${xScale(i)},${yScale(v)}`).join(" ");
         const end = s.data[last];
-        return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>
-          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="3.5" fill="${s.color}"/>`;
+        return `<path d="${line}" fill="none" stroke="${s.color}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" filter="url(#cum-line-depth)" clip-path="url(#cum-plot-clip)"/>
+          <circle cx="${xScale(last)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
       }).join("");
 
       const endLabelSvg = endLabels.map(({ s, end, y }) =>
@@ -1904,10 +1931,11 @@
 
       document.getElementById("cum-chart").innerHTML = `
         ${chartSvgOpen(W, H, t("cumAria"), zoomed)}
-          <text x="${m.l}" y="14" font-size="${font}" font-weight="600" fill="var(--chart-label)">${useLog ? t("cumAxisLog") : t("cumAxis")}</text>
-          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="8" stroke="var(--border)"/>
-          ${yTicks.map(t => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="var(--chart-grid)" stroke-dasharray="4 4"/>
-            <text x="${m.l-12}" y="${yScale(t)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${t}</text>`).join("")}
+          ${chartDefs(series, { x: m.l, y: m.t, w: plotW, h: plotH }, "cum")}
+          <text x="${m.l}" y="16" font-size="${font}" font-weight="600" fill="var(--chart-label)">${useLog ? t("cumAxisLog") : t("cumAxis")}</text>
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
+          ${yTicks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="var(--chart-grid)" stroke-width="1" opacity="0.7" stroke-dasharray="3 5"/>
+            <text x="${m.l-12}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}</text>`).join("")}
           ${paths}
           ${endLabelSvg}
           ${cats.map((l,i) => (!zoomed && (i%2===0||i===last)) || (zoomed && showZoomedYearLabel(i, cats.length))?`<text x="${xScale(i)}" y="${H-18}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${l}</text>`:"").join("")}
