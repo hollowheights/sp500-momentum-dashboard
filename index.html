@@ -2130,8 +2130,13 @@
     const CUM_POINTS_PER_YEAR = 4;
 
     function expandCumYearlyPoints(yearly, pointsPerYear) {
-      if (pointsPerYear <= 1) return yearly.map((value, i) => ({ value, xFrac: i }));
-      const pts = [{ value: yearly[0], xFrac: 0 }];
+      const pts = [];
+      for (let sub = 0; sub <= pointsPerYear; sub++) {
+        pts.push({
+          value: yearly[0] * (sub / pointsPerYear),
+          xFrac: 0,
+        });
+      }
       for (let i = 0; i < yearly.length - 1; i++) {
         for (let sub = 1; sub <= pointsPerYear; sub++) {
           const t = sub / pointsPerYear;
@@ -2155,7 +2160,7 @@
           expanded: expandCumYearlyPoints(yearly, CUM_POINTS_PER_YEAR),
         };
       });
-      return { cats, series, pointsPerYear: CUM_POINTS_PER_YEAR };
+      return { cats, series, pointsPerYear: CUM_POINTS_PER_YEAR, originSteps: CUM_POINTS_PER_YEAR };
     }
 
     const CUM_DATA = buildCumData();
@@ -2370,13 +2375,6 @@
       return labels;
     }
 
-    function cumPointsWithOrigin(points) {
-      if (!points.length) return [{ value: 0, xFrac: 0 }];
-      const first = points[0];
-      if (first.value === 0) return points;
-      return [{ value: 0, xFrac: first.xFrac }, ...points];
-    }
-
     function cumFullYRange(fullSeries) {
       const all = fullSeries.flatMap(s => s.yearly);
       return {
@@ -2386,20 +2384,20 @@
     }
 
     function cumAnimYRange(series, fullSeries, step, pointsPerYear) {
-      const yearIdx = Math.floor(step / pointsPerYear);
+      const originSteps = CUM_DATA.originSteps || pointsPerYear;
+      const yearIdx = step <= originSteps ? 0 : Math.floor((step - originSteps) / pointsPerYear);
       if (yearIdx === cumAnimYRangeCache.yearIdx && cumAnimYRangeCache.yMax != null) {
-        return { yMin: cumAnimYRangeCache.yMin, yMax: cumAnimYRangeCache.yMax };
+        return { yMin: 0, yMax: cumAnimYRangeCache.yMax };
       }
       const visible = series.flatMap(s => s.points.map(p => p.value));
-      const visMax = Math.max(...visible);
+      const visMax = Math.max(0, ...visible);
       const fullMax = cumFullYRange(fullSeries).yMax;
       const progress = step / cumFullStep();
-      const ease = progress < 0.12 ? 0 : Math.pow((progress - 0.12) / 0.88, 1.35);
-      const tightMax = Math.max(visMax * 1.16, 120);
-      const yMin = 0;
+      const ease = progress < 0.18 ? 0 : Math.pow((progress - 0.18) / 0.82, 1.35);
+      const tightMax = Math.max(visMax * 1.2, 130);
       const yMax = tightMax + (fullMax - tightMax) * ease;
-      cumAnimYRangeCache = { yearIdx, yMin, yMax };
-      return { yMin, yMax };
+      cumAnimYRangeCache = { yearIdx, yMin: 0, yMax };
+      return { yMin: 0, yMax };
     }
 
     function renderCumulativeChart() {
@@ -2414,11 +2412,9 @@
       });
       const series = fullSeries.map(s => ({
         ...s,
-        points: cumPointsWithOrigin(
-          animating
-            ? s.expanded.slice(0, cumAnimStep + 1)
-            : s.yearly.map((value, i) => ({ value, xFrac: i })),
-        ),
+        points: animating
+          ? s.expanded.slice(0, cumAnimStep + 1)
+          : s.yearly.map((value, i) => ({ value, xFrac: i })),
       }));
       const zoomed = chartZoomActive("cum");
       const base = { w: 1040, h: 520, r: 72 };
@@ -2434,7 +2430,7 @@
       const xScale = xFrac => m.l + (xFrac / fullLast) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
-        : [0, 50, 100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
+        : [0, 25, 50, 75, 100, 150, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
       const labelX = xScale(fullLast) + 10;
       const paths = series.map(s => {
         const pts = s.points;
@@ -2451,7 +2447,8 @@
       const lineLabelSeed = series.map(s => {
         const end = s.points[s.points.length - 1];
         const tipX = animating ? xScale(end.xFrac) + 8 : labelX;
-        return { s, end: end.value, x: tipX, y: yScale(end.value) };
+        const y = end.value < 8 ? yScale(0) - 12 : yScale(end.value);
+        return { s, end: end.value, x: tipX, y };
       });
       const lineLabels = showEndLabels
         ? layoutEndLabels(lineLabelSeed, 18, m.t + 8, m.t + plotH - 6)
@@ -2461,11 +2458,13 @@
         : `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${pLabel(s.id)} · ${Math.round(end)}%</text>`
       ).join("");
 
+      const originSteps = CUM_DATA.originSteps || pointsPerYear;
+      const yearProgress = Math.max(0, cumAnimStep - originSteps) / pointsPerYear;
       const labelLimit = animating
-        ? Math.min(fullLast, Math.floor(cumAnimStep / pointsPerYear) + 1)
+        ? Math.min(fullLast, Math.floor(yearProgress) + 1)
         : fullLast;
-      const badgeIdx = animating && cumAnimStep > 0
-        ? Math.min(fullLast, Math.floor(cumAnimStep / pointsPerYear))
+      const badgeIdx = animating
+        ? Math.min(fullLast, Math.floor(yearProgress))
         : -1;
       const yearBadge = badgeIdx >= 0
         ? `<text x="${W - m.r - 8}" y="${m.t + 20}" text-anchor="end" fill="var(--chart-label)" font-size="${font + 1}" font-weight="700">${cats[badgeIdx]}</text>`
@@ -2477,7 +2476,7 @@
           <text x="${m.l}" y="16" font-size="${font}" font-weight="600" fill="var(--chart-label)">${useLog ? t("cumAxisLog") : t("cumAxis")}</text>
           ${yearBadge}
           <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
-          ${yTicks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="var(--chart-grid)" stroke-width="1" opacity="0.7" stroke-dasharray="3 5"/>
+          ${yTicks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="${tick===0 ? 'var(--chart-axis)' : 'var(--chart-grid)'}" stroke-width="${tick===0 ? 1.4 : 1}" opacity="${tick===0 ? 0.9 : 0.7}" ${tick!==0 ? 'stroke-dasharray="3 5"' : ''}/>
             <text x="${m.l-12}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}</text>`).join("")}
           ${paths}
           ${lineLabelSvg}
