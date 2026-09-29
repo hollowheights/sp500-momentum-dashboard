@@ -2128,13 +2128,16 @@
       { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
     const CUM_POINTS_PER_YEAR = 4;
+    const CUM_ORIGIN_STEPS = 8;
+    const CUM_ORIGIN_X = -0.85;
 
     function expandCumYearlyPoints(yearly, pointsPerYear) {
       const pts = [];
-      for (let sub = 0; sub <= pointsPerYear; sub++) {
+      for (let sub = 0; sub <= CUM_ORIGIN_STEPS; sub++) {
+        const t = sub / CUM_ORIGIN_STEPS;
         pts.push({
-          value: yearly[0] * (sub / pointsPerYear),
-          xFrac: 0,
+          value: yearly[0] * t,
+          xFrac: CUM_ORIGIN_X * (1 - t),
         });
       }
       for (let i = 0; i < yearly.length - 1; i++) {
@@ -2160,7 +2163,7 @@
           expanded: expandCumYearlyPoints(yearly, CUM_POINTS_PER_YEAR),
         };
       });
-      return { cats, series, pointsPerYear: CUM_POINTS_PER_YEAR, originSteps: CUM_POINTS_PER_YEAR };
+      return { cats, series, pointsPerYear: CUM_POINTS_PER_YEAR, originSteps: CUM_ORIGIN_STEPS };
     }
 
     const CUM_DATA = buildCumData();
@@ -2427,7 +2430,8 @@
         : cumFullYRange(fullSeries);
       const useLog = chartLogScale && !animating;
       const yScale = useLog ? makeLogYScale(yMin, yMax, m, plotH) : makeLinearYScale(yMin, yMax, m, plotH);
-      const xScale = xFrac => m.l + (xFrac / fullLast) * plotW;
+      const xMin = animating ? CUM_ORIGIN_X : 0;
+      const xScale = xFrac => m.l + ((xFrac - xMin) / (fullLast - xMin)) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
         : [0, 25, 50, 75, 100, 150, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
