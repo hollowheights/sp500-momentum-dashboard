@@ -223,8 +223,8 @@
       transition: transform 0.2s;
     }
     .toggle.on::after { transform: translateX(20px); }
-    .chart-wrap { position: relative; }
-    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart-wrap { position: relative; min-height: 320px; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; aspect-ratio: 1040 / 540; }
     .card-hd-toggles {
       display: flex;
       align-items: center;
@@ -1908,11 +1908,15 @@
       });
     }
 
-    const fmt = (v, d = 1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
+    const fmt = (v, d = 1) => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "–";
+      return (n > 0 ? "+" : "") + n.toFixed(d) + "%";
+    };
     const fmtSharpe = (v) => (Number.isFinite(v) ? v.toFixed(2) : "-");
     const escAttr = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
     const tickerName = (t) => TICKER_NAMES[t] || "";
-    const pills = (arr, cls = "") => arr.map(t => {
+    const pills = (arr, cls = "") => (Array.isArray(arr) ? arr : []).map(t => {
       const name = tickerName(t);
       const title = name ? ` title="${escAttr(name)}"` : "";
       return `<span class="pill ${cls}"${title}>${t}</span>`;
@@ -2257,8 +2261,10 @@
     }
 
     function chartSvgOpen(W, H, label, zoomed) {
-      const style = zoomed ? ` style="min-width:${W}px;width:${W}px;height:auto;display:block"` : "";
-      return `<svg viewBox="0 0 ${W} ${H}"${style} role="img" aria-label="${label}">`;
+      const style = zoomed
+        ? ` style="min-width:${W}px;width:${W}px;height:auto;display:block;aspect-ratio:${W}/${H}"`
+        : ` style="width:100%;height:auto;display:block;aspect-ratio:${W}/${H}"`;
+      return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"${style} role="img" aria-label="${label}">`;
     }
 
     function chartDefs(series, plot, prefix) {
@@ -2394,6 +2400,7 @@
     }
 
     function layoutEndLabels(labels, minGap, top, bottom) {
+      if (!labels.length) return labels;
       const sorted = [...labels].sort((a, b) => a.y - b.y);
       for (let i = 1; i < sorted.length; i++) {
         if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
@@ -2441,8 +2448,9 @@
       const active = activeChartSeries();
       const fullSeries = active.map(s => {
         const row = cumCatalog.find(r => r.id === s.id);
+        if (!row) return null;
         return { ...s, yearly: row.yearly, expanded: row.expanded };
-      });
+      }).filter(Boolean);
       const series = fullSeries.map(s => ({
         ...s,
         points: animating
@@ -2775,11 +2783,11 @@
     function applyLang() {
       applyStaticI18n();
       renderSharpe();
+      renderChartLegend();
+      renderChart();
       renderSummary();
       renderYearDetail(+sel.value);
       renderTable();
-      renderChartLegend();
-      renderChart();
       renderScatterFilters();
       renderScatterChart();
     }
