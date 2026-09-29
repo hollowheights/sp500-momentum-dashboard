@@ -1919,10 +1919,10 @@
     let cumAnimEnabled = true;
     let cumAnimStep = 0;
     let cumAnimTimer = null;
-    const CUM_ANIM_MS = 2000;
+    const CUM_ANIM_MS = 1000;
 
     function cumFullStep() {
-      return DATA.length + 1;
+      return CUM_DATA.series[0].expanded.length - 1;
     }
 
     function cumAnimComplete() {
@@ -2110,6 +2110,38 @@
       { id: "mom6", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
       { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
+    const CUM_POINTS_PER_YEAR = 2;
+
+    function expandCumYearlyPoints(yearly, pointsPerYear) {
+      if (pointsPerYear <= 1) return yearly.map((value, i) => ({ value, xFrac: i }));
+      const pts = [{ value: yearly[0], xFrac: 0 }];
+      for (let i = 0; i < yearly.length - 1; i++) {
+        for (let sub = 1; sub <= pointsPerYear; sub++) {
+          const t = sub / pointsPerYear;
+          pts.push({
+            value: yearly[i] + (yearly[i + 1] - yearly[i]) * t,
+            xFrac: i + t,
+          });
+        }
+      }
+      return pts;
+    }
+
+    function buildCumData() {
+      const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
+      const series = CHART_SERIES.map(s => {
+        const yearly = [100, ...DATA.map(d => d[s.indexKey])];
+        return {
+          id: s.id,
+          indexKey: s.indexKey,
+          yearly,
+          expanded: expandCumYearlyPoints(yearly, CUM_POINTS_PER_YEAR),
+        };
+      });
+      return { cats, series, pointsPerYear: CUM_POINTS_PER_YEAR };
+    }
+
+    const CUM_DATA = buildCumData();
     const chartSeriesActive = new Set(CHART_SERIES.map(s => s.id));
 
     function activeChartSeries() {
@@ -2322,57 +2354,67 @@
     }
 
     function renderCumulativeChart() {
-      const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
+      const { cats, series: cumCatalog, pointsPerYear } = CUM_DATA;
       const fullLast = cats.length - 1;
-      const step = cumAnimEnabled ? Math.min(cumAnimStep, fullLast) : fullLast;
       const showEndLabels = cumAnimComplete();
+      const animating = cumAnimEnabled && !showEndLabels;
       const active = activeChartSeries();
-      const fullSeries = active.map(s => ({
+      const fullSeries = active.map(s => {
+        const row = cumCatalog.find(r => r.id === s.id);
+        return { ...s, yearly: row.yearly, expanded: row.expanded };
+      });
+      const series = fullSeries.map(s => ({
         ...s,
-        data: [100, ...DATA.map(d => d[s.indexKey])],
+        points: animating
+          ? s.expanded.slice(0, cumAnimStep + 1)
+          : s.yearly.map((value, i) => ({ value, xFrac: i })),
       }));
-      const series = fullSeries.map(s => ({ ...s, data: s.data.slice(0, step + 1) }));
       const zoomed = chartZoomActive("cum");
       const base = { w: 1040, h: 520, r: 72 };
       const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
       const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
-      const all = fullSeries.flatMap(s => s.data);
+      const all = fullSeries.flatMap(s => s.yearly);
       const yMin = Math.min(100, ...all) * 0.92;
       const yMax = Math.max(...all) * 1.06;
       const useLog = chartLogScale;
       const yScale = useLog ? makeLogYScale(yMin, yMax, m, plotH) : makeLinearYScale(yMin, yMax, m, plotH);
-      const xScale = i => m.l + (i / fullLast) * plotW;
+      const xScale = xFrac => m.l + (xFrac / fullLast) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
         : [100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
       const labelX = xScale(fullLast) + 10;
       const endLabels = showEndLabels ? layoutEndLabels(
-        fullSeries.map(s => ({ s, end: s.data[fullLast], y: yScale(s.data[fullLast]) })),
+        fullSeries.map(s => ({ s, end: s.yearly[fullLast], y: yScale(s.yearly[fullLast]) })),
         16,
         m.t + 8,
         m.t + plotH - 6,
       ) : [];
       const paths = series.map(s => {
-        const pts = s.data;
+        const pts = s.points;
         const end = pts[pts.length - 1];
-        const endIdx = pts.length - 1;
         if (pts.length === 1) {
-          return `<circle class="series-hit" data-id="${s.id}" cx="${xScale(0)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+          return `<circle class="series-hit" data-id="${s.id}" cx="${xScale(end.xFrac)}" cy="${yScale(end.value)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
         }
-        const line = pts.map((v, i) => `${i === 0 ? "M" : "L"}${xScale(i)},${yScale(v)}`).join(" ");
+        const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${xScale(p.xFrac)},${yScale(p.value)}`).join(" ");
         return `<path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#cum-plot-clip)"/>
           <path class="series-hit" data-id="${s.id}" d="${line}" fill="none" stroke="${s.color}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" filter="url(#cum-line-depth)" clip-path="url(#cum-plot-clip)"/>
-          <circle class="series-hit" data-id="${s.id}" cx="${xScale(endIdx)}" cy="${yScale(end)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
+          <circle class="series-hit" data-id="${s.id}" cx="${xScale(end.xFrac)}" cy="${yScale(end.value)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
       }).join("");
 
       const endLabelSvg = endLabels.map(({ s, end, y }) =>
         `<text class="series-hit" data-id="${s.id}" x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
       ).join("");
 
-      const yearBadge = !showEndLabels && step > 0
-        ? `<text x="${W - m.r - 8}" y="${m.t + 20}" text-anchor="end" fill="var(--chart-label)" font-size="${font + 1}" font-weight="700">${cats[step]}</text>`
+      const labelLimit = animating
+        ? Math.min(fullLast, Math.floor(cumAnimStep / pointsPerYear) + 1)
+        : fullLast;
+      const badgeIdx = animating && cumAnimStep > 0
+        ? Math.min(fullLast, Math.floor(cumAnimStep / pointsPerYear))
+        : -1;
+      const yearBadge = badgeIdx >= 0
+        ? `<text x="${W - m.r - 8}" y="${m.t + 20}" text-anchor="end" fill="var(--chart-label)" font-size="${font + 1}" font-weight="700">${cats[badgeIdx]}</text>`
         : "";
 
       document.getElementById("cum-chart").innerHTML = `
@@ -2386,10 +2428,13 @@
           ${paths}
           ${endLabelSvg}
           ${cats.map((l, i) => {
-            if (i > step) return "";
-            const show = !showEndLabels || ((!zoomed && (i % 2 === 0 || i === fullLast)) || (zoomed && showZoomedYearLabel(i, cats.length)));
+            if (animating && i > labelLimit) return "";
+            const show = !animating
+              ? ((!zoomed && (i % 2 === 0 || i === fullLast)) || (zoomed && showZoomedYearLabel(i, cats.length)))
+              : true;
+            const highlight = animating && i === badgeIdx;
             return show
-              ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${i === step && !showEndLabels ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${i === step && !showEndLabels ? 700 : 400}">${l}</text>`
+              ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${highlight ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${highlight ? 700 : 400}">${l}</text>`
               : "";
           }).join("")}
         </svg>`;
@@ -2416,7 +2461,7 @@
         const s = activeSeries.find(row => row.id === id);
         if (!s) return;
         const show = (e) => {
-          const end = s.data[s.data.length - 1];
+          const end = s.points[s.points.length - 1].value;
           tip.innerHTML = `<strong>${pLabel(id)}</strong><br>${Math.round(end)}%`;
           positionTooltipAtCursor(tip, wrap, e);
         };
