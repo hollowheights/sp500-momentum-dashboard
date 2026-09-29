@@ -2360,6 +2360,40 @@
       return labels;
     }
 
+    function cumFullYRange(fullSeries) {
+      const all = fullSeries.flatMap(s => s.yearly);
+      return {
+        yMin: Math.min(100, ...all) * 0.92,
+        yMax: Math.max(...all) * 1.06,
+      };
+    }
+
+    function cumAnimYRange(series, fullSeries, step) {
+      const { yMin: fullMin, yMax: fullMax } = cumFullYRange(fullSeries);
+      const visible = series.flatMap(s => s.points.map(p => p.value));
+      const visMin = Math.min(...visible);
+      const visMax = Math.max(...visible);
+      let span = visMax - visMin;
+      const minSpan = Math.max(14, (fullMax - fullMin) * 0.035);
+      let tightMin;
+      let tightMax;
+      if (span < minSpan) {
+        const mid = (visMin + visMax) / 2;
+        tightMin = mid - minSpan / 2;
+        tightMax = mid + minSpan / 2;
+      } else {
+        const pad = span * 0.14;
+        tightMin = visMin - pad;
+        tightMax = visMax + pad;
+      }
+      const progress = step / cumFullStep();
+      const ease = progress < 0.12 ? 0 : Math.pow((progress - 0.12) / 0.88, 1.35);
+      return {
+        yMin: tightMin + (fullMin - tightMin) * ease,
+        yMax: tightMax + (fullMax - tightMax) * ease,
+      };
+    }
+
     function renderCumulativeChart() {
       const { cats, series: cumCatalog, pointsPerYear } = CUM_DATA;
       const fullLast = cats.length - 1;
@@ -2382,9 +2416,9 @@
       const { W, H, font, ml, mr } = layout;
       const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
-      const all = fullSeries.flatMap(s => s.yearly);
-      const yMin = Math.min(100, ...all) * 0.92;
-      const yMax = Math.max(...all) * 1.06;
+      const { yMin, yMax } = animating
+        ? cumAnimYRange(series, fullSeries, cumAnimStep)
+        : cumFullYRange(fullSeries);
       const useLog = chartLogScale;
       const yScale = useLog ? makeLogYScale(yMin, yMax, m, plotH) : makeLinearYScale(yMin, yMax, m, plotH);
       const xScale = xFrac => m.l + (xFrac / fullLast) * plotW;
