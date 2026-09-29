@@ -1998,13 +1998,18 @@
     }
 
     function makeLogYScale(yMin, yMax, m, plotH) {
-      const floor = yMin <= 0 ? 1 : Math.max(yMin, 1);
+      const floor = 50;
+      const bottom = m.t + plotH;
+      const zeroBand = Math.max(24, plotH * 0.07);
+      const logBottom = bottom - zeroBand;
       const logMin = Math.log10(floor);
-      const logMax = Math.log10(Math.max(yMax, floor));
+      const logMax = Math.log10(Math.max(yMax, floor * 1.2));
       const span = logMax - logMin || 1;
+      const logH = logBottom - m.t;
       return v => {
-        const n = v <= 0 ? floor : v;
-        return m.t + plotH - ((Math.log10(Math.max(n, floor)) - logMin) / span) * plotH;
+        if (v <= 0) return bottom;
+        if (v < floor) return bottom - (v / floor) * zeroBand;
+        return logBottom - ((Math.log10(v) - logMin) / span) * logH;
       };
     }
 
