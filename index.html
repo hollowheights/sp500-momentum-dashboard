@@ -2238,7 +2238,7 @@
         H: base.h + 80,
         font: 13,
         ml: 70,
-        mr: base.r === 72 ? 56 : 20,
+        mr: Math.max(20, base.r),
       };
     }
 
@@ -2250,7 +2250,7 @@
           H: base.h + 160,
           font: 11,
           ml: 40,
-          mr: base.r === 72 ? 44 : 6,
+          mr: base.r >= 72 ? Math.max(44, Math.round(base.r * 0.85)) : 6,
         };
       }
       return { W: 1040, H: base.h, font: 11, ml: 64, mr: base.r };
@@ -2462,7 +2462,11 @@
           : s.yearly.map((value, i) => ({ value, xFrac: i })),
       }));
       const zoomed = chartZoomActive("cum");
-      const base = { w: 1040, h: 520, r: 72 };
+      const longestLabel = Math.max(
+        12,
+        ...fullSeries.map(s => `${pLabel(s.id)} · ${cumReturnPct(s.yearly[s.yearly.length - 1])}%`.length)
+      );
+      const base = { w: 1040, h: 520, r: Math.ceil(10 + longestLabel * 10 * 0.64 + 16) };
       const layout = getChartLayout(cats.length, base, zoomed);
       const { W, H, font, ml, mr } = layout;
       const m = { t: 28, r: mr, b: 48, l: ml };
