@@ -2162,8 +2162,8 @@
       { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
     const CUM_POINTS_PER_YEAR = 4;
-    const CUM_ORIGIN_STEPS = 8;
-    const CUM_ORIGIN_X = -0.85;
+    const CUM_ORIGIN_STEPS = 4;
+    const CUM_ORIGIN_X = -1;
 
     function expandCumYearlyPoints(yearly, pointsPerYear) {
       const pts = [];
@@ -2186,10 +2186,16 @@
       return pts;
     }
 
+    function cumYtdIndex(s) {
+      const last = DATA[DATA.length - 1][s.indexKey];
+      const pct = YTD_2026[s.pctKey];
+      return Math.round(last * (1 + pct / 100) * 10) / 10;
+    }
+
     function buildCumData() {
       const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
       const series = CHART_SERIES.map(s => {
-        const yearly = [100, ...DATA.map(d => d[s.indexKey])];
+        const yearly = [...DATA.map(d => d[s.indexKey]), cumYtdIndex(s)];
         return {
           id: s.id,
           indexKey: s.indexKey,
@@ -2501,13 +2507,21 @@
       ).join("");
 
       const originSteps = CUM_DATA.originSteps || pointsPerYear;
-      const yearProgress = Math.max(0, cumAnimStep - originSteps) / pointsPerYear;
-      const labelLimit = animating
-        ? Math.min(fullLast, Math.floor(yearProgress) + 1)
-        : fullLast;
-      const badgeIdx = animating
-        ? Math.min(fullLast, Math.floor(yearProgress))
-        : -1;
+      let badgeIdx = -1;
+      let labelLimit = fullLast;
+      if (animating) {
+        if (cumAnimStep <= originSteps) {
+          badgeIdx = 0;
+          labelLimit = 0;
+        } else {
+          const yearIdx = Math.min(
+            fullLast,
+            Math.floor((cumAnimStep - originSteps - 1) / pointsPerYear) + 1
+          );
+          badgeIdx = yearIdx;
+          labelLimit = yearIdx;
+        }
+      }
       const yearBadge = badgeIdx >= 0
         ? `<text x="${W - m.r - 8}" y="${m.t + 20}" text-anchor="end" fill="var(--chart-label)" font-size="${font + 1}" font-weight="700">${cats[badgeIdx]}</text>`
         : "";
