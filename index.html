@@ -2430,7 +2430,7 @@
       };
     }
 
-    function cumAnimYRange(series, fullSeries, step, pointsPerYear) {
+    function cumAnimYRange(series, _fullSeries, step, pointsPerYear) {
       const originSteps = CUM_DATA.originSteps || pointsPerYear;
       const yearIdx = step <= originSteps ? 0 : Math.floor((step - originSteps) / pointsPerYear);
       if (yearIdx === cumAnimYRangeCache.yearIdx && cumAnimYRangeCache.yMax != null) {
@@ -2439,13 +2439,8 @@
       const visible = series.flatMap(s => s.points.map(p => p.value));
       const visMin = Math.min(0, ...visible);
       const visMax = Math.max(0, ...visible);
-      const full = cumFullYRange(fullSeries);
-      const progress = step / cumFullStep();
-      const ease = progress < 0.18 ? 0 : Math.pow((progress - 0.18) / 0.82, 1.35);
-      const tightMin = visMin < 0 ? visMin * 1.25 : 0;
-      const tightMax = Math.max(visMax * 1.25, visMin < 0 ? 12 : 20);
-      const yMin = tightMin + (full.yMin - tightMin) * ease;
-      const yMax = tightMax + (full.yMax - tightMax) * ease;
+      const yMin = visMin < 0 ? visMin - Math.max(Math.abs(visMin) * 0.2, 4) : 0;
+      const yMax = visMax + Math.max(visMax * 0.12, 8);
       cumAnimYRangeCache = { yearIdx, yMin, yMax };
       return { yMin, yMax };
     }
@@ -2482,7 +2477,7 @@
       const xScale = xFrac => m.l + ((xFrac - xMin) / (fullLast - xMin)) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
-        : [-40, -20, 0, 20, 40, 60, 80, 100, 150, 200, 400, 600, 800, 1000, 2000, 4000, 10000].filter(t => t >= yMin && t <= yMax);
+        : [-40, -20, 0, 20, 40, 60, 80, 100, 150, 200, 300, 400, 600, 800, 1000, 1500, 2000, 2500, 3000, 4000, 6000, 10000].filter(t => t >= yMin && t <= yMax);
       const labelX = xScale(fullLast) + 10;
       const paths = series.map(s => {
         const pts = s.points;
