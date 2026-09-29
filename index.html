@@ -434,6 +434,13 @@
     }
     .scatter-filter.off { opacity: 0.45; }
     .series-hit { cursor: pointer; }
+    .cum-line-label {
+      paint-order: stroke fill;
+      stroke: var(--surface);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
     .scatter-filter.top10.on { border-color: var(--top); background: rgba(78, 121, 167, 0.12); }
     .scatter-filter.top3.on { border-color: var(--top3); background: rgba(242, 142, 43, 0.12); }
     .scatter-filter.bottom10.on { border-color: var(--bottom); background: rgba(225, 87, 89, 0.12); }
@@ -1919,7 +1926,7 @@
     let cumAnimEnabled = true;
     let cumAnimStep = 0;
     let cumAnimTimer = null;
-    const CUM_ANIM_MS = 1000;
+    const CUM_ANIM_MS = 500;
 
     function cumFullStep() {
       return CUM_DATA.series[0].expanded.length - 1;
@@ -2110,7 +2117,7 @@
       { id: "mom6", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
       { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
     ];
-    const CUM_POINTS_PER_YEAR = 2;
+    const CUM_POINTS_PER_YEAR = 4;
 
     function expandCumYearlyPoints(yearly, pointsPerYear) {
       if (pointsPerYear <= 1) return yearly.map((value, i) => ({ value, xFrac: i }));
@@ -2385,12 +2392,6 @@
         ? logYTicks(yMin, yMax)
         : [100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
       const labelX = xScale(fullLast) + 10;
-      const endLabels = showEndLabels ? layoutEndLabels(
-        fullSeries.map(s => ({ s, end: s.yearly[fullLast], y: yScale(s.yearly[fullLast]) })),
-        16,
-        m.t + 8,
-        m.t + plotH - 6,
-      ) : [];
       const paths = series.map(s => {
         const pts = s.points;
         const end = pts[pts.length - 1];
@@ -2403,8 +2404,17 @@
           <circle class="series-hit" data-id="${s.id}" cx="${xScale(end.xFrac)}" cy="${yScale(end.value)}" r="4.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.6"/>`;
       }).join("");
 
-      const endLabelSvg = endLabels.map(({ s, end, y }) =>
-        `<text class="series-hit" data-id="${s.id}" x="${labelX}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${Math.round(end)}%</text>`
+      const lineLabelSeed = series.map(s => {
+        const end = s.points[s.points.length - 1];
+        const tipX = animating ? xScale(end.xFrac) + 8 : labelX;
+        return { s, end: end.value, x: tipX, y: yScale(end.value) };
+      });
+      const lineLabels = showEndLabels
+        ? layoutEndLabels(lineLabelSeed, 18, m.t + 8, m.t + plotH - 6)
+        : lineLabelSeed;
+      const lineLabelSvg = lineLabels.map(({ s, end, x, y }) => animating
+        ? `<text class="cum-line-label" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 2}" font-weight="600">${pLabel(s.id)}</text>`
+        : `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${pLabel(s.id)} · ${Math.round(end)}%</text>`
       ).join("");
 
       const labelLimit = animating
@@ -2426,7 +2436,7 @@
           ${yTicks.map(tick => `<line x1="${m.l}" x2="${W-m.r}" y1="${yScale(tick)}" y2="${yScale(tick)}" stroke="var(--chart-grid)" stroke-width="1" opacity="0.7" stroke-dasharray="3 5"/>
             <text x="${m.l-12}" y="${yScale(tick)+4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${tick}</text>`).join("")}
           ${paths}
-          ${endLabelSvg}
+          ${lineLabelSvg}
           ${cats.map((l, i) => {
             if (animating && i > labelLimit) return "";
             const show = !animating
