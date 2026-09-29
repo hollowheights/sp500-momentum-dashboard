@@ -1926,7 +1926,12 @@
     let cumAnimEnabled = true;
     let cumAnimStep = 0;
     let cumAnimTimer = null;
+    let cumAnimYRangeCache = { yearIdx: -1, yMin: 0, yMax: null };
     const CUM_ANIM_MS = 500;
+
+    function resetCumAnimYRange() {
+      cumAnimYRangeCache = { yearIdx: -1, yMin: 0, yMax: null };
+    }
 
     function cumFullStep() {
       return CUM_DATA.series[0].expanded.length - 1;
@@ -1945,6 +1950,7 @@
 
     function startCumAnimation() {
       stopCumAnimation();
+      resetCumAnimYRange();
       cumAnimStep = 0;
       renderCumulativeChart();
       cumAnimTimer = setInterval(() => {
@@ -2363,35 +2369,26 @@
     function cumFullYRange(fullSeries) {
       const all = fullSeries.flatMap(s => s.yearly);
       return {
-        yMin: Math.min(100, ...all) * 0.92,
+        yMin: 0,
         yMax: Math.max(...all) * 1.06,
       };
     }
 
-    function cumAnimYRange(series, fullSeries, step) {
-      const { yMin: fullMin, yMax: fullMax } = cumFullYRange(fullSeries);
-      const visible = series.flatMap(s => s.points.map(p => p.value));
-      const visMin = Math.min(...visible);
-      const visMax = Math.max(...visible);
-      let span = visMax - visMin;
-      const minSpan = Math.max(14, (fullMax - fullMin) * 0.035);
-      let tightMin;
-      let tightMax;
-      if (span < minSpan) {
-        const mid = (visMin + visMax) / 2;
-        tightMin = mid - minSpan / 2;
-        tightMax = mid + minSpan / 2;
-      } else {
-        const pad = span * 0.14;
-        tightMin = visMin - pad;
-        tightMax = visMax + pad;
+    function cumAnimYRange(series, fullSeries, step, pointsPerYear) {
+      const yearIdx = Math.floor(step / pointsPerYear);
+      if (yearIdx === cumAnimYRangeCache.yearIdx && cumAnimYRangeCache.yMax != null) {
+        return { yMin: cumAnimYRangeCache.yMin, yMax: cumAnimYRangeCache.yMax };
       }
+      const visible = series.flatMap(s => s.points.map(p => p.value));
+      const visMax = Math.max(...visible);
+      const fullMax = cumFullYRange(fullSeries).yMax;
       const progress = step / cumFullStep();
       const ease = progress < 0.12 ? 0 : Math.pow((progress - 0.12) / 0.88, 1.35);
-      return {
-        yMin: tightMin + (fullMin - tightMin) * ease,
-        yMax: tightMax + (fullMax - tightMax) * ease,
-      };
+      const tightMax = Math.max(visMax * 1.16, 120);
+      const yMin = 0;
+      const yMax = tightMax + (fullMax - tightMax) * ease;
+      cumAnimYRangeCache = { yearIdx, yMin, yMax };
+      return { yMin, yMax };
     }
 
     function renderCumulativeChart() {
@@ -2417,14 +2414,14 @@
       const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const { yMin, yMax } = animating
-        ? cumAnimYRange(series, fullSeries, cumAnimStep)
+        ? cumAnimYRange(series, fullSeries, cumAnimStep, pointsPerYear)
         : cumFullYRange(fullSeries);
       const useLog = chartLogScale;
       const yScale = useLog ? makeLogYScale(yMin, yMax, m, plotH) : makeLinearYScale(yMin, yMax, m, plotH);
       const xScale = xFrac => m.l + (xFrac / fullLast) * plotW;
       const yTicks = useLog
         ? logYTicks(yMin, yMax)
-        : [100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
+        : [0, 50, 100, 200, 400, 600, 800, 1000, 2000, 4000].filter(t => t >= yMin && t <= yMax);
       const labelX = xScale(fullLast) + 10;
       const paths = series.map(s => {
         const pts = s.points;
@@ -2712,6 +2709,7 @@
         startCumAnimation();
       } else {
         stopCumAnimation();
+        resetCumAnimYRange();
         cumAnimStep = cumFullStep();
         renderCumulativeChart();
         updateCumAnimToggleUi();
