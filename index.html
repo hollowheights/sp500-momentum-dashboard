@@ -2187,16 +2187,14 @@
       return pts;
     }
 
-    function cumYtdIndex(s) {
-      const last = DATA[DATA.length - 1][s.indexKey];
-      const pct = YTD_2026[s.pctKey];
-      return Math.round(last * (1 + pct / 100) * 10) / 10;
+    function cumReturnPct(index) {
+      return Math.round(index - 100);
     }
 
     function buildCumData() {
-      const cats = [...DATA.map(d => String(d.holdYear)), "2026"];
+      const cats = DATA.map(d => String(d.holdYear));
       const series = CHART_SERIES.map(s => {
-        const yearly = [...DATA.map(d => d[s.indexKey]), cumYtdIndex(s)];
+        const yearly = DATA.map(d => d[s.indexKey]);
         return {
           id: s.id,
           indexKey: s.indexKey,
@@ -2498,7 +2496,7 @@
         : lineLabelSeed;
       const lineLabelSvg = lineLabels.map(({ s, end, x, y }) => animating
         ? `<text class="cum-line-label" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 2}" font-weight="600">${pLabel(s.id)}</text>`
-        : `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${pLabel(s.id)} · ${Math.round(end)}%</text>`
+        : `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${pLabel(s.id)} · ${cumReturnPct(end)}%</text>`
       ).join("");
 
       const originSteps = CUM_DATA.originSteps || pointsPerYear;
@@ -2566,7 +2564,7 @@
         if (!s) return;
         const show = (e) => {
           const end = s.points[s.points.length - 1].value;
-          tip.innerHTML = `<strong>${pLabel(id)}</strong><br>${Math.round(end)}%`;
+          tip.innerHTML = `<strong>${pLabel(id)}</strong><br>${cumReturnPct(end)}%`;
           positionTooltipAtCursor(tip, wrap, e);
         };
         el.addEventListener("mouseenter", show);
