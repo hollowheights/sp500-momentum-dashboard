@@ -2366,6 +2366,13 @@
       return labels;
     }
 
+    function cumPointsWithOrigin(points) {
+      if (!points.length) return [{ value: 0, xFrac: 0 }];
+      const first = points[0];
+      if (first.value === 0) return points;
+      return [{ value: 0, xFrac: first.xFrac }, ...points];
+    }
+
     function cumFullYRange(fullSeries) {
       const all = fullSeries.flatMap(s => s.yearly);
       return {
