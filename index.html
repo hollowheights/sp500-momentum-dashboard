@@ -2430,16 +2430,14 @@
       };
     }
 
-    function cumAnimYRange(series, _fullSeries, step, pointsPerYear) {
-      const originSteps = CUM_DATA.originSteps || pointsPerYear;
-      const yearIdx = step <= originSteps ? 0 : Math.floor((step - originSteps) / pointsPerYear);
-      if (yearIdx === cumAnimYRangeCache.yearIdx && cumAnimYRangeCache.yMax != null) {
-        return { yMin: 0, yMax: cumAnimYRangeCache.yMax };
-      }
-      const visible = series.flatMap(s => s.points.map(p => p.value));
-      const visMax = Math.max(0, ...visible);
-      const yMax = visMax + Math.max(visMax * 0.12, 8);
-      cumAnimYRangeCache = { yearIdx, yMin: 0, yMax };
+    function cumAnimYRange(_series, fullSeries, step) {
+      const ahead = Math.min(step + 1, (fullSeries[0]?.expanded.length || 1) - 1);
+      const vals = fullSeries.flatMap(s => s.expanded.slice(0, ahead + 1).map(p => p.value));
+      const visMax = Math.max(0, ...vals);
+      const target = visMax + Math.max(visMax * 0.18, 12);
+      const prev = cumAnimYRangeCache.yMax;
+      const yMax = prev == null ? target : Math.max(target, prev + (target - prev) * 0.4);
+      cumAnimYRangeCache = { yearIdx: -1, yMin: 0, yMax };
       return { yMin: 0, yMax };
     }
 
