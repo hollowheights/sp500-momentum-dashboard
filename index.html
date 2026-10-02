@@ -44,6 +44,7 @@
     .hero-top h1 { margin-bottom: 0; }
     .lang-switch {
       display: inline-flex;
+      flex-shrink: 0;
       border: 1px solid var(--border);
       border-radius: 999px;
       background: var(--surface);
@@ -168,6 +169,7 @@
     }
     #sharpe-stats .stat {
       width: 100%;
+      min-height: var(--h);
       padding: 12px 10px;
       display: flex;
       flex-direction: column;
@@ -195,6 +197,24 @@
     #sharpe-stats .stat.mom12_1 { border-color: var(--mom121); background: rgba(89, 161, 79, 0.14); }
     #sharpe-stats .stat.mom6 { border-color: var(--mom6); background: rgba(123, 111, 214, 0.14); }
     #sharpe-stats .stat.sp500 { border-color: var(--spy); background: rgba(121, 112, 110, 0.14); }
+    @media (max-width: 600px) {
+      #sharpe-stats { flex-direction: column; align-items: stretch; gap: 8px; }
+      #sharpe-stats .sharpe-col {
+        flex: none;
+        max-width: none;
+        min-width: 0;
+        flex-direction: row;
+        gap: 10px;
+      }
+      #sharpe-stats .sharpe-label { order: -1; flex: 0 0 104px; text-align: right; }
+      #sharpe-stats .stat {
+        width: calc((100% - 114px) * var(--f));
+        min-height: 0;
+        padding: 6px 10px;
+        align-items: flex-end;
+      }
+      #sharpe-stats .stat .val { font-size: 1rem; text-align: right; }
+    }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -223,7 +243,7 @@
       transition: transform 0.2s;
     }
     .toggle.on::after { transform: translateX(20px); }
-    .chart-wrap { position: relative; min-height: 320px; }
+    .chart-wrap { position: relative; }
     svg { display: block; width: 100%; height: auto; overflow: visible; aspect-ratio: 1040 / 540; }
     .card-hd-toggles {
       display: flex;
@@ -2039,8 +2059,10 @@
       const hMin = 132;
       const hMax = 280;
       document.getElementById("sharpe-stats").innerHTML = sorted.map(({ id, val }) => {
-        const h = Number.isFinite(val) ? hMin + ((val - min) / span) * (hMax - hMin) : hMin;
-        return `<div class="sharpe-col"><div class="stat ${id}" style="min-height:${Math.round(h)}px"><div class="val">${fmtSharpe(val)}</div></div><div class="sharpe-label">${pLabel(id)}</div></div>`;
+        const frac = Number.isFinite(val) ? (val - min) / span : 0;
+        const h = hMin + frac * (hMax - hMin);
+        const f = 0.35 + frac * 0.65;
+        return `<div class="sharpe-col"><div class="stat ${id}" style="--h:${Math.round(h)}px;--f:${f.toFixed(3)}"><div class="val">${fmtSharpe(val)}</div></div><div class="sharpe-label">${pLabel(id)}</div></div>`;
       }).join("");
     }
 
@@ -2242,15 +2264,23 @@
       };
     }
 
+    // On mobile the SVG is drawn 1:1 with the container width, so font sizes are real pixels.
+    function mobileChartWidth() {
+      const wrap = document.querySelector(".chart-wrap");
+      return Math.max(280, Math.round(wrap?.clientWidth || window.innerWidth - 40));
+    }
+
     function getChartLayout(pointCount, base, zoomed) {
       if (zoomed) return getZoomedLayout(pointCount, base);
       if (isMobileChart()) {
+        const W = mobileChartWidth();
         return {
-          W: 1040,
-          H: base.h + 160,
+          W,
+          H: Math.round(Math.min(420, Math.max(300, W * 1.05))),
           font: 11,
-          ml: 40,
-          mr: base.r >= 72 ? Math.max(44, Math.round(base.r * 0.85)) : 6,
+          ml: 48,
+          mr: base.r >= 72 ? 48 : 6,
+          mobile: true,
         };
       }
       return { W: 1040, H: base.h, font: 11, ml: 64, mr: base.r };
@@ -2358,14 +2388,17 @@
       const zoomed = chartZoomActive("annual");
       const base = { w: 1040, h: 540, r: 24 };
       const layout = getChartLayout(data.length, base, zoomed);
-      const { W, H, font, ml, mr } = layout;
+      const { W, H, font, ml, mr, mobile } = layout;
       const m = { t: 28, r: mr, b: 56, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
       const zeroY = yScale(0);
       const groupW = plotW / data.length;
-      const gap = 2.5;
-      const barW = Math.min(zoomed ? 15 : 13, Math.max(zoomed ? 7 : 5.5, (groupW * 0.82 - gap * (active.length - 1)) / active.length));
+      const gap = mobile ? 0.6 : 2.5;
+      const barMin = zoomed ? 7 : mobile ? 1 : 5.5;
+      const barW = Math.min(zoomed ? 15 : 13, Math.max(barMin, (groupW * 0.86 - gap * (active.length - 1)) / active.length));
+      // Mobile: label every other year, counted back from the latest so it is always shown.
+      const showYearLabel = i => zoomed ? showZoomedYearLabel(i, data.length) : !mobile || (data.length - 1 - i) % 2 === 0;
       const ticks = [-40,-20,0,20,40,60,80,100,150,200].filter(t => t >= yMin && t <= yMax);
 
       let bars = "";
@@ -2383,10 +2416,10 @@
           const y = v >= 0 ? tip : zeroY;
           const h = Math.max(2, Math.abs(zeroY - tip));
           const grad = v >= 0 ? `url(#annual-bar-${s.id})` : `url(#annual-bar-${s.id}-neg)`;
-          bars += `<rect class="bar series-hit" data-id="${s.id}" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${grad}" rx="${Math.min(4, barW / 2)}" filter="url(#annual-bar-depth)" ${dash} opacity="${partial ? 0.9 : 1}"/>`;
+          bars += `<rect class="bar series-hit" data-id="${s.id}" data-i="${i}" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${grad}" rx="${Math.min(4, barW / 2)}" filter="url(#annual-bar-depth)" ${mobile ? "" : dash} opacity="${partial ? 0.9 : 1}"/>`;
         });
         bands += `<rect class="band" data-i="${i}" x="${bx}" y="${m.t+4}" width="${groupW-4}" height="${plotH-8}" fill="transparent" rx="6"/>`;
-        if (!zoomed || showZoomedYearLabel(i, data.length)) {
+        if (showYearLabel(i)) {
           bars += `<text x="${cx}" y="${H - (partial ? 34 : 22)}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${row.holdYear}</text>`;
         }
         if (partial) bars += `<text x="${cx}" y="${H-18}" text-anchor="middle" fill="var(--muted)" font-size="${font - 1}">${t("chartLabelYtd")}</text>`;
@@ -2468,7 +2501,7 @@
       );
       const base = { w: 1040, h: 520, r: Math.ceil(10 + longestLabel * 10 * 0.64 + 16) };
       const layout = getChartLayout(cats.length, base, zoomed);
-      const { W, H, font, ml, mr } = layout;
+      const { W, H, font, ml, mr, mobile } = layout;
       const m = { t: 28, r: mr, b: 48, l: ml };
       const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
       const { yMin, yMax } = animating
@@ -2503,7 +2536,10 @@
       const lineLabels = showEndLabels
         ? layoutEndLabels(lineLabelSeed, 18, m.t + 8, m.t + plotH - 6)
         : lineLabelSeed;
-      const lineLabelSvg = lineLabels.map(({ s, end, x, y }) => animating
+      // Mobile has no room for names next to the lines: show only the end value (colour matches the legend).
+      const lineLabelSvg = mobile && animating ? "" : lineLabels.map(({ s, end, x, y }) => mobile
+        ? `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x - 4}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${cumReturnPct(end)}%</text>`
+        : animating
         ? `<text class="cum-line-label" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 2}" font-weight="600">${pLabel(s.id)}</text>`
         : `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${pLabel(s.id)} · ${cumReturnPct(end)}%</text>`
       ).join("");
@@ -2540,10 +2576,12 @@
           ${lineLabelSvg}
           ${cats.map((l, i) => {
             if (animating && i > labelLimit) return "";
-            const show = !animating
+            const highlight = animating && i === badgeIdx;
+            const show = mobile
+              ? i === badgeIdx || ((fullLast - i) % 2 === 0 && !(animating && Math.abs(i - badgeIdx) < 2))
+              : !animating
               ? ((!zoomed && (i % 2 === 0 || i === fullLast)) || (zoomed && showZoomedYearLabel(i, cats.length)))
               : true;
-            const highlight = animating && i === badgeIdx;
             return show
               ? `<text x="${xScale(i)}" y="${H - 18}" text-anchor="middle" fill="${highlight ? "var(--text)" : "var(--chart-label)"}" font-size="${font}" font-weight="${highlight ? 700 : 400}">${l}</text>`
               : "";
@@ -2715,7 +2753,7 @@
         regressionLabel = `<text x="${W - m.r - 10}" y="${m.t + 18}" text-anchor="end" fill="var(--chart-label)" font-size="${font}" font-weight="600">R² = ${reg.r2.toFixed(2)}</text>`;
       }
 
-      const dotR = zoomed ? 5.5 : 4.6;
+      const dotR = zoomed ? 5.5 : isMobileChart() ? 3 : 4.6;
       const dots = pts.map((p, i) =>
         `<circle class="scatter-dot" data-i="${i}" cx="${xScale(p.priorReturnPct)}" cy="${yScale(p.holdReturnPct)}" r="${dotR}" fill="${portfolioColor(p.portfolio)}" fill-opacity="0.82" stroke="var(--surface)" stroke-width="1.15" clip-path="url(#scatter-plot-clip)"/>`
       ).join("");
