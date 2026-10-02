@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>S&P 500 momentum-backtest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #f4f6f9;
@@ -17,7 +20,6 @@
       --mom121: #59a14f;
       --mom6: #7b6fd6;
       --top3: #f28e2b;
-      --top250: #76b7b2;
       --success: #16a34a;
       --danger: #dc2626;
       --chart-bg: #fafbfc;
@@ -73,10 +75,13 @@
       box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
     }
     h1 {
-      font-size: clamp(1.85rem, 4vw, 2.35rem);
-      font-weight: 700;
-      letter-spacing: -0.03em;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-optical-sizing: auto;
+      font-size: clamp(1.45rem, 6.8vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
       line-height: 1.12;
+      text-wrap: balance;
       color: var(--text);
       margin-bottom: 12px;
     }
@@ -111,7 +116,6 @@
     }
     .strategy.top10 { --c: var(--top); }
     .strategy.top3 { --c: var(--top3); }
-    .strategy.top250 { --c: var(--top250); }
     .strategy.bottom10 { --c: var(--bottom); }
     .strategy.mom12_1 { --c: var(--mom121); }
     .strategy.mom6 { --c: var(--mom6); }
@@ -135,6 +139,16 @@
     }
     @media (min-width: 720px) {
       .hero { padding: 32px 32px 24px; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 20px 18px 20px; }
+      /* Language switch above the title, so the title gets the full width (max 2 lines). */
+      .hero-top { flex-direction: column-reverse; align-items: stretch; gap: 10px; }
+      .lang-switch { align-self: flex-end; }
+      .strategy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .strategy:last-child:nth-child(odd) { grid-column: 1 / -1; }
+      .strategy { padding: 10px 11px; }
+      .strategy-rule { font-size: 0.78rem; }
     }
     .stats {
       display: grid;
@@ -192,7 +206,6 @@
     }
     #sharpe-stats .stat.top10 { border-color: var(--top); background: rgba(78, 121, 167, 0.14); }
     #sharpe-stats .stat.top3 { border-color: var(--top3); background: rgba(242, 142, 43, 0.14); }
-    #sharpe-stats .stat.top250 { border-color: var(--top250); background: rgba(118, 183, 178, 0.14); }
     #sharpe-stats .stat.bottom10 { border-color: var(--bottom); background: rgba(225, 87, 89, 0.14); }
     #sharpe-stats .stat.mom12_1 { border-color: var(--mom121); background: rgba(89, 161, 79, 0.14); }
     #sharpe-stats .stat.mom6 { border-color: var(--mom6); background: rgba(123, 111, 214, 0.14); }
@@ -349,6 +362,61 @@
     th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.win td:first-child { border-left: 3px solid var(--success); }
     tr.loss td:first-child { border-left: 3px solid var(--danger); }
+    #all-years th:first-child,
+    #all-years td:first-child { position: sticky; left: 0; z-index: 1; }
+    #all-years th { padding: 0; white-space: nowrap; }
+    .sort-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: none;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+    th.num .sort-btn { justify-content: flex-end; }
+    .sort-btn::after { content: "↕"; font-size: 0.75em; opacity: 0.3; }
+    th[aria-sort="ascending"] .sort-btn::after { content: "▲"; opacity: 0.8; }
+    th[aria-sort="descending"] .sort-btn::after { content: "▼"; opacity: 0.8; }
+    .sort-btn:hover { color: var(--top); }
+    #all-years tbody tr { cursor: pointer; }
+    #all-years tbody tr:focus-visible { outline: 2px solid var(--top); outline-offset: -2px; }
+    #all-years td.hl { box-shadow: inset 0 0 0 999px rgba(78, 121, 167, 0.08); }
+    #all-years td.hl-cell { box-shadow: inset 0 0 0 2px var(--top); }
+    #all-years td.best { font-weight: 700; }
+    #all-years td.best::before { content: "★ "; color: var(--top3); font-size: 0.8em; }
+    #all-years td.ref { color: var(--muted); }
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      margin-bottom: 8px;
+    }
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg);
+      padding: 2px;
+    }
+    .seg button {
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(26, 35, 50, 0.12); }
+    .table-hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
     .tooltip {
       position: absolute; top: 8px; left: 0;
       background: var(--surface); border: 1px solid var(--border);
@@ -391,7 +459,6 @@
     .portfolio-block.mom121 { border-top: 3px solid var(--mom121); }
     .portfolio-block.mom6 { border-top: 3px solid var(--mom6); }
     .portfolio-block.top3 { border-top: 3px solid var(--top3); }
-    .portfolio-block.top250 { border-top: 3px solid var(--top250); }
     .half-meta {
       font-size: 0.78rem;
       color: var(--muted);
@@ -399,7 +466,6 @@
     }
     .half-meta:first-of-type { margin-top: 4px; }
     .pill.top3 { background: rgba(242, 142, 43, 0.12); color: var(--text); }
-    .pill.top250 { background: rgba(118, 183, 178, 0.12); color: var(--text); }
     .pills.dense { max-height: 148px; overflow-y: auto; }
     .pill[title] { cursor: help; }
     .portfolio-block-hd {
@@ -469,7 +535,6 @@
     }
     .scatter-filter.top10.on { border-color: var(--top); background: rgba(78, 121, 167, 0.12); }
     .scatter-filter.top3.on { border-color: var(--top3); background: rgba(242, 142, 43, 0.12); }
-    .scatter-filter.top250.on { border-color: var(--top250); background: rgba(118, 183, 178, 0.12); }
     .scatter-filter.bottom10.on { border-color: var(--bottom); background: rgba(225, 87, 89, 0.12); }
     .scatter-filter.mom12_1.on { border-color: var(--mom121); background: rgba(89, 161, 79, 0.12); }
     .scatter-filter.mom6.on { border-color: var(--mom6); background: rgba(123, 111, 214, 0.12); }
@@ -492,6 +557,26 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
+    .bubble-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--muted); }
+    .bubble-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .bubble-legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+    .bubble { cursor: pointer; transition: r 0.35s ease, cx 0.35s ease, cy 0.35s ease; }
+    .bubble:hover { stroke: var(--text); }
+    #bubble-tooltip .th-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .th-tag {
+      padding: 1px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--c);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.72rem;
+    }
+    .th-tag.top10 { --c: var(--top); }
+    .th-tag.top3 { --c: var(--top3); }
+    .th-tag.bottom10 { --c: var(--bottom); }
+    .th-tag.mom12_1 { --c: var(--mom121); }
+    .th-tag.mom6 { --c: var(--mom6); }
+    .source-box p + p { margin-top: 8px; }
     .source-box {
       margin-top: 36px;
       padding: 14px 16px;
@@ -517,7 +602,7 @@
       <p class="intro" data-i18n="intro">
         Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst i året/halvåret før?
       </p>
-      <p class="strategy-lead" data-i18n="strategyLead">Seks porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
+      <p class="strategy-lead" data-i18n="strategyLead">Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
       <div class="strategy-grid">
         <div class="strategy top10">
           <span class="strategy-name" data-i18n="labelTop10">Top-10</span>
@@ -526,10 +611,6 @@
         <div class="strategy top3">
           <span class="strategy-name" data-i18n="labelTop3">Top-3</span>
           <span class="strategy-rule" data-i18n="ruleTop3">De 3 bedste aktier året før. Køb 1. januar, hold et år.</span>
-        </div>
-        <div class="strategy top250">
-          <span class="strategy-name" data-i18n="labelTop250">Top-100</span>
-          <span class="strategy-rule" data-i18n="ruleTop250">De 100 bedste aktier året før. Køb 1. januar, hold et år.</span>
         </div>
         <div class="strategy bottom10">
           <span class="strategy-name" data-i18n="labelBottom10">Bund-10</span>
@@ -624,8 +705,21 @@
 
     <h2 data-i18n="fullReturnData">Fuld afkastdata</h2>
     <div class="card">
-      <div class="card-bd" style="overflow-x:auto">
-        <table id="all-years"></table>
+      <div class="card-bd">
+        <div class="table-toolbar">
+          <div class="seg" id="table-mode" role="group">
+            <button type="button" data-mode="abs" class="on" data-i18n="tableModeAbs">Afkast</button>
+            <button type="button" data-mode="excess" data-i18n="tableModeExcess">Mer-afkast vs. S&P 500</button>
+          </div>
+          <div class="toggle-row">
+            <span data-i18n="heatmap">Heatmap</span>
+            <button class="toggle on" id="table-heat-toggle" type="button" aria-label="Heatmap"></button>
+          </div>
+        </div>
+        <p class="table-hint" id="table-hint"></p>
+        <div style="overflow-x:auto">
+          <table id="all-years"></table>
+        </div>
       </div>
     </div>
 
@@ -642,10 +736,32 @@
       </div>
     </div>
 
-    <p class="source-box" data-i18n="source">
+    <h2 data-i18n="topHoldingsTitle">Største enkeltafkast</h2>
+    <p class="section-desc" data-i18n="topHoldingsDesc">De 10 største afkast for én aktie i én holdeperiode, på tværs af porteføljerne (2011–2025).</p>
+    <div class="card">
+      <div class="card-bd card-bd--chart">
+        <div class="table-toolbar">
+          <div class="bubble-legend" id="bubble-legend"></div>
+          <div class="toggle-row">
+            <span data-i18n="bubbleSize">Størrelse efter afkast året før</span>
+            <button class="toggle" id="bubble-size-toggle" type="button" data-i18n-aria="bubbleSize" aria-label="Størrelse efter afkast året før"></button>
+          </div>
+        </div>
+        <div class="chart-wrap" id="bubble-wrap">
+          <div class="tooltip" id="bubble-tooltip"></div>
+          <div id="bubble-chart"></div>
+        </div>
+        <p class="footnote" data-i18n="bubbleNote">Delte bobler indgik i flere porteføljer. Størrelse = afkast året før (mellemstørrelse = median).</p>
+      </div>
+    </div>
+
+    <div class="source-box">
+    <p data-i18n="source">
       Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter).
       S&P 500-medlemskab er baseret på historiske indeksdata (fja05680/sp500).
     </p>
+    <p class="source-note" id="excluded-note"></p>
+    </div>
   </div>
 
   <script>
@@ -666,6 +782,7 @@
       "AMZN": "Amazon",
       "ANET": "Arista Networks",
       "ANF": "Abercrombie & Fitch Co.",
+      "ANTM": "Elevance Health, Inc.",
       "APA": "APA Corporation",
       "APH": "Amphenol",
       "ARE": "Alexandria Real Estate Equities",
@@ -675,12 +792,13 @@
       "AZO": "AutoZone",
       "BA": "Boeing",
       "BAC": "Bank of America",
+      "BBWI": "Bath & Body Works, Inc.",
       "BBY": "Best Buy",
-      "BEN": "Franklin Resources",
       "BHF": "Brighthouse Financial, Inc.",
       "BHGE": "Baker Hughes",
       "BIIB": "Biogen",
       "BKNG": "Booking Holdings",
+      "BLL": "Ball Corporation",
       "BMY": "Bristol Myers Squibb",
       "BSX": "Boston Scientific",
       "C": "Citigroup",
@@ -703,26 +821,24 @@
       "CMI": "Cummins",
       "CNC": "Centene Corporation",
       "CNX": "CNX Resources Corporation",
-      "COF": "Capital One",
       "COP": "ConocoPhillips",
       "COST": "Costco",
       "COTY": "Coty Inc.",
       "CPRI": "Capri Holdings",
       "CPRT": "Copart",
-      "CPWR": "Compuware Corporation",
       "CRM": "Salesforce",
       "CSX": "CSX Corporation",
+      "CTL": "Lumen Technologies, Inc.",
       "CTSH": "Cognizant",
       "CVS": "CVS Health",
       "CVX": "Chevron Corporation",
-      "CZR": "Caesars Entertainment, Inc.",
       "DAL": "Delta Air Lines",
-      "DE": "Deere & Company",
       "DECK": "Deckers Brands",
       "DELL": "Dell Technologies",
       "DG": "Dollar General",
       "DHI": "D. R. Horton",
       "DHR": "Danaher Corporation",
+      "DISCA": "Warner Bros. Discovery, Inc.",
       "DLTR": "Dollar Tree",
       "DOW": "Dow Inc.",
       "DVN": "Devon Energy",
@@ -733,7 +849,6 @@
       "EMN": "Eastman Chemical Company",
       "ENPH": "Enphase Energy, Inc.",
       "EOG": "EOG Resources",
-      "EP": "El Paso Corporation",
       "EQT": "EQT Corporation",
       "ETSY": "Etsy, Inc.",
       "EW": "Edwards Lifesciences",
@@ -767,7 +882,7 @@
       "GOOG": "Alphabet Inc. (Class C)",
       "GOOGL": "Alphabet Inc. (Class A)",
       "GPN": "Global Payments",
-      "GR": "Goodrich Corporation",
+      "GPS": "The Gap, Inc.",
       "GS": "Goldman Sachs",
       "GT": "Goodyear Tire & Rubber Company",
       "GWW": "W. W. Grainger",
@@ -775,6 +890,7 @@
       "HAS": "Hasbro",
       "HBAN": "Huntington Bancshares",
       "HCA": "HCA Healthcare",
+      "HFC": "HF Sinclair Corporation",
       "HP": "Helmerich & Payne, Inc.",
       "HPQ": "HP Inc.",
       "HRB": "H&R Block, Inc.",
@@ -791,6 +907,7 @@
       "IT": "Gartner",
       "IVZ": "Invesco",
       "JBL": "Jabil",
+      "JEC": "Jacobs Solutions Inc.",
       "KDP": "Keurig Dr Pepper",
       "KEY": "KeyCorp",
       "KHC": "Kraft Heinz",
@@ -799,6 +916,8 @@
       "KMX": "CarMax, Inc.",
       "KR": "Kroger",
       "KSS": "Kohl's Corporation",
+      "LB": "Bath & Body Works, Inc.",
+      "LDOS": "Leidos",
       "LEN": "Lennar",
       "LLY": "Lilly (Eli)",
       "LNC": "Lincoln National Corporation",
@@ -845,12 +964,9 @@
       "NUE": "Nucor",
       "NVDA": "Nvidia",
       "NWL": "Newell Brands Inc.",
-      "ODFL": "Old Dominion",
-      "OI": "O-I Glass, Inc.",
       "OKE": "Oneok",
       "ORLY": "O'Reilly Automotive",
       "OXY": "Occidental Petroleum",
-      "PARA": "Banzai International, Inc.",
       "PAYC": "Paycom Software, Inc.",
       "PBI": "Pitney Bowes Inc.",
       "PCG": "PG&E Corporation",
@@ -879,7 +995,6 @@
       "SLB": "Schlumberger",
       "SMCI": "Supermicro",
       "SNDK": "Sandisk",
-      "SNPS": "Synopsys",
       "SPG": "Simon Property Group",
       "STT": "State Street Corporation",
       "STX": "Seagate Technology",
@@ -904,7 +1019,6 @@
       "UAL": "United Airlines Holdings",
       "UBER": "Uber",
       "UNH": "UnitedHealth Group",
-      "UNM": "Unum Group",
       "URI": "United Rentals",
       "V": "Visa Inc.",
       "VFC": "V.F. Corporation",
@@ -914,7 +1028,6 @@
       "VRSN": "Verisign",
       "VRTX": "Vertex Pharmaceuticals",
       "VST": "Vistra Corp.",
-      "VTR": "Ventas",
       "VTRS": "Viatris",
       "WBD": "Warner Bros. Discovery",
       "WDC": "Western Digital",
@@ -926,41 +1039,41 @@
       "XOM": "ExxonMobil",
       "XRAY": "DENTSPLY SIRONA Inc.",
       "XRX": "Xerox Holdings Corporation",
-      "ZBRA": "Zebra Technologies",
       "ZION": "Zions Bancorporation, National Association",
-      "ZTS": "Zoetis",
     };
     const DATA = [
-      { holdYear: 2011, selectionYear: 2010, top10Tickers: ["GR","CMI","WYNN","AIG","HBAN","ZION","AKAM","BKNG","CRM","VIAV"], bottom10Tickers: ["ADBE","NVDA","HPQ","V","WDC","MU","PHM","HRB","CPWR","EP"], top10Pct: -24.16, bottom10Pct: -12.37, sp500Pct: 1.89, top10Index: 75.8, bottom10Index: 87.6, sp500Index: 101.9, mom12_1Pct: -17.75, mom12_1Index: 82.2, mom12_1Tickers: ["GR", "CMI", "AKAM", "CRM", "WYNN", "BKNG", "AZO", "HBAN", "F", "TMUS"], top3Pct: -24.5, top3Index: 75.5, top3Tickers: ["GR", "CMI", "WYNN"], top250Pct: -2.02, top250Index: 98.0, top250Tickers: ["GR", "CMI", "WYNN", "AIG", "HBAN", "ZION", "AKAM", "BKNG", "CRM", "VIAV", "AZO", "CLF", "EL", "CAT", "ANF", "F", "TMUS", "AIV", "ETN", "PH", "CTSH", "INTU", "PCAR", "KEY", "NTAP", "ORLY", "EXPD", "DE", "ROK", "NOV", "FTI", "HST", "MAR", "TPR", "AAPL", "FCX", "M", "FITB", "CBRE", "HAS", "AMP", "ADSK", "ROST", "CF", "FLR", "LEN", "PPG", "FAST", "UNP", "AN", "CCL", "ROP", "VRSN", "GWW", "FMC", "DOV", "EMN", "YUM", "BHGE", "C", "TSN", "SBUX", "GPC", "MUR", "VLO", "HOG", "HON", "CHRW", "STZ", "KIM", "COP", "SHW", "XRX", "PFG", "IFF", "GENZ", "EMR", "RL", "SNA", "HAL", "DRI", "HRL", "CSX", "HSY", "MTB", "BF.B", "MO", "AMZN", "A", "CMCSA", "AIZ", "RF", "SWK", "MKC", "BXP", "MAT", "NKE", "R", "NEM", "TDC"], mom6Pct: -13.23, mom6Index: 86.8, mom6Tickers: ["BKNG", "FCX", "CF", "NOV", "ANF", "CMI", "AIG", "CLF", "FTI", "HAL"], mom6H1Tickers: ["BKNG", "FCX", "CF", "NOV", "ANF", "CMI", "AIG", "CLF", "FTI", "HAL"], mom6H2Tickers: ["EP", "BIIB", "NFLX", "HUM", "TDC", "MCO", "ISRG", "UNH", "GT", "CI"], mom6H1Pct: 5.71, mom6H2Pct: -17.92,  },
-      { holdYear: 2012, selectionYear: 2011, top10Tickers: ["ISRG","MA","BIIB","HUM","OKE","ROST","VFC","FAST","TJX","V"], bottom10Tickers: ["WHR","GS","GNW","DXC","AIG","BAC","NFLX","GR","FSLR","CPWR"], top10Pct: 18.16, bottom10Pct: 82.54, sp500Pct: 15.99, top10Index: 89.6, bottom10Index: 160.0, sp500Index: 118.2, mom12_1Pct: 10.78, mom12_1Index: 91.1, mom12_1Tickers: ["BIIB", "ISRG", "MA", "VFC", "HUM", "RRC", "OKE", "EL", "ROST", "FAST"], top3Pct: 23.67, top3Index: 93.4, top3Tickers: ["ISRG", "MA", "BIIB"], top250Pct: 13.51, top250Index: 111.2, top250Tickers: ["ISRG", "MA", "BIIB", "HUM", "OKE", "ROST", "VFC", "FAST", "TJX", "V", "SBUX", "HRB", "UNH", "NI", "EL", "PM", "BMY", "RRC", "GWW", "WMB", "PSA", "MCD", "HSY", "SPG", "CNP", "ORLY", "ED", "AN", "DUK", "D", "MCO", "M", "PFE", "KLAC", "FE", "MO", "MSI", "IBM", "SO", "IRM", "CTAS", "SPGI", "DTE", "AAPL", "RL", "LLY", "EQT", "CMS", "AEE", "HD", "GPC", "WEC", "YUM", "MDLZ", "XEL", "SJM", "PNW", "NEE", "ABT", "KMB", "CAG", "WELL", "HP", "TSN", "AEP", "LMT", "CVX", "ADP", "GT", "INTC", "AZO", "CVS", "NSC", "XOM", "VRSN", "VZ", "AMGN", "BXP", "CL", "TDC", "BF.B", "PPL", "FTI", "GIS", "BKNG", "AMT", "ES", "COST", "UNP", "HRL", "ECL", "KDP", "BA", "JCI", "CI", "CB", "NKE", "ROP", "WMT", "HOG"], mom6Pct: 20.75, mom6Index: 104.8, mom6Tickers: ["GOOGL", "ISRG", "TJX", "BMY", "ORLY", "PM", "FAST", "GWW", "MCD", "MA"], mom6H1Tickers: ["GOOGL", "ISRG", "TJX", "BMY", "ORLY", "PM", "FAST", "GWW", "MCD", "MA"], mom6H2Tickers: ["TRIP", "PHM", "EXPE", "GR", "LEN", "RF", "SHW", "TDC", "BAC", "DHI"], mom6H1Pct: 6.62, mom6H2Pct: 13.25,  },
-      { holdYear: 2013, selectionYear: 2012, top10Tickers: ["PHM","WHR","EXPE","BAC","LEN","MPC","GILD","EMN","SHW","DXC"], bottom10Tickers: ["NEM","HUM","WU","EXC","ATI","CLF","PBI","HPQ","BBY","AMD"], top10Pct: 35.81, bottom10Pct: 55.94, sp500Pct: 32.31, top10Index: 121.7, bottom10Index: 249.4, sp500Index: 156.4, mom12_1Pct: 40.21, mom12_1Index: 127.8, mom12_1Tickers: ["PHM", "WHR", "EXPE", "LEN", "MPC", "GILD", "BAC", "EBAY", "STZ", "SHW"], top3Pct: 28.23, top3Index: 119.7, top3Tickers: ["PHM", "WHR", "EXPE"], top250Pct: 41.63, top250Index: 157.5, top250Tickers: ["PHM", "WHR", "EXPE", "BAC", "LEN", "MPC", "GILD", "EMN", "SHW", "DXC", "STZ", "EBAY", "RF", "TRIP", "VLO", "PPG", "CRM", "MAS", "CMCSA", "DHI", "SNA", "THC", "WY", "AIG", "MCO", "C", "V", "HD", "ALL", "FLS", "DVA", "AMZN", "APH", "GS", "TMO", "LOW", "URBN", "EFX", "CF", "NWL", "HIG", "IP", "WDC", "BAX", "COF", "FMC", "MAT", "AMGN", "JPM", "LNC", "BEN", "DIS", "FISV", "TXT", "CINF", "FIS", "SRE", "NFLX", "ITW", "IVZ", "ADBE", "MTB", "BIIB", "TJX", "BKNG", "AAPL", "VMC", "MA", "SLM", "PLD", "ZION", "ORCL", "CBRE", "AMT", "SPGI", "SCHW", "NTRS", "IFF", "AMP", "MAR", "VIAV", "ROP", "MKC", "ETN", "JCI", "COST", "NRG", "MS", "ACN", "TDC", "EW", "CI", "WFC", "HOG", "AKAM", "PWR", "WMB", "AFL", "ZBH", "AVY"], mom6Pct: 57.5, mom6Index: 165.0, mom6Tickers: ["FSLR", "PHM", "WHR", "TMUS", "DXC", "PSX", "THC", "KMX", "C", "GILD"], mom6H1Tickers: ["FSLR", "PHM", "WHR", "TMUS", "DXC", "PSX", "THC", "KMX", "C", "GILD"], mom6H2Tickers: ["BBY", "NFLX", "MU", "HPQ", "GME", "AMD", "BSX", "CME", "GNW", "HRB"], mom6H1Pct: 26.18, mom6H2Pct: 24.82,  },
-      { holdYear: 2014, selectionYear: 2013, top10Tickers: ["NFLX","BBY","MU","PBI","BSX","GNW","GILD","GME","LNC","HPQ"], bottom10Tickers: ["VTR","JBL","WELL","MOS","FE","ISRG","TDC","EW","CLF","NEM"], top10Pct: 8.2, bottom10Pct: 16.75, sp500Pct: 13.46, top10Index: 131.7, bottom10Index: 291.2, sp500Index: 177.4, mom12_1Pct: 9.47, mom12_1Index: 139.9, mom12_1Tickers: ["NFLX", "BBY", "MU", "PBI", "TRIP", "GILD", "BSX", "GNW", "LNC", "STZ"], top3Pct: 17.94, top3Index: 141.2, top3Tickers: ["NFLX", "BBY", "MU"], top250Pct: 13.33, top250Index: 178.5, top250Tickers: ["NFLX", "BBY", "MU", "PBI", "BSX", "GNW", "GILD", "GME", "LNC", "HPQ", "WDC", "STZ", "TRIP", "AIZ", "BIIB", "STX", "AMP", "BKNG", "LUV", "BA", "SCHW", "XRX", "ICE", "GHC", "WYNN", "CMG", "PFG", "PRU", "FSLR", "TMO", "NOC", "TSN", "GT", "UNM", "MA", "BMY", "VFC", "OI", "LMT", "MCK", "MET", "CAH", "MS", "VLO", "HIG", "CME", "CI", "FLS", "KEY", "ADM", "NDAQ", "HRB", "PNR", "AXP", "APTV", "AMZN", "ADBE", "STT", "AMAT", "GOOGL", "MCO", "FDX", "SLM", "FIS", "WHR", "HAS", "BLK", "BWA", "DIS", "KR", "HBAN", "NKE", "MMM", "NSC", "VRSN", "PH", "HP", "OMC", "EQT", "AON", "HUM", "TJX", "TEL", "R", "LRCX", "CVS", "OKE", "DOV", "FISV", "CSX", "PAYX", "NWL", "TXT", "MPC", "PSX", "SBUX", "V", "HAL", "PRGO", "CTAS"], mom6Pct: -2.63, mom6Index: 160.7, mom6Tickers: ["NFLX", "CLF", "PBI", "CTSH", "WYNN", "GT", "OKE", "MU", "ADSK", "VLO"], mom6H1Tickers: ["NFLX", "CLF", "PBI", "CTSH", "WYNN", "GT", "OKE", "MU", "ADSK", "VLO"], mom6H2Tickers: ["NBR", "WMB", "MU", "LUV", "DAL", "HAL", "HP", "EOG", "EXC", "BHGE"], mom6H1Pct: 11.12, mom6H2Pct: -12.37,  },
-      { holdYear: 2015, selectionYear: 2014, top10Tickers: ["LUV","EW","DAL","KR","MU","MAR","VRTX","MNST","KDP","ORLY"], bottom10Tickers: ["FMC","OI","APA","GME","TPR","MAT","FCX","RRC","GNW","RIG"], top10Pct: 9.78, bottom10Pct: -33.19, sp500Pct: 1.23, top10Index: 144.6, bottom10Index: 194.6, sp500Index: 179.6, mom12_1Pct: 6.8, mom12_1Index: 149.4, mom12_1Tickers: ["LUV", "EW", "DAL", "MNST", "MU", "MAR", "VRTX", "GD", "KDP", "KR"], top3Pct: 10.16, top3Index: 155.6, top3Tickers: ["LUV", "EW", "DAL"], top250Pct: 1.31, top250Index: 180.9, top250Tickers: ["LUV", "EW", "DAL", "KR", "MU", "MAR", "VRTX", "MNST", "KDP", "ORLY", "REGN", "WELL", "IRM", "AIV", "GD", "MAC", "LRCX", "HPQ", "EIX", "SHW", "ETR", "UNP", "INTC", "AMAT", "FFIV", "FB", "AMGN", "KMX", "LOW", "RHI", "AAPL", "EXC", "HUM", "LLY", "STZ", "KLAC", "ISRG", "PCG", "CVS", "UNH", "VNO", "TAP", "BXP", "AEP", "CTAS", "DTE", "CMS", "PNW", "MO", "PEG", "WDC", "LMT", "XEL", "AKAM", "ZTS", "AEE", "NI", "KIM", "APD", "WEC", "GPC", "NOC", "CHRW", "ALL", "GLW", "SPG", "VTR", "ES", "HD", "CBRE", "AZO", "MCK", "CSX", "CMG", "BDX", "MDT", "DGX", "R", "CSCO", "NEE", "ABBV", "MSFT", "SYK", "NVDA", "SRE", "ROST", "PSA", "SNA", "BRK.B", "HST", "DUK", "ALLE", "PPL", "WHR", "AMT", "M", "GILD", "SO", "TXN", "MS"], mom6Pct: 8.02, mom6Index: 173.6, mom6Tickers: ["MNST", "LUV", "EW", "LOW", "ROST", "WHR", "AVGO", "REGN", "AMGN", "ZTS"], mom6H1Tickers: ["MNST", "LUV", "EW", "LOW", "ROST", "WHR", "AVGO", "REGN", "AMGN", "ZTS"], mom6H2Tickers: ["NFLX", "CI", "AMZN", "HAS", "BSX", "HUM", "AVGO", "SBUX", "LYB", "WMB"], mom6H1Pct: 7.27, mom6H2Pct: 0.7,  },
-      { holdYear: 2016, selectionYear: 2015, top10Tickers: ["NFLX","AMZN","NVDA","HRL","VRSN","SBUX","FSLR","VLO","EXPE","GOOGL"], bottom10Tickers: ["OKE","WYNN","RRC","MUR","NRG","MU","KMI","FOSL","FCX","CNX"], top10Pct: 15.96, bottom10Pct: 56.4, sp500Pct: 12.0, top10Index: 167.6, bottom10Index: 304.3, sp500Index: 201.1, mom12_1Pct: 30.55, mom12_1Index: 195.0, mom12_1Tickers: ["NFLX", "AMZN", "NVDA", "VRSN", "VMC", "SBUX", "VLO", "HRL", "EXPE", "MLM"], top3Pct: 82.05, top3Index: 283.2, top3Tickers: ["NFLX", "AMZN", "NVDA"], top250Pct: 6.46, top250Index: 192.5, top250Tickers: ["NFLX", "AMZN", "NVDA", "HRL", "VRSN", "SBUX", "FSLR", "VLO", "EXPE", "GOOGL", "STZ", "AVGO", "VMC", "GOOG", "CI", "EFX", "BSX", "PSA", "MNST", "TSN", "FB", "KDP", "REGN", "CRM", "KR", "ORLY", "NKE", "NOC", "MCD", "MAS", "ADBE", "FISV", "TAP", "HD", "DHI", "GE", "SNA", "HAS", "DRI", "LLY", "MDLZ", "MLM", "HUM", "CLX", "SJM", "RCL", "EW", "AVY", "NDAQ", "MO", "CCL", "MSFT", "CPB", "ROP", "MHK", "PGR", "NI", "IFF", "AIZ", "AZO", "ALLE", "ACN", "WAT", "APTV", "BMY", "CAG", "V", "CINF", "COST", "ESS", "UAA", "PAYX", "ICE", "UNH", "NWL", "MKC", "CTAS", "MPC", "PSX", "EL", "DD", "EBAY", "LMT", "GT", "ROST", "XRAY", "LH", "BF.B", "CCI", "TRIP", "BA", "CTSH", "MA", "KMB", "TMO", "SWK", "PM", "DIS", "BDX", "CAH"], mom6Pct: 9.82, mom6Index: 190.6, mom6Tickers: ["NVDA", "AMZN", "GOOG", "FSLR", "GOOGL", "HRL", "VRSN", "TAP", "PSA", "LUV"], mom6H1Tickers: ["NVDA", "AMZN", "GOOG", "FSLR", "GOOGL", "HRL", "VRSN", "TAP", "PSA", "LUV"], mom6H2Tickers: ["NEM", "OKE", "RRC", "FCX", "IRM", "EQT", "MUR", "NVDA", "MLM", "NI"], mom6H1Pct: 0.14, mom6H2Pct: 9.67,  },
-      { holdYear: 2017, selectionYear: 2016, top10Tickers: ["NVDA","OKE","FCX","NEM","AMAT","DHR","PWR","MLM","HAL","CMI"], bottom10Tickers: ["GILD","UAA","MCK","HRB","REGN","ILMN","VRTX","PRGO","TRIP","FSLR"], top10Pct: 25.17, bottom10Pct: 24.96, sp500Pct: 21.71, top10Index: 209.8, bottom10Index: 380.3, sp500Index: 244.8, mom12_1Pct: 26.33, mom12_1Index: 246.3, mom12_1Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "CMI", "PWR", "MLM", "MUR"], top3Pct: 41.21, top3Index: 399.9, top3Tickers: ["NVDA", "OKE", "FCX"], top250Pct: 21.55, top250Index: 234.0, top250Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "PWR", "MLM", "HAL", "CMI", "ZION", "MU", "HPE", "RF", "NUE", "HP", "NAVI", "FFIV", "PH", "IP", "FMC", "BBY", "MUR", "APA", "URI", "DVN", "EOG", "BHGE", "KMI", "KEY", "JCI", "CAT", "CSX", "MCHP", "CNP", "RRC", "DE", "SYY", "UNH", "PCAR", "FITB", "XYL", "TXN", "CVX", "GRMN", "NTAP", "WM", "GLW", "MS", "UNP", "JEF", "LRCX", "UNM", "QCOM", "ITW", "LNC", "ADI", "GS", "JPM", "ROK", "R", "CME", "ETN", "JBHT", "BAC", "PFG", "RSG", "EXC", "VMC", "PRU", "HOG", "MTB", "T", "DGX", "CINF", "NSC", "WMB", "SYK", "BBT", "HPQ", "APH", "HST", "CTAS", "GD", "ADM", "WYNN", "IRM", "PLD", "UAL", "DTE", "AKAM", "WHR", "FIS", "AES", "NTRS", "FDX", "PNC", "EQT", "AEE", "MAR"], mom6Pct: 25.88, mom6Index: 239.9, mom6Tickers: ["NVDA", "CFG", "UAL", "MU", "RF", "ZION", "LNC", "BAC", "KEY", "MS"], mom6H1Tickers: ["NVDA", "CFG", "UAL", "MU", "RF", "ZION", "LNC", "BAC", "KEY", "MS"], mom6H2Tickers: ["VRTX", "WYNN", "CSX", "ISRG", "XRX", "HAS", "CNC", "NRG", "MTD", "TPR"], mom6H1Pct: 10.48, mom6H2Pct: 13.94,  },
-      { holdYear: 2018, selectionYear: 2017, top10Tickers: ["NRG","VRTX","WYNN","BA","DHI","MU","PYPL","PHM","NVDA","CNC"], bottom10Tickers: ["BHGE","NWL","APA","SIG","AAP","MAT","GE","UA","RRC","UAA"], top10Pct: -5.57, bottom10Pct: -17.85, sp500Pct: -4.57, top10Index: 198.1, bottom10Index: 312.4, sp500Index: 233.6, mom12_1Pct: -7.46, mom12_1Index: 228.0, mom12_1Tickers: ["NRG", "VRTX", "MU", "PYPL", "ISRG", "DHI", "NVDA", "PHM", "WYNN", "LRCX"], top3Pct: 3.33, top3Index: 413.2, top3Tickers: ["NRG", "VRTX", "WYNN"], top250Pct: -6.74, top250Index: 218.3, top250Tickers: ["NRG", "VRTX", "WYNN", "BA", "DHI", "MU", "PYPL", "PHM", "NVDA", "CNC", "LRCX", "CAT", "ISRG", "ILMN", "ADBE", "FMC", "EL", "AVY", "MAR", "BBY", "URI", "PGR", "ABBV", "NTAP", "AMAT", "SPGI", "MCO", "AMP", "AMZN", "CSX", "NFLX", "BF.B", "DE", "SHW", "FB", "APTV", "CI", "PVH", "ABT", "STZ", "SWK", "XRX", "VRSN", "LEN", "ALB", "AME", "CRM", "ROK", "AAPL", "A", "RCL", "AVGO", "MTD", "MA", "BAX", "V", "TXN", "WMT", "CPRI", "HPQ", "MCD", "PH", "HD", "GPN", "WAT", "FCX", "NWSA", "ALL", "TROW", "NWS", "VFC", "MNST", "ROP", "AMG", "ADSK", "MSFT", "MAS", "CF", "VLO", "TEL", "UNH", "XYL", "MCHP", "INTU", "DLTR", "ITW", "BLK", "MHK", "AMT", "DOV", "CBRE", "NSC", "KLAC", "CTAS", "AXP", "DRI", "BAC", "GOOG", "ZTS", "FTV"], mom6Pct: -19.52, mom6Index: 193.1, mom6Tickers: ["CPRI", "NRG", "FCX", "IR", "CF", "DLTR", "URI", "BA", "CAT", "DHI"], mom6H1Tickers: ["CPRI", "NRG", "FCX", "IR", "CF", "DLTR", "URI", "BA", "CAT", "DHI"], mom6H2Tickers: ["NFLX", "TRIP", "UA", "UAA", "ALGN", "M", "CMG", "AMD", "AMZN", "NTAP"], mom6H1Pct: -5.47, mom6H2Pct: -14.86,  },
-      { holdYear: 2019, selectionYear: 2018, top10Tickers: ["AMD","AAP","TRIP","CMG","HCA","ORLY","BSX","LLY","MRK","NRG"], bottom10Tickers: ["UNM","PCG","BHF","WDC","IVZ","AMG","PRGO","GE","MHK","COTY"], top10Pct: 32.21, bottom10Pct: 24.27, sp500Pct: 31.22, top10Index: 262.0, bottom10Index: 388.2, sp500Index: 306.6, mom12_1Pct: 33.08, mom12_1Index: 303.4, mom12_1Tickers: ["AMD", "TRIP", "AAP", "UA", "HCA", "UAA", "CMG", "ILMN", "BSX", "MKC"], top3Pct: 37.88, top3Index: 569.7, top3Tickers: ["AMD", "AAP", "TRIP"], top250Pct: 27.14, top250Index: 277.5, top250Tickers: ["AMD", "AAP", "TRIP", "CMG", "HCA", "ORLY", "BSX", "LLY", "MRK", "NRG", "NFLX", "AES", "MKC", "ILMN", "RMD", "EW", "CRM", "CHD", "CME", "ISRG", "MSI", "VRSN", "ADBE", "ABT", "AMZN", "FE", "KSS", "INTU", "MA", "PFE", "UAL", "TDG", "M", "FFIV", "ADSK", "UAA", "GWW", "UA", "MSFT", "NKE", "HRL", "ZTS", "AJG", "IDXX", "TJX", "IQV", "EXC", "TMO", "AZO", "DG", "COO", "CSCO", "V", "HUM", "O", "COP", "WELL", "AMGN", "SBUX", "YUM", "MDT", "UNH", "CSX", "NEE", "CNC", "ADP", "PYPL", "MOS", "AEE", "VRSK", "TSCO", "AMT", "HSIC", "FISV", "DHR", "BA", "VZ", "ECL", "ETR", "COST", "VRTX", "FIS", "AON", "GRMN", "NTAP", "ULTA", "PGR", "CTAS", "RSG", "CMS", "NDAQ", "ICE", "WEC", "DUK", "EXR", "DRI", "KO", "BDX", "CLX", "EXPD"], mom6Pct: 27.76, mom6Index: 246.7, mom6Tickers: ["LLY", "SBUX", "NRG", "MRK", "ORLY", "AZO", "CHD", "AMD", "PFE", "HCA"], mom6H1Tickers: ["LLY", "SBUX", "NRG", "MRK", "ORLY", "AZO", "CHD", "AMD", "PFE", "HCA"], mom6H2Tickers: ["COTY", "XRX", "IR", "CMG", "AMD", "MSCI", "CDNS", "XRAY", "CPRT", "GPN"], mom6H1Pct: 15.33, mom6H2Pct: 10.78,  },
-      { holdYear: 2020, selectionYear: 2019, top10Tickers: ["AMD","LRCX","KLAC","TGT","CMG","IR","XRX","QRVO","CPRT","AMAT"], bottom10Tickers: ["BEN","AAL","FFIV","TPR","KSS","KHC","MOS","DXC","OXY","M"], top10Pct: 43.51, bottom10Pct: -11.42, sp500Pct: 18.33, top10Index: 375.9, bottom10Index: 343.9, sp500Index: 362.8, mom12_1Pct: 40.53, mom12_1Index: 426.3, mom12_1Tickers: ["AMD", "XRX", "LRCX", "TGT", "CMG", "KLAC", "CPRT", "COTY", "AMAT", "MSCI"], top3Pct: 70.7, top3Index: 972.5, top3Tickers: ["AMD", "LRCX", "KLAC"], top250Pct: 20.17, top250Index: 333.5, top250Tickers: ["AMD", "LRCX", "KLAC", "TGT", "CMG", "IR", "XRX", "QRVO", "CPRT", "AMAT", "AAPL", "TDG", "SWKS", "COTY", "GPN", "MSCI", "WDC", "NVDA", "TSN", "MCO", "BBY", "CHTR", "MU", "EQIX", "MAS", "DOV", "CAG", "KEYS", "SNPS", "MLM", "AMP", "WU", "URI", "SPGI", "STX", "CTAS", "QCOM", "EL", "CDNS", "MA", "FMC", "GRMN", "ALLE", "C", "MSFT", "SYF", "FISV", "FB", "APTV", "PLD", "ZTS", "HLT", "CPB", "DHI", "GE", "XRAY", "CBRE", "LMT", "EFX", "EW", "VFC", "SO", "FTNT", "PHM", "ACN", "LKQ", "APD", "AIZ", "KIM", "SHW", "DHR", "SBAC", "AVY", "T", "AME", "MCHP", "AMT", "OKE", "JPM", "VMC", "BAC", "DVA", "ADBE", "DG", "COST", "ITW", "WY", "TMO", "ZBH", "FAST", "PCAR", "WYNN", "AON", "KMI", "ETR", "ARE", "SRE", "BF.B", "V", "GIS"], mom6Pct: 20.21, mom6Index: 296.6, mom6Tickers: ["QRVO", "LRCX", "TGT", "SWKS", "KLAC", "AMD", "AAPL", "NVDA", "STT", "BMY"], mom6H1Tickers: ["QRVO", "LRCX", "TGT", "SWKS", "KLAC", "AMD", "AAPL", "NVDA", "STT", "BMY"], mom6H2Tickers: ["REGN", "NVDA", "PYPL", "AMZN", "EBAY", "CLX", "NOW", "NEM", "TSCO", "NFLX"], mom6H1Pct: 9.43, mom6H2Pct: 9.85,  },
-      { holdYear: 2021, selectionYear: 2020, top10Tickers: ["NVDA","PYPL","ALB","AMD","FCX","CDNS","NOW","ALGN","IDXX","SNPS"], bottom10Tickers: ["APA","SLB","AAL","NOV","FANG","UAL","FTI","NCLH","OXY","CCL"], top10Pct: 43.54, bottom10Pct: 29.89, sp500Pct: 28.73, top10Index: 539.6, bottom10Index: 446.6, sp500Index: 467.0, mom12_1Pct: 34.6, mom12_1Index: 573.8, mom12_1Tickers: ["NVDA", "AMD", "PYPL", "FDX", "NOW", "ALB", "FCX", "IDXX", "ROL", "ALGN"], top3Pct: 55.25, top3Index: 1509.9, top3Tickers: ["NVDA", "PYPL", "ALB"], top250Pct: 32.04, top250Index: 440.3, top250Tickers: ["NVDA", "PYPL", "ALB", "AMD", "FCX", "CDNS", "NOW", "ALGN", "IDXX", "SNPS", "AAPL", "ROL", "PWR", "QCOM", "AMZN", "MSCI", "FDX", "TMUS", "TTWO", "NFLX", "ADSK", "CMG", "LRCX", "DE", "DVA", "ODFL", "IPGP", "TSCO", "ADBE", "MKTX", "ZBRA", "UPS", "KLAC", "BLK", "INTU", "MNST", "DHR", "AVGO", "TMO", "MTD", "AMAT", "QRVO", "ANET", "MSFT", "PGR", "EBAY", "NKE", "TGT", "NEM", "CPRT", "VRSK", "MU", "A", "FTNT", "URI", "EFX", "ISRG", "RMD", "MS", "LEN", "APTV", "CRM", "FAST", "LOW", "CHTR", "DG", "PH", "CLX", "CTSH", "MCHP", "CTVA", "FB", "CTAS", "COST", "DHI", "AJG", "EMN", "TXN", "LLY", "GOOG", "XYL", "GOOGL", "CMI", "NEE", "ETN", "EL", "NWSA", "TEL", "KEYS", "REGN", "SWKS", "TROW", "ABT", "ABBV", "GLW", "PKG", "CL", "CSX", "MCK", "SHW"], mom6Pct: 49.08, mom6Index: 442.1, mom6Tickers: ["TPR", "FCX", "PVH", "ALB", "ALGN", "PWR", "MGM", "MOS", "HWM", "UAA"], mom6H1Tickers: ["TPR", "FCX", "PVH", "ALB", "ALGN", "PWR", "MGM", "MOS", "HWM", "UAA"], mom6H2Tickers: ["FANG", "DVN", "NUE", "OXY", "EOG", "F", "AMAT", "FTNT", "XOM", "COF"], mom6H1Pct: 27.09, mom6H2Pct: 17.3,  },
-      { holdYear: 2022, selectionYear: 2021, top10Tickers: ["DVN","FTNT","F","FANG","NVDA","NUE","IT","EXR","ANET","SPG"], bottom10Tickers: ["NCLH","PYPL","TFX","FIS","IPGP","WYNN","VTRS","MKTX","LVS","GPN"], top10Pct: -9.06, bottom10Pct: -25.53, sp500Pct: -18.18, top10Index: 490.7, bottom10Index: 332.6, sp500Index: 382.1, mom12_1Pct: 1.38, mom12_1Index: 581.7, mom12_1Tickers: ["DVN", "NVDA", "FANG", "FTNT", "F", "NUE", "IT", "SPG", "APA", "ODFL"], top3Pct: -7.77, top3Index: 1392.5, top3Tickers: ["DVN", "FTNT", "F"], top250Pct: -10.11, top250Index: 395.8, top250Tickers: ["DVN", "FTNT", "F", "FANG", "NVDA", "NUE", "IT", "EXR", "ANET", "SPG", "APA", "EOG", "IRM", "STX", "CF", "COP", "MAA", "ODFL", "AMAT", "RHI", "JCI", "AZO", "CBRE", "PLD", "MOS", "TSCO", "REG", "LKQ", "INTU", "KIM", "KLAC", "OXY", "PFE", "PSA", "LLY", "FRT", "WST", "GOOGL", "GOOG", "OKE", "LOW", "LYV", "FITB", "MSI", "FCX", "WFC", "UDR", "MPC", "ACN", "SCHW", "NDAQ", "TXT", "ALB", "HD", "PWR", "RJF", "AOS", "DHI", "AMP", "HCA", "XOM", "IQV", "HPQ", "AMD", "CDW", "AVGO", "KEYS", "MLM", "ORLY", "CVS", "ZBRA", "AAP", "LH", "LEN", "AIG", "LRCX", "POOL", "EFX", "MSFT", "ESS", "COST", "PFG", "JBHT", "WAT", "PAYX", "TSLA", "BAC", "COF", "ZION", "MTD", "DHR", "DPZ", "ZTS", "DGX", "GS", "RSG", "ETN", "MS", "CVX", "KEY"], mom6Pct: -8.4, mom6Index: 405.0, mom6Tickers: ["ANET", "TSLA", "AMD", "DVN", "PFE", "FTNT", "NVDA", "COST", "AVGO", "PLD"], mom6H1Tickers: ["ANET", "TSLA", "AMD", "DVN", "PFE", "FTNT", "NVDA", "COST", "AVGO", "PLD"], mom6H2Tickers: ["OXY", "VLO", "XOM", "HAL", "MCK", "APA", "MPC", "DVN", "EOG", "VRTX"], mom6H1Pct: -23.86, mom6H2Pct: 20.3,  },
-      { holdYear: 2023, selectionYear: 2022, top10Tickers: ["OXY","XOM","MPC","SLB","APA","VLO","HAL","COP","CVX","EOG"], bottom10Tickers: ["CZR","ZBRA","SWK","CCL","VFC","PYPL","TSLA","ALGN","MTCH","GNRC"], top10Pct: -1.62, bottom10Pct: 29.06, sp500Pct: 26.18, top10Index: 482.8, bottom10Index: 429.3, sp500Index: 482.1, mom12_1Pct: -5.27, mom12_1Index: 551.1, mom12_1Tickers: ["OXY", "MPC", "XOM", "VLO", "COP", "APA", "ENPH", "SLB", "EOG", "HAL"], top3Pct: 6.71, top3Index: 1486.0, top3Tickers: ["OXY", "XOM", "MPC"], top250Pct: 4.95, top250Index: 415.4, top250Tickers: ["OXY", "XOM", "MPC", "SLB", "APA", "VLO", "HAL", "COP", "CVX", "EOG", "CAH", "MCK", "DVN", "PSX", "MRK", "CI", "ENPH", "NOC", "LW", "LMT", "ADM", "FANG", "CPB", "LLY", "WRB", "WMB", "VRTX", "GL", "GIS", "LVS", "GPC", "PGR", "DE", "AFL", "HII", "BKR", "CTVA", "PWR", "HWM", "ABBV", "GILD", "TRV", "CF", "HSY", "GD", "AES", "KMI", "TMUS", "AMGN", "SRE", "PFG", "SJM", "LDOS", "RTX", "ORLY", "MET", "BMY", "OKE", "CAT", "ALL", "KHC", "AZO", "CAG", "NUE", "PCAR", "CB", "OMC", "FMC", "ED", "BIIB", "TAP", "REGN", "CMI", "AIG", "ULTA", "PNW", "MOS", "AJG", "HIG", "PM", "HUM", "IBM", "KO", "AEP", "CNP", "ATO", "INCY", "UHS", "WAB", "BSX", "SNA", "GWW", "RJF", "EXC", "SO", "ROL", "URI", "UNH", "PEP", "TJX"], mom6Pct: 20.01, mom6Index: 486.0, mom6Tickers: ["NFLX", "ROST", "SLB", "CEG", "ETSY", "CAH", "DXCM", "URI", "TJX", "DE"], mom6H1Tickers: ["NFLX", "ROST", "SLB", "CEG", "ETSY", "CAH", "DXCM", "URI", "TJX", "DE"], mom6H2Tickers: ["NVDA", "META", "CCL", "TSLA", "RCL", "NCLH", "AMD", "PHM", "GE", "ALGN"], mom6H1Pct: 8.37, mom6H2Pct: 10.74,  },
-      { holdYear: 2024, selectionYear: 2023, top10Tickers: ["NVDA","META","RCL","CCL","PHM","AMD","AVGO","TSLA","CRM","GE"], bottom10Tickers: ["ETSY","ALB","PAYC","EL","PFE","DG","MRNA","FMC","ENPH","PARA"], top10Pct: 60.45, bottom10Pct: -39.15, sp500Pct: 24.89, top10Index: 774.6, bottom10Index: 261.2, sp500Index: 602.1, mom12_1Pct: 46.85, mom12_1Index: 809.3, mom12_1Tickers: ["NVDA", "META", "RCL", "PHM", "TSLA", "CRM", "AMD", "CCL", "GE", "ADBE"], top3Pct: 105.43, top3Index: 3052.6, top3Tickers: ["NVDA", "META", "RCL"], top250Pct: 22.0, top250Index: 506.8, top250Tickers: ["NVDA", "META", "RCL", "CCL", "PHM", "AMD", "AVGO", "TSLA", "CRM", "GE", "INTC", "ANET", "LRCX", "NOW", "AMZN", "MPWR", "ADBE", "BKNG", "EXPE", "DHI", "MU", "CDNS", "NRG", "STX", "AMAT", "LEN", "TDG", "WDC", "NFLX", "CMG", "PNR", "NCLH", "URI", "INTU", "SNPS", "CPRT", "LLY", "PH", "GOOG", "GOOGL", "MSFT", "BR", "ETN", "KLAC", "CE", "PCAR", "TTWO", "MAR", "NVR", "PWR", "NTAP", "GWW", "WST", "FDX", "AAPL", "COST", "MLM", "NXPI", "IR", "TT", "AOS", "MAS", "IRM", "PTC", "HLT", "CBOE", "COF", "ODFL", "GRMN", "WELL", "MCO", "CARR", "FAST", "NWS", "VRTX", "AKAM", "DVA", "DLR", "RL", "ECL", "HWM", "AIZ", "CEG", "BA", "NWSA", "VRSK", "IDXX", "ZTS", "SWK", "QCOM", "CTAS", "CTSH", "LYV", "IT", "CAH", "ON", "NUE", "ACN", "POOL", "MGM"], mom6Pct: 16.21, mom6Index: 564.8, mom6Tickers: ["ZION", "KEY", "INTC", "ANET", "FICO", "PSX", "NRG", "STX", "EXPE", "WDC"], mom6H1Tickers: ["ZION", "KEY", "INTC", "ANET", "FICO", "PSX", "NRG", "STX", "EXPE", "WDC"], mom6H2Tickers: ["NVDA", "CEG", "GE", "LLY", "MU", "NRG", "TRGP", "ANET", "NTAP", "AMAT"], mom6H1Pct: 15.18, mom6H2Pct: 0.89,  },
-      { holdYear: 2025, selectionYear: 2024, top10Tickers: ["NVDA","UAL","AXON","AVGO","TRGP","HWM","CEG","ANET","NFLX","TPR"], bottom10Tickers: ["BIIB","DG","HUM","DLTR","EL","ENPH","CE","MRNA","INTC","PARA"], top10Pct: 37.51, bottom10Pct: 7.39, sp500Pct: 17.72, top10Index: 1065.2, bottom10Index: 280.5, sp500Index: 708.8, mom12_1Pct: 29.35, mom12_1Index: 1046.8, mom12_1Tickers: ["NVDA", "AXON", "TRGP", "UAL", "CEG", "HWM", "FICO", "NRG", "RCL", "NFLX"], top3Pct: 16.55, top3Index: 3557.9, top3Tickers: ["NVDA", "UAL", "AXON"], top250Pct: 20.72, top250Index: 611.8, top250Tickers: ["NVDA", "UAL", "AXON", "AVGO", "TRGP", "HWM", "CEG", "ANET", "NFLX", "TPR", "RCL", "NRG", "SYF", "WMT", "FICO", "FOX", "FOXA", "META", "GE", "KMI", "GRMN", "RL", "TSLA", "WMB", "FTNT", "GLW", "AXP", "ORCL", "ETR", "IP", "ISRG", "BSX", "IRM", "TT", "GS", "DAL", "PGR", "WAB", "OKE", "NOW", "GM", "MSI", "CMI", "PWR", "WFC", "MMM", "EBAY", "AMZN", "BRO", "JPM", "T", "NI", "WELL", "DVA", "PEG", "CINF", "AMP", "C", "PKG", "MTB", "BKNG", "APH", "ZBRA", "CBRE", "RJF", "RTX", "MO", "ALL", "FFIV", "PNR", "JCI", "MS", "TMUS", "COST", "PH", "ETN", "IBM", "PYPL", "HIG", "LYV", "COF", "CFG", "TYL", "FIS", "KR", "HLT", "GOOGL", "DLR", "GOOG", "BX", "NDAQ", "LDOS", "CCL", "PM", "RMD", "NTAP", "BAC", "HBAN", "LLY", "TRMB"], mom6Pct: 42.97, mom6Index: 807.5, mom6Tickers: ["AXON", "UAL", "GEV", "TSLA", "VST", "FTNT", "TPR", "CBRE", "EXPE", "WBD"], mom6H1Tickers: ["AXON", "UAL", "GEV", "TSLA", "VST", "FTNT", "TPR", "CBRE", "EXPE", "WBD"], mom6H2Tickers: ["PLTR", "NRG", "HWM", "STX", "GEV", "SMCI", "NEM", "CVS", "UBER", "GE"], mom6H1Pct: 15.55, mom6H2Pct: 23.73,  },
+      { holdYear: 2011, selectionYear: 2010, top10Tickers: ["CMI", "WYNN", "AIG", "HBAN", "ZION", "LB", "AKAM", "BKNG", "CRM", "VIAV"], bottom10Tickers: ["GILD", "LDOS", "ADBE", "NVDA", "HPQ", "V", "WDC", "MU", "PHM", "HRB"], top10Pct: -13.03, bottom10Pct: -2.32, sp500Pct: 1.89, top10Index: 87.0, bottom10Index: 97.7, sp500Index: 101.9, mom12_1Pct: -6.63, mom12_1Index: 93.4, mom12_1Tickers: ["CMI", "AKAM", "CRM", "WYNN", "LB", "BKNG", "AZO", "HBAN", "F", "TMUS"], top3Pct: -19.43, top3Index: 80.6, top3Tickers: ["CMI", "WYNN", "AIG"], mom6Pct: -8.73, mom6Index: 91.3, mom6Tickers: ["BKNG", "FCX", "CF", "NOV", "ANF", "CMI", "AIG", "CLF", "FTI", "HAL"], mom6H1Tickers: ["BKNG", "FCX", "CF", "NOV", "ANF", "CMI", "AIG", "CLF", "FTI", "HAL"], mom6H2Tickers: ["BIIB", "NFLX", "HUM", "TDC", "MCO", "ISRG", "UNH", "GT", "CI", "ANTM"], mom6H1Pct: 5.71, mom6H2Pct: -13.66 },
+      { holdYear: 2012, selectionYear: 2011, top10Tickers: ["ISRG", "MA", "BIIB", "HUM", "OKE", "ROST", "VFC", "FAST", "TJX", "V"], bottom10Tickers: ["MS", "C", "WHR", "GS", "GNW", "DXC", "AIG", "BAC", "NFLX", "FSLR"], top10Pct: 18.16, bottom10Pct: 51.73, sp500Pct: 15.99, top10Index: 102.8, bottom10Index: 148.2, sp500Index: 118.2, mom12_1Pct: 12.69, mom12_1Index: 105.2, mom12_1Tickers: ["BIIB", "ISRG", "MA", "VFC", "HUM", "RRC", "OKE", "EL", "LB", "ROST"], top3Pct: 23.67, top3Index: 99.6, top3Tickers: ["ISRG", "MA", "BIIB"], mom6Pct: 27.16, mom6Index: 116.1, mom6Tickers: ["GOOGL", "ISRG", "TJX", "BMY", "ORLY", "PM", "FAST", "GWW", "MCD", "MA"], mom6H1Tickers: ["GOOGL", "ISRG", "TJX", "BMY", "ORLY", "PM", "FAST", "GWW", "MCD", "MA"], mom6H2Tickers: ["TRIP", "PHM", "EXPE", "LEN", "RF", "SHW", "GPS", "TDC", "BAC", "DHI"], mom6H1Pct: 6.62, mom6H2Pct: 19.26 },
+      { holdYear: 2013, selectionYear: 2012, top10Tickers: ["PHM", "WHR", "EXPE", "BAC", "LEN", "MPC", "GILD", "EMN", "SHW", "DXC"], bottom10Tickers: ["NEM", "HUM", "WU", "EXC", "ATI", "CLF", "PBI", "HPQ", "BBY", "AMD"], top10Pct: 35.81, bottom10Pct: 55.94, sp500Pct: 32.31, top10Index: 139.6, bottom10Index: 231.1, sp500Index: 156.4, mom12_1Pct: 40.9, mom12_1Index: 148.3, mom12_1Tickers: ["PHM", "WHR", "EXPE", "LEN", "GPS", "MPC", "GILD", "BAC", "EBAY", "STZ"], top3Pct: 28.23, top3Index: 127.8, top3Tickers: ["PHM", "WHR", "EXPE"], mom6Pct: 57.5, mom6Index: 182.8, mom6Tickers: ["FSLR", "PHM", "WHR", "TMUS", "DXC", "PSX", "THC", "KMX", "C", "GILD"], mom6H1Tickers: ["FSLR", "PHM", "WHR", "TMUS", "DXC", "PSX", "THC", "KMX", "C", "GILD"], mom6H2Tickers: ["BBY", "NFLX", "MU", "HPQ", "GME", "AMD", "BSX", "CME", "GNW", "HRB"], mom6H1Pct: 26.18, mom6H2Pct: 24.82 },
+      { holdYear: 2014, selectionYear: 2013, top10Tickers: ["NFLX", "BBY", "MU", "PBI", "BSX", "GNW", "GILD", "GME", "LNC", "HPQ"], bottom10Tickers: ["JBL", "WELL", "CTL", "MOS", "FE", "ISRG", "TDC", "EW", "CLF", "NEM"], top10Pct: 8.2, bottom10Pct: 16.82, sp500Pct: 13.46, top10Index: 151.0, bottom10Index: 270.0, sp500Index: 177.4, mom12_1Pct: 9.47, mom12_1Index: 162.3, mom12_1Tickers: ["NFLX", "BBY", "MU", "PBI", "TRIP", "GILD", "BSX", "GNW", "LNC", "STZ"], top3Pct: 17.94, top3Index: 150.7, top3Tickers: ["NFLX", "BBY", "MU"], mom6Pct: -2.63, mom6Index: 178.0, mom6Tickers: ["NFLX", "CLF", "PBI", "CTSH", "WYNN", "GT", "OKE", "MU", "ADSK", "VLO"], mom6H1Tickers: ["NFLX", "CLF", "PBI", "CTSH", "WYNN", "GT", "OKE", "MU", "ADSK", "VLO"], mom6H2Tickers: ["NBR", "WMB", "MU", "LUV", "DAL", "HAL", "HP", "EOG", "EXC", "BHGE"], mom6H1Pct: 11.12, mom6H2Pct: -12.37 },
+      { holdYear: 2015, selectionYear: 2014, top10Tickers: ["LUV", "EW", "DAL", "KR", "MU", "MAR", "VRTX", "MNST", "KDP", "ORLY"], bottom10Tickers: ["DISCA", "APA", "JEC", "GME", "TPR", "MAT", "FCX", "RRC", "GNW", "RIG"], top10Pct: 9.78, bottom10Pct: -29.48, sp500Pct: 1.23, top10Index: 165.8, bottom10Index: 190.4, sp500Index: 179.6, mom12_1Pct: 6.8, mom12_1Index: 173.3, mom12_1Tickers: ["LUV", "EW", "DAL", "MNST", "MU", "MAR", "VRTX", "GD", "KDP", "KR"], top3Pct: 10.16, top3Index: 166.0, top3Tickers: ["LUV", "EW", "DAL"], mom6Pct: 11.14, mom6Index: 197.8, mom6Tickers: ["MNST", "LUV", "EW", "LB", "LOW", "ROST", "WHR", "AVGO", "REGN", "AMGN"], mom6H1Tickers: ["MNST", "LUV", "EW", "LB", "LOW", "ROST", "WHR", "AVGO", "REGN", "AMGN"], mom6H2Tickers: ["NFLX", "CI", "AMZN", "HAS", "BSX", "HUM", "AVGO", "ANTM", "SBUX", "LYB"], mom6H1Pct: 6.27, mom6H2Pct: 4.58 },
+      { holdYear: 2016, selectionYear: 2015, top10Tickers: ["NFLX", "AMZN", "NVDA", "HRL", "VRSN", "SBUX", "FSLR", "VLO", "EXPE", "GOOGL"], bottom10Tickers: ["OKE", "WYNN", "RRC", "MUR", "NRG", "MU", "KMI", "FOSL", "FCX", "CNX"], top10Pct: 15.96, bottom10Pct: 56.4, sp500Pct: 12.0, top10Index: 192.2, bottom10Index: 297.8, sp500Index: 201.1, mom12_1Pct: 30.55, mom12_1Index: 226.3, mom12_1Tickers: ["NFLX", "AMZN", "NVDA", "VRSN", "VMC", "SBUX", "VLO", "HRL", "EXPE", "MLM"], top3Pct: 82.05, top3Index: 302.2, top3Tickers: ["NFLX", "AMZN", "NVDA"], mom6Pct: 9.82, mom6Index: 217.2, mom6Tickers: ["NVDA", "AMZN", "GOOG", "FSLR", "GOOGL", "HRL", "VRSN", "TAP", "PSA", "LUV"], mom6H1Tickers: ["NVDA", "AMZN", "GOOG", "FSLR", "GOOGL", "HRL", "VRSN", "TAP", "PSA", "LUV"], mom6H2Tickers: ["NEM", "OKE", "RRC", "FCX", "IRM", "EQT", "MUR", "NVDA", "MLM", "NI"], mom6H1Pct: 0.14, mom6H2Pct: 9.67 },
+      { holdYear: 2017, selectionYear: 2016, top10Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "PWR", "MLM", "HAL", "CMI"], bottom10Tickers: ["GILD", "UAA", "MCK", "HRB", "REGN", "ILMN", "VRTX", "PRGO", "TRIP", "FSLR"], top10Pct: 25.17, bottom10Pct: 24.96, sp500Pct: 21.71, top10Index: 240.6, bottom10Index: 372.1, sp500Index: 244.8, mom12_1Pct: 26.33, mom12_1Index: 285.9, mom12_1Tickers: ["NVDA", "OKE", "FCX", "NEM", "AMAT", "DHR", "CMI", "PWR", "MLM", "MUR"], top3Pct: 41.21, top3Index: 426.7, top3Tickers: ["NVDA", "OKE", "FCX"], mom6Pct: 25.88, mom6Index: 273.5, mom6Tickers: ["NVDA", "CFG", "UAL", "MU", "RF", "ZION", "LNC", "BAC", "KEY", "MS"], mom6H1Tickers: ["NVDA", "CFG", "UAL", "MU", "RF", "ZION", "LNC", "BAC", "KEY", "MS"], mom6H2Tickers: ["VRTX", "WYNN", "CSX", "ISRG", "XRX", "HAS", "CNC", "NRG", "MTD", "TPR"], mom6H1Pct: 10.48, mom6H2Pct: 13.94 },
+      { holdYear: 2018, selectionYear: 2017, top10Tickers: ["NRG", "VRTX", "WYNN", "BA", "DHI", "MU", "PYPL", "PHM", "NVDA", "CNC"], bottom10Tickers: ["BHGE", "NWL", "APA", "SIG", "AAP", "MAT", "GE", "UA", "RRC", "UAA"], top10Pct: -5.57, bottom10Pct: -17.85, sp500Pct: -4.57, top10Index: 227.2, bottom10Index: 305.7, sp500Index: 233.6, mom12_1Pct: -7.46, mom12_1Index: 264.5, mom12_1Tickers: ["NRG", "VRTX", "MU", "PYPL", "ISRG", "DHI", "NVDA", "PHM", "WYNN", "LRCX"], top3Pct: 3.33, top3Index: 441.0, top3Tickers: ["NRG", "VRTX", "WYNN"], mom6Pct: -18.17, mom6Index: 223.8, mom6Tickers: ["CPRI", "NRG", "FCX", "IR", "GPS", "CF", "DLTR", "URI", "BA", "CAT"], mom6H1Tickers: ["CPRI", "NRG", "FCX", "IR", "GPS", "CF", "DLTR", "URI", "BA", "CAT"], mom6H2Tickers: ["NFLX", "TRIP", "UA", "UAA", "ALGN", "M", "CMG", "AMD", "AMZN", "NTAP"], mom6H1Pct: -3.89, mom6H2Pct: -14.86 },
+      { holdYear: 2019, selectionYear: 2018, top10Tickers: ["AMD", "AAP", "TRIP", "CMG", "HCA", "ORLY", "BSX", "LLY", "MRK", "NRG"], bottom10Tickers: ["PCG", "BHF", "WDC", "IVZ", "AMG", "LB", "PRGO", "GE", "MHK", "COTY"], top10Pct: 32.21, bottom10Pct: 21.49, sp500Pct: 31.22, top10Index: 300.4, bottom10Index: 371.4, sp500Index: 306.6, mom12_1Pct: 33.08, mom12_1Index: 352.0, mom12_1Tickers: ["AMD", "TRIP", "AAP", "UA", "HCA", "UAA", "CMG", "ILMN", "BSX", "MKC"], top3Pct: 37.88, top3Index: 608.0, top3Tickers: ["AMD", "AAP", "TRIP"], mom6Pct: 32.59, mom6Index: 296.7, mom6Tickers: ["LLY", "SBUX", "BLL", "NRG", "MRK", "ORLY", "AZO", "CHD", "AMD", "PFE"], mom6H1Tickers: ["LLY", "SBUX", "BLL", "NRG", "MRK", "ORLY", "AZO", "CHD", "AMD", "PFE"], mom6H2Tickers: ["COTY", "XRX", "IR", "CMG", "AMD", "MSCI", "CDNS", "XRAY", "CPRT", "GPN"], mom6H1Pct: 19.69, mom6H2Pct: 10.78 },
+      { holdYear: 2020, selectionYear: 2019, top10Tickers: ["AMD", "LRCX", "KLAC", "TGT", "CMG", "IR", "XRX", "QRVO", "CPRT", "AMAT"], bottom10Tickers: ["FFIV", "TPR", "KSS", "KHC", "LB", "MOS", "DXC", "GPS", "OXY", "M"], top10Pct: 43.51, bottom10Pct: 5.27, sp500Pct: 18.33, top10Index: 431.1, bottom10Index: 391.0, sp500Index: 362.8, mom12_1Pct: 40.53, mom12_1Index: 494.7, mom12_1Tickers: ["AMD", "XRX", "LRCX", "TGT", "CMG", "KLAC", "CPRT", "COTY", "AMAT", "MSCI"], top3Pct: 70.7, top3Index: 1037.8, top3Tickers: ["AMD", "LRCX", "KLAC"], mom6Pct: 20.21, mom6Index: 356.7, mom6Tickers: ["QRVO", "LRCX", "TGT", "SWKS", "KLAC", "AMD", "AAPL", "NVDA", "STT", "BMY"], mom6H1Tickers: ["QRVO", "LRCX", "TGT", "SWKS", "KLAC", "AMD", "AAPL", "NVDA", "STT", "BMY"], mom6H2Tickers: ["REGN", "NVDA", "PYPL", "AMZN", "EBAY", "CLX", "NOW", "NEM", "TSCO", "NFLX"], mom6H1Pct: 9.43, mom6H2Pct: 9.85 },
+      { holdYear: 2021, selectionYear: 2020, top10Tickers: ["NVDA", "PYPL", "LB", "ALB", "AMD", "FCX", "CDNS", "NOW", "ALGN", "IDXX"], bottom10Tickers: ["SLB", "AAL", "NOV", "FANG", "HFC", "UAL", "FTI", "NCLH", "OXY", "CCL"], top10Pct: 52.7, bottom10Pct: 23.61, sp500Pct: 28.73, top10Index: 658.3, bottom10Index: 483.3, sp500Index: 467.0, mom12_1Pct: 45.67, mom12_1Index: 720.7, mom12_1Tickers: ["NVDA", "LB", "AMD", "PYPL", "FDX", "NOW", "ALB", "FCX", "IDXX", "ROL"], top3Pct: 79.9, top3Index: 1867.1, top3Tickers: ["NVDA", "PYPL", "LB"], mom6Pct: 54.48, mom6Index: 551.0, mom6Tickers: ["LB", "TPR", "FCX", "PVH", "ALB", "ALGN", "PWR", "MGM", "MOS", "HWM"], mom6H1Tickers: ["LB", "TPR", "FCX", "PVH", "ALB", "ALGN", "PWR", "MGM", "MOS", "HWM"], mom6H2Tickers: ["FANG", "LB", "DVN", "NUE", "OXY", "EOG", "F", "GPS", "AMAT", "FTNT"], mom6H1Pct: 34.2, mom6H2Pct: 15.11 },
+      { holdYear: 2022, selectionYear: 2021, top10Tickers: ["DVN", "FTNT", "F", "BBWI", "FANG", "NVDA", "NUE", "IT", "EXR", "ANET"], bottom10Tickers: ["PYPL", "TFX", "DISCA", "FIS", "IPGP", "WYNN", "VTRS", "MKTX", "LVS", "GPN"], top10Pct: -10.71, bottom10Pct: -27.41, sp500Pct: -18.18, top10Index: 587.8, bottom10Index: 350.8, sp500Index: 382.1, mom12_1Pct: -0.42, mom12_1Index: 717.6, mom12_1Tickers: ["DVN", "BBWI", "NVDA", "FANG", "FTNT", "F", "NUE", "IT", "SPG", "APA"], top3Pct: -7.77, top3Index: 1722.0, top3Tickers: ["DVN", "FTNT", "F"], mom6Pct: -8.4, mom6Index: 504.7, mom6Tickers: ["ANET", "TSLA", "AMD", "DVN", "PFE", "FTNT", "NVDA", "COST", "AVGO", "PLD"], mom6H1Tickers: ["ANET", "TSLA", "AMD", "DVN", "PFE", "FTNT", "NVDA", "COST", "AVGO", "PLD"], mom6H2Tickers: ["OXY", "VLO", "XOM", "HAL", "MCK", "APA", "MPC", "DVN", "EOG", "VRTX"], mom6H1Pct: -23.86, mom6H2Pct: 20.3 },
+      { holdYear: 2023, selectionYear: 2022, top10Tickers: ["OXY", "XOM", "MPC", "SLB", "APA", "VLO", "HAL", "COP", "CVX", "EOG"], bottom10Tickers: ["SWK", "WBD", "CCL", "VFC", "PYPL", "META", "TSLA", "ALGN", "MTCH", "GNRC"], top10Pct: -1.62, bottom10Pct: 48.55, sp500Pct: 26.18, top10Index: 578.3, bottom10Index: 521.1, sp500Index: 482.1, mom12_1Pct: -5.27, mom12_1Index: 679.8, mom12_1Tickers: ["OXY", "MPC", "XOM", "VLO", "COP", "APA", "ENPH", "SLB", "EOG", "HAL"], top3Pct: 6.71, top3Index: 1837.5, top3Tickers: ["OXY", "XOM", "MPC"], mom6Pct: 19.44, mom6Index: 602.8, mom6Tickers: ["NFLX", "ROST", "BBWI", "SLB", "CEG", "ETSY", "CAH", "DXCM", "URI", "TJX"], mom6H1Tickers: ["NFLX", "ROST", "BBWI", "SLB", "CEG", "ETSY", "CAH", "DXCM", "URI", "TJX"], mom6H2Tickers: ["NVDA", "META", "CCL", "TSLA", "RCL", "NCLH", "AMD", "PHM", "GE", "ALGN"], mom6H1Pct: 7.86, mom6H2Pct: 10.74 },
+      { holdYear: 2024, selectionYear: 2023, top10Tickers: ["NVDA", "META", "RCL", "CCL", "PHM", "AMD", "AVGO", "TSLA", "CRM", "GE"], bottom10Tickers: ["ILMN", "ETSY", "ALB", "PAYC", "EL", "PFE", "DG", "MRNA", "FMC", "ENPH"], top10Pct: 60.45, bottom10Pct: -29.45, sp500Pct: 24.89, top10Index: 927.8, bottom10Index: 367.6, sp500Index: 602.1, mom12_1Pct: 46.85, mom12_1Index: 998.3, mom12_1Tickers: ["NVDA", "META", "RCL", "PHM", "TSLA", "CRM", "AMD", "CCL", "GE", "ADBE"], top3Pct: 105.43, top3Index: 3774.9, top3Tickers: ["NVDA", "META", "RCL"], mom6Pct: 16.21, mom6Index: 700.5, mom6Tickers: ["ZION", "KEY", "INTC", "ANET", "FICO", "PSX", "NRG", "STX", "EXPE", "WDC"], mom6H1Tickers: ["ZION", "KEY", "INTC", "ANET", "FICO", "PSX", "NRG", "STX", "EXPE", "WDC"], mom6H2Tickers: ["NVDA", "CEG", "GE", "LLY", "MU", "NRG", "TRGP", "ANET", "NTAP", "AMAT"], mom6H1Pct: 15.18, mom6H2Pct: 0.89 },
+      { holdYear: 2025, selectionYear: 2024, top10Tickers: ["NVDA", "UAL", "AXON", "AVGO", "TRGP", "HWM", "CEG", "ANET", "NFLX", "TPR"], bottom10Tickers: ["CVS", "BIIB", "DG", "HUM", "DLTR", "EL", "ENPH", "CE", "MRNA", "INTC"], top10Pct: 37.51, bottom10Pct: 25.05, sp500Pct: 17.72, top10Index: 1275.9, bottom10Index: 459.7, sp500Index: 708.8, mom12_1Pct: 29.35, mom12_1Index: 1291.3, mom12_1Tickers: ["NVDA", "AXON", "TRGP", "UAL", "CEG", "HWM", "FICO", "NRG", "RCL", "NFLX"], top3Pct: 16.55, top3Index: 4399.6, top3Tickers: ["NVDA", "UAL", "AXON"], mom6Pct: 42.97, mom6Index: 1001.5, mom6Tickers: ["AXON", "UAL", "GEV", "TSLA", "VST", "FTNT", "TPR", "CBRE", "EXPE", "WBD"], mom6H1Tickers: ["AXON", "UAL", "GEV", "TSLA", "VST", "FTNT", "TPR", "CBRE", "EXPE", "WBD"], mom6H2Tickers: ["PLTR", "NRG", "HWM", "STX", "GEV", "SMCI", "NEM", "CVS", "UBER", "GE"], mom6H1Pct: 15.55, mom6H2Pct: 23.73 },
     ];
     const SCATTER = [
-      {portfolio:"top10", ticker:"GR", holdYear:2011, selectionYear:2010, priorReturnPct:164.71, holdReturnPct:-66.67},
       {portfolio:"top10", ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:142.69, holdReturnPct:-18.92},
       {portfolio:"top10", ticker:"WYNN", holdYear:2011, selectionYear:2010, priorReturnPct:93.6, holdReturnPct:12.09},
       {portfolio:"top10", ticker:"AIG", holdYear:2011, selectionYear:2010, priorReturnPct:92.19, holdReturnPct:-51.46},
       {portfolio:"top10", ticker:"HBAN", holdYear:2011, selectionYear:2010, priorReturnPct:89.49, holdReturnPct:-18.56},
       {portfolio:"top10", ticker:"ZION", holdYear:2011, selectionYear:2010, priorReturnPct:89.2, holdReturnPct:-32.67},
+      {portfolio:"top10", ticker:"LB", holdYear:2011, selectionYear:2010, priorReturnPct:86.14, holdReturnPct:44.54},
       {portfolio:"top10", ticker:"AKAM", holdYear:2011, selectionYear:2010, priorReturnPct:85.67, holdReturnPct:-31.39},
       {portfolio:"top10", ticker:"BKNG", holdYear:2011, selectionYear:2010, priorReturnPct:82.94, holdReturnPct:17.06},
       {portfolio:"top10", ticker:"CRM", holdYear:2011, selectionYear:2010, priorReturnPct:78.93, holdReturnPct:-23.14},
       {portfolio:"top10", ticker:"VIAV", holdYear:2011, selectionYear:2010, priorReturnPct:75.52, holdReturnPct:-27.9},
-      {portfolio:"top3", ticker:"GR", holdYear:2011, selectionYear:2010, priorReturnPct:164.71, holdReturnPct:-66.67},
       {portfolio:"top3", ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:142.69, holdReturnPct:-18.92},
       {portfolio:"top3", ticker:"WYNN", holdYear:2011, selectionYear:2010, priorReturnPct:93.6, holdReturnPct:12.09},
+      {portfolio:"top3", ticker:"AIG", holdYear:2011, selectionYear:2010, priorReturnPct:92.19, holdReturnPct:-51.46},
+      {portfolio:"bottom10", ticker:"GILD", holdYear:2011, selectionYear:2010, priorReturnPct:-16.25, holdReturnPct:12.94},
+      {portfolio:"bottom10", ticker:"LDOS", holdYear:2011, selectionYear:2010, priorReturnPct:-16.26, holdReturnPct:-22.51},
       {portfolio:"bottom10", ticker:"ADBE", holdYear:2011, selectionYear:2010, priorReturnPct:-16.31, holdReturnPct:-8.15},
       {portfolio:"bottom10", ticker:"NVDA", holdYear:2011, selectionYear:2010, priorReturnPct:-17.56, holdReturnPct:-10.0},
       {portfolio:"bottom10", ticker:"HPQ", holdYear:2011, selectionYear:2010, priorReturnPct:-17.68, holdReturnPct:-37.89},
@@ -969,18 +1082,36 @@
       {portfolio:"bottom10", ticker:"MU", holdYear:2011, selectionYear:2010, priorReturnPct:-24.05, holdReturnPct:-21.57},
       {portfolio:"bottom10", ticker:"PHM", holdYear:2011, selectionYear:2010, priorReturnPct:-24.8, holdReturnPct:-16.09},
       {portfolio:"bottom10", ticker:"HRB", holdYear:2011, selectionYear:2010, priorReturnPct:-45.05, holdReturnPct:43.34},
-      {portfolio:"bottom10", ticker:"CPWR", holdYear:2011, selectionYear:2010, priorReturnPct:-46.43, holdReturnPct:-90.0},
-      {portfolio:"bottom10", ticker:"EP", holdYear:2011, selectionYear:2010, priorReturnPct:-68.09, holdReturnPct:-20.0},
-      {portfolio:"mom12_1", ticker:"GR", holdYear:2011, selectionYear:2010, priorReturnPct:229.41, holdReturnPct:-66.67},
       {portfolio:"mom12_1", ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:114.26, holdReturnPct:-18.92},
       {portfolio:"mom12_1", ticker:"AKAM", holdYear:2011, selectionYear:2010, priorReturnPct:105.96, holdReturnPct:-31.39},
       {portfolio:"mom12_1", ticker:"CRM", holdYear:2011, selectionYear:2010, priorReturnPct:88.72, holdReturnPct:-23.14},
       {portfolio:"mom12_1", ticker:"WYNN", holdYear:2011, selectionYear:2010, priorReturnPct:88.49, holdReturnPct:12.09},
+      {portfolio:"mom12_1", ticker:"LB", holdYear:2011, selectionYear:2010, priorReturnPct:86.42, holdReturnPct:44.54},
       {portfolio:"mom12_1", ticker:"BKNG", holdYear:2011, selectionYear:2010, priorReturnPct:80.42, holdReturnPct:17.06},
       {portfolio:"mom12_1", ticker:"AZO", holdYear:2011, selectionYear:2010, priorReturnPct:64.11, holdReturnPct:19.22},
       {portfolio:"mom12_1", ticker:"HBAN", holdYear:2011, selectionYear:2010, priorReturnPct:60.83, holdReturnPct:-18.56},
       {portfolio:"mom12_1", ticker:"F", holdYear:2011, selectionYear:2010, priorReturnPct:59.4, holdReturnPct:-35.91},
       {portfolio:"mom12_1", ticker:"TMUS", holdYear:2011, selectionYear:2010, priorReturnPct:59.24, holdReturnPct:-31.27},
+      {portfolio:"mom6", ticker:"BKNG", holdYear:2011, selectionYear:2010, priorReturnPct:119.5, holdReturnPct:28.13},
+      {portfolio:"mom6", ticker:"FCX", holdYear:2011, selectionYear:2010, priorReturnPct:109.92, holdReturnPct:-10.25},
+      {portfolio:"mom6", ticker:"CF", holdYear:2011, selectionYear:2010, priorReturnPct:106.79, holdReturnPct:4.97},
+      {portfolio:"mom6", ticker:"NOV", holdYear:2011, selectionYear:2010, priorReturnPct:103.19, holdReturnPct:16.64},
+      {portfolio:"mom6", ticker:"ANF", holdYear:2011, selectionYear:2010, priorReturnPct:82.17, holdReturnPct:16.75},
+      {portfolio:"mom6", ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:70.75, holdReturnPct:-5.47},
+      {portfolio:"mom6", ticker:"AIG", holdYear:2011, selectionYear:2010, priorReturnPct:70.07, holdReturnPct:-38.65},
+      {portfolio:"mom6", ticker:"CLF", holdYear:2011, selectionYear:2010, priorReturnPct:67.25, holdReturnPct:18.87},
+      {portfolio:"mom6", ticker:"FTI", holdYear:2011, selectionYear:2010, priorReturnPct:66.44, holdReturnPct:0.75},
+      {portfolio:"mom6", ticker:"HAL", holdYear:2011, selectionYear:2010, priorReturnPct:64.35, holdReturnPct:25.37},
+      {portfolio:"mom6", ticker:"BIIB", holdYear:2011, selectionYear:2011, priorReturnPct:59.46, holdReturnPct:1.43},
+      {portfolio:"mom6", ticker:"NFLX", holdYear:2011, selectionYear:2011, priorReturnPct:49.51, holdReturnPct:-74.14},
+      {portfolio:"mom6", ticker:"HUM", holdYear:2011, selectionYear:2011, priorReturnPct:47.59, holdReturnPct:6.03},
+      {portfolio:"mom6", ticker:"TDC", holdYear:2011, selectionYear:2011, priorReturnPct:46.26, holdReturnPct:-20.36},
+      {portfolio:"mom6", ticker:"MCO", holdYear:2011, selectionYear:2011, priorReturnPct:45.57, holdReturnPct:-12.92},
+      {portfolio:"mom6", ticker:"ISRG", holdYear:2011, selectionYear:2011, priorReturnPct:44.37, holdReturnPct:22.28},
+      {portfolio:"mom6", ticker:"UNH", holdYear:2011, selectionYear:2011, priorReturnPct:43.73, holdReturnPct:-3.96},
+      {portfolio:"mom6", ticker:"GT", holdYear:2011, selectionYear:2011, priorReturnPct:41.52, holdReturnPct:-18.05},
+      {portfolio:"mom6", ticker:"CI", holdYear:2011, selectionYear:2011, priorReturnPct:40.42, holdReturnPct:-19.54},
+      {portfolio:"mom6", ticker:"ANTM", holdYear:2011, selectionYear:2011, priorReturnPct:39.5, holdReturnPct:-17.36},
       {portfolio:"top10", ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:79.64, holdReturnPct:5.91},
       {portfolio:"top10", ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:66.72, holdReturnPct:32.09},
       {portfolio:"top10", ticker:"BIIB", holdYear:2012, selectionYear:2011, priorReturnPct:64.13, holdReturnPct:33.0},
@@ -994,6 +1125,8 @@
       {portfolio:"top3", ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:79.64, holdReturnPct:5.91},
       {portfolio:"top3", ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:66.72, holdReturnPct:32.09},
       {portfolio:"top3", ticker:"BIIB", holdYear:2012, selectionYear:2011, priorReturnPct:64.13, holdReturnPct:33.0},
+      {portfolio:"bottom10", ticker:"MS", holdYear:2012, selectionYear:2011, priorReturnPct:-43.9, holdReturnPct:27.96},
+      {portfolio:"bottom10", ticker:"C", holdYear:2012, selectionYear:2011, priorReturnPct:-44.33, holdReturnPct:50.55},
       {portfolio:"bottom10", ticker:"WHR", holdYear:2012, selectionYear:2011, priorReturnPct:-44.99, holdReturnPct:120.26},
       {portfolio:"bottom10", ticker:"GS", holdYear:2012, selectionYear:2011, priorReturnPct:-45.6, holdReturnPct:43.39},
       {portfolio:"bottom10", ticker:"GNW", holdYear:2012, selectionYear:2011, priorReturnPct:-50.15, holdReturnPct:14.66},
@@ -1001,9 +1134,7 @@
       {portfolio:"bottom10", ticker:"AIG", holdYear:2012, selectionYear:2011, priorReturnPct:-51.46, holdReturnPct:52.16},
       {portfolio:"bottom10", ticker:"BAC", holdYear:2012, selectionYear:2011, priorReturnPct:-58.12, holdReturnPct:109.83},
       {portfolio:"bottom10", ticker:"NFLX", holdYear:2012, selectionYear:2011, priorReturnPct:-60.56, holdReturnPct:33.63},
-      {portfolio:"bottom10", ticker:"GR", holdYear:2012, selectionYear:2011, priorReturnPct:-66.67, holdReturnPct:-13.33},
       {portfolio:"bottom10", ticker:"FSLR", holdYear:2012, selectionYear:2011, priorReturnPct:-74.06, holdReturnPct:-8.59},
-      {portfolio:"bottom10", ticker:"CPWR", holdYear:2012, selectionYear:2011, priorReturnPct:-90.0, holdReturnPct:400.0},
       {portfolio:"mom12_1", ticker:"BIIB", holdYear:2012, selectionYear:2011, priorReturnPct:71.44, holdReturnPct:33.0},
       {portfolio:"mom12_1", ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:68.46, holdReturnPct:5.91},
       {portfolio:"mom12_1", ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:67.49, holdReturnPct:32.09},
@@ -1012,8 +1143,28 @@
       {portfolio:"mom12_1", ticker:"RRC", holdYear:2012, selectionYear:2011, priorReturnPct:59.79, holdReturnPct:1.69},
       {portfolio:"mom12_1", ticker:"OKE", holdYear:2012, selectionYear:2011, priorReturnPct:54.72, holdReturnPct:1.49},
       {portfolio:"mom12_1", ticker:"EL", holdYear:2012, selectionYear:2011, priorReturnPct:47.59, holdReturnPct:7.91},
+      {portfolio:"mom12_1", ticker:"LB", holdYear:2012, selectionYear:2011, priorReturnPct:44.75, holdReturnPct:29.14},
       {portfolio:"mom12_1", ticker:"ROST", holdYear:2012, selectionYear:2011, priorReturnPct:42.46, holdReturnPct:14.88},
-      {portfolio:"mom12_1", ticker:"FAST", holdYear:2012, selectionYear:2011, priorReturnPct:41.81, holdReturnPct:10.05},
+      {portfolio:"mom6", ticker:"GOOGL", holdYear:2012, selectionYear:2011, priorReturnPct:23.97, holdReturnPct:-10.19},
+      {portfolio:"mom6", ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:22.28, holdReturnPct:19.61},
+      {portfolio:"mom6", ticker:"TJX", holdYear:2012, selectionYear:2011, priorReturnPct:22.24, holdReturnPct:33.75},
+      {portfolio:"mom6", ticker:"BMY", holdYear:2012, selectionYear:2011, priorReturnPct:22.12, holdReturnPct:4.06},
+      {portfolio:"mom6", ticker:"ORLY", holdYear:2012, selectionYear:2011, priorReturnPct:20.75, holdReturnPct:4.78},
+      {portfolio:"mom6", ticker:"PM", holdYear:2012, selectionYear:2011, priorReturnPct:20.2, holdReturnPct:13.18},
+      {portfolio:"mom6", ticker:"FAST", holdYear:2012, selectionYear:2011, priorReturnPct:19.92, holdReturnPct:-6.9},
+      {portfolio:"mom6", ticker:"GWW", holdYear:2012, selectionYear:2011, priorReturnPct:19.3, holdReturnPct:2.91},
+      {portfolio:"mom6", ticker:"MCD", holdYear:2012, selectionYear:2011, priorReturnPct:18.82, holdReturnPct:-10.45},
+      {portfolio:"mom6", ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:18.67, holdReturnPct:15.49},
+      {portfolio:"mom6", ticker:"TRIP", holdYear:2012, selectionYear:2012, priorReturnPct:77.27, holdReturnPct:-6.2},
+      {portfolio:"mom6", ticker:"PHM", holdYear:2012, selectionYear:2012, priorReturnPct:69.57, holdReturnPct:69.72},
+      {portfolio:"mom6", ticker:"EXPE", holdYear:2012, selectionYear:2012, priorReturnPct:66.43, holdReturnPct:29.54},
+      {portfolio:"mom6", ticker:"LEN", holdYear:2012, selectionYear:2012, priorReturnPct:57.83, holdReturnPct:25.4},
+      {portfolio:"mom6", ticker:"RF", holdYear:2012, selectionYear:2012, priorReturnPct:57.5, holdReturnPct:5.93},
+      {portfolio:"mom6", ticker:"SHW", holdYear:2012, selectionYear:2012, priorReturnPct:49.33, holdReturnPct:16.84},
+      {portfolio:"mom6", ticker:"GPS", holdYear:2012, selectionYear:2012, priorReturnPct:48.9, holdReturnPct:14.3},
+      {portfolio:"mom6", ticker:"TDC", holdYear:2012, selectionYear:2012, priorReturnPct:48.44, holdReturnPct:-14.05},
+      {portfolio:"mom6", ticker:"BAC", holdYear:2012, selectionYear:2012, priorReturnPct:47.5, holdReturnPct:42.25},
+      {portfolio:"mom6", ticker:"DHI", holdYear:2012, selectionYear:2012, priorReturnPct:46.47, holdReturnPct:8.9},
       {portfolio:"top10", ticker:"PHM", holdYear:2013, selectionYear:2012, priorReturnPct:187.8, holdReturnPct:13.14},
       {portfolio:"top10", ticker:"WHR", holdYear:2013, selectionYear:2012, priorReturnPct:120.26, holdReturnPct:57.07},
       {portfolio:"top10", ticker:"EXPE", holdYear:2013, selectionYear:2012, priorReturnPct:115.59, holdReturnPct:14.49},
@@ -1041,12 +1192,32 @@
       {portfolio:"mom12_1", ticker:"WHR", holdYear:2013, selectionYear:2012, priorReturnPct:120.45, holdReturnPct:57.07},
       {portfolio:"mom12_1", ticker:"EXPE", holdYear:2013, selectionYear:2012, priorReturnPct:115.2, holdReturnPct:14.49},
       {portfolio:"mom12_1", ticker:"LEN", holdYear:2013, selectionYear:2012, priorReturnPct:94.69, holdReturnPct:2.75},
+      {portfolio:"mom12_1", ticker:"GPS", holdYear:2013, selectionYear:2012, priorReturnPct:88.17, holdReturnPct:27.5},
       {portfolio:"mom12_1", ticker:"MPC", holdYear:2013, selectionYear:2012, priorReturnPct:83.57, holdReturnPct:48.57},
       {portfolio:"mom12_1", ticker:"GILD", holdYear:2013, selectionYear:2012, priorReturnPct:83.24, holdReturnPct:104.49},
       {portfolio:"mom12_1", ticker:"BAC", holdYear:2013, selectionYear:2012, priorReturnPct:78.02, holdReturnPct:34.51},
       {portfolio:"mom12_1", ticker:"EBAY", holdYear:2013, selectionYear:2012, priorReturnPct:74.15, holdReturnPct:7.59},
       {portfolio:"mom12_1", ticker:"STZ", holdYear:2013, selectionYear:2012, priorReturnPct:73.58, holdReturnPct:98.87},
-      {portfolio:"mom12_1", ticker:"SHW", holdYear:2013, selectionYear:2012, priorReturnPct:73.01, holdReturnPct:20.65},
+      {portfolio:"mom6", ticker:"FSLR", holdYear:2013, selectionYear:2012, priorReturnPct:104.91, holdReturnPct:45.2},
+      {portfolio:"mom6", ticker:"PHM", holdYear:2013, selectionYear:2012, priorReturnPct:69.72, holdReturnPct:4.46},
+      {portfolio:"mom6", ticker:"WHR", holdYear:2013, selectionYear:2012, priorReturnPct:68.37, holdReturnPct:13.46},
+      {portfolio:"mom6", ticker:"TMUS", holdYear:2013, selectionYear:2012, priorReturnPct:64.3, holdReturnPct:50.62},
+      {portfolio:"mom6", ticker:"DXC", holdYear:2013, selectionYear:2012, priorReturnPct:63.2, holdReturnPct:10.22},
+      {portfolio:"mom6", ticker:"PSX", holdYear:2013, selectionYear:2012, priorReturnPct:61.51, holdReturnPct:12.03},
+      {portfolio:"mom6", ticker:"THC", holdYear:2013, selectionYear:2012, priorReturnPct:54.91, holdReturnPct:41.98},
+      {portfolio:"mom6", ticker:"KMX", holdYear:2013, selectionYear:2012, priorReturnPct:44.72, holdReturnPct:22.96},
+      {portfolio:"mom6", ticker:"C", holdYear:2013, selectionYear:2012, priorReturnPct:44.42, holdReturnPct:21.31},
+      {portfolio:"mom6", ticker:"GILD", holdYear:2013, selectionYear:2012, priorReturnPct:43.23, holdReturnPct:39.61},
+      {portfolio:"mom6", ticker:"BBY", holdYear:2013, selectionYear:2013, priorReturnPct:133.85, holdReturnPct:35.26},
+      {portfolio:"mom6", ticker:"NFLX", holdYear:2013, selectionYear:2013, priorReturnPct:127.98, holdReturnPct:64.16},
+      {portfolio:"mom6", ticker:"MU", holdYear:2013, selectionYear:2013, priorReturnPct:126.03, holdReturnPct:52.42},
+      {portfolio:"mom6", ticker:"HPQ", holdYear:2013, selectionYear:2013, priorReturnPct:76.17, holdReturnPct:13.56},
+      {portfolio:"mom6", ticker:"GME", holdYear:2013, selectionYear:2013, priorReturnPct:70.78, holdReturnPct:18.02},
+      {portfolio:"mom6", ticker:"AMD", holdYear:2013, selectionYear:2013, priorReturnPct:70.0, holdReturnPct:-5.61},
+      {portfolio:"mom6", ticker:"BSX", holdYear:2013, selectionYear:2013, priorReturnPct:61.78, holdReturnPct:28.28},
+      {portfolio:"mom6", ticker:"CME", holdYear:2013, selectionYear:2013, priorReturnPct:51.98, holdReturnPct:7.12},
+      {portfolio:"mom6", ticker:"GNW", holdYear:2013, selectionYear:2013, priorReturnPct:51.93, holdReturnPct:30.29},
+      {portfolio:"mom6", ticker:"HRB", holdYear:2013, selectionYear:2013, priorReturnPct:51.55, holdReturnPct:4.7},
       {portfolio:"top10", ticker:"NFLX", holdYear:2014, selectionYear:2013, priorReturnPct:297.63, holdReturnPct:-7.21},
       {portfolio:"top10", ticker:"BBY", holdYear:2014, selectionYear:2013, priorReturnPct:244.2, holdReturnPct:0.08},
       {portfolio:"top10", ticker:"MU", holdYear:2014, selectionYear:2013, priorReturnPct:243.06, holdReturnPct:60.97},
@@ -1060,9 +1231,9 @@
       {portfolio:"top3", ticker:"NFLX", holdYear:2014, selectionYear:2013, priorReturnPct:297.63, holdReturnPct:-7.21},
       {portfolio:"top3", ticker:"BBY", holdYear:2014, selectionYear:2013, priorReturnPct:244.2, holdReturnPct:0.08},
       {portfolio:"top3", ticker:"MU", holdYear:2014, selectionYear:2013, priorReturnPct:243.06, holdReturnPct:60.97},
-      {portfolio:"bottom10", ticker:"VTR", holdYear:2014, selectionYear:2013, priorReturnPct:-7.63, holdReturnPct:30.91},
       {portfolio:"bottom10", ticker:"JBL", holdYear:2014, selectionYear:2013, priorReturnPct:-8.18, holdReturnPct:27.25},
       {portfolio:"bottom10", ticker:"WELL", holdYear:2014, selectionYear:2013, priorReturnPct:-8.42, holdReturnPct:48.54},
+      {portfolio:"bottom10", ticker:"CTL", holdYear:2014, selectionYear:2013, priorReturnPct:-13.2, holdReturnPct:31.67},
       {portfolio:"bottom10", ticker:"MOS", holdYear:2014, selectionYear:2013, priorReturnPct:-15.0, holdReturnPct:-1.38},
       {portfolio:"bottom10", ticker:"FE", holdYear:2014, selectionYear:2013, priorReturnPct:-16.57, holdReturnPct:23.54},
       {portfolio:"bottom10", ticker:"ISRG", holdYear:2014, selectionYear:2013, priorReturnPct:-21.68, holdReturnPct:37.72},
@@ -1080,6 +1251,26 @@
       {portfolio:"mom12_1", ticker:"GNW", holdYear:2014, selectionYear:2013, priorReturnPct:101.2, holdReturnPct:-45.27},
       {portfolio:"mom12_1", ticker:"LNC", holdYear:2014, selectionYear:2013, priorReturnPct:100.99, holdReturnPct:13.14},
       {portfolio:"mom12_1", ticker:"STZ", holdYear:2014, selectionYear:2013, priorReturnPct:98.95, holdReturnPct:39.49},
+      {portfolio:"mom6", ticker:"NFLX", holdYear:2014, selectionYear:2013, priorReturnPct:64.16, holdReturnPct:19.67},
+      {portfolio:"mom6", ticker:"CLF", holdYear:2014, selectionYear:2013, priorReturnPct:61.49, holdReturnPct:-41.66},
+      {portfolio:"mom6", ticker:"PBI", holdYear:2014, selectionYear:2013, priorReturnPct:58.74, holdReturnPct:20.25},
+      {portfolio:"mom6", ticker:"CTSH", holdYear:2014, selectionYear:2013, priorReturnPct:57.61, holdReturnPct:-3.13},
+      {portfolio:"mom6", ticker:"WYNN", holdYear:2014, selectionYear:2013, priorReturnPct:56.01, holdReturnPct:8.14},
+      {portfolio:"mom6", ticker:"GT", holdYear:2014, selectionYear:2013, priorReturnPct:54.34, holdReturnPct:16.94},
+      {portfolio:"mom6", ticker:"OKE", holdYear:2014, selectionYear:2013, priorReturnPct:53.93, holdReturnPct:27.04},
+      {portfolio:"mom6", ticker:"MU", holdYear:2014, selectionYear:2013, priorReturnPct:52.42, holdReturnPct:51.49},
+      {portfolio:"mom6", ticker:"ADSK", holdYear:2014, selectionYear:2013, priorReturnPct:48.88, holdReturnPct:12.04},
+      {portfolio:"mom6", ticker:"VLO", holdYear:2014, selectionYear:2013, priorReturnPct:48.81, holdReturnPct:0.37},
+      {portfolio:"mom6", ticker:"NBR", holdYear:2014, selectionYear:2014, priorReturnPct:73.43, holdReturnPct:-56.21},
+      {portfolio:"mom6", ticker:"WMB", holdYear:2014, selectionYear:2014, priorReturnPct:53.77, holdReturnPct:-21.54},
+      {portfolio:"mom6", ticker:"MU", holdYear:2014, selectionYear:2014, priorReturnPct:51.49, holdReturnPct:3.03},
+      {portfolio:"mom6", ticker:"LUV", holdYear:2014, selectionYear:2014, priorReturnPct:43.15, holdReturnPct:53.13},
+      {portfolio:"mom6", ticker:"DAL", holdYear:2014, selectionYear:2014, priorReturnPct:41.45, holdReturnPct:22.59},
+      {portfolio:"mom6", ticker:"HAL", holdYear:2014, selectionYear:2014, priorReturnPct:40.62, holdReturnPct:-44.12},
+      {portfolio:"mom6", ticker:"HP", holdYear:2014, selectionYear:2014, priorReturnPct:39.89, holdReturnPct:-41.27},
+      {portfolio:"mom6", ticker:"EOG", holdYear:2014, selectionYear:2014, priorReturnPct:39.58, holdReturnPct:-20.76},
+      {portfolio:"mom6", ticker:"EXC", holdYear:2014, selectionYear:2014, priorReturnPct:35.78, holdReturnPct:5.76},
+      {portfolio:"mom6", ticker:"BHGE", holdYear:2014, selectionYear:2014, priorReturnPct:35.38, holdReturnPct:-24.34},
       {portfolio:"top10", ticker:"LUV", holdYear:2015, selectionYear:2014, priorReturnPct:126.31, holdReturnPct:2.44},
       {portfolio:"top10", ticker:"EW", holdYear:2015, selectionYear:2014, priorReturnPct:93.7, holdReturnPct:24.01},
       {portfolio:"top10", ticker:"DAL", holdYear:2015, selectionYear:2014, priorReturnPct:80.53, holdReturnPct:4.05},
@@ -1093,9 +1284,9 @@
       {portfolio:"top3", ticker:"LUV", holdYear:2015, selectionYear:2014, priorReturnPct:126.31, holdReturnPct:2.44},
       {portfolio:"top3", ticker:"EW", holdYear:2015, selectionYear:2014, priorReturnPct:93.7, holdReturnPct:24.01},
       {portfolio:"top3", ticker:"DAL", holdYear:2015, selectionYear:2014, priorReturnPct:80.53, holdReturnPct:4.05},
-      {portfolio:"bottom10", ticker:"FMC", holdYear:2015, selectionYear:2014, priorReturnPct:-23.72, holdReturnPct:-30.36},
-      {portfolio:"bottom10", ticker:"OI", holdYear:2015, selectionYear:2014, priorReturnPct:-24.57, holdReturnPct:-35.46},
+      {portfolio:"bottom10", ticker:"DISCA", holdYear:2015, selectionYear:2014, priorReturnPct:-25.44, holdReturnPct:-22.55},
       {portfolio:"bottom10", ticker:"APA", holdYear:2015, selectionYear:2014, priorReturnPct:-26.25, holdReturnPct:-27.75},
+      {portfolio:"bottom10", ticker:"JEC", holdYear:2015, selectionYear:2014, priorReturnPct:-29.05, holdReturnPct:-6.13},
       {portfolio:"bottom10", ticker:"GME", holdYear:2015, selectionYear:2014, priorReturnPct:-29.11, holdReturnPct:-13.97},
       {portfolio:"bottom10", ticker:"TPR", holdYear:2015, selectionYear:2014, priorReturnPct:-30.76, holdReturnPct:-9.34},
       {portfolio:"bottom10", ticker:"MAT", holdYear:2015, selectionYear:2014, priorReturnPct:-32.07, holdReturnPct:-6.68},
@@ -1113,6 +1304,26 @@
       {portfolio:"mom12_1", ticker:"GD", holdYear:2015, selectionYear:2014, priorReturnPct:55.54, holdReturnPct:1.77},
       {portfolio:"mom12_1", ticker:"KDP", holdYear:2015, selectionYear:2014, priorReturnPct:55.17, holdReturnPct:33.23},
       {portfolio:"mom12_1", ticker:"KR", holdYear:2015, selectionYear:2014, priorReturnPct:53.59, holdReturnPct:31.71},
+      {portfolio:"mom6", ticker:"MNST", holdYear:2015, selectionYear:2014, priorReturnPct:54.48, holdReturnPct:23.69},
+      {portfolio:"mom6", ticker:"LUV", holdYear:2015, selectionYear:2014, priorReturnPct:53.13, holdReturnPct:-21.54},
+      {portfolio:"mom6", ticker:"EW", holdYear:2015, selectionYear:2014, priorReturnPct:46.18, holdReturnPct:11.82},
+      {portfolio:"mom6", ticker:"LB", holdYear:2015, selectionYear:2014, priorReturnPct:45.28, holdReturnPct:2.38},
+      {portfolio:"mom6", ticker:"LOW", holdYear:2015, selectionYear:2014, priorReturnPct:44.27, holdReturnPct:-2.01},
+      {portfolio:"mom6", ticker:"ROST", holdYear:2015, selectionYear:2014, priorReturnPct:42.39, holdReturnPct:3.62},
+      {portfolio:"mom6", ticker:"WHR", holdYear:2015, selectionYear:2014, priorReturnPct:37.82, holdReturnPct:-9.93},
+      {portfolio:"mom6", ticker:"AVGO", holdYear:2015, selectionYear:2014, priorReturnPct:36.87, holdReturnPct:32.91},
+      {portfolio:"mom6", ticker:"REGN", holdYear:2015, selectionYear:2014, priorReturnPct:35.22, holdReturnPct:24.35},
+      {portfolio:"mom6", ticker:"AMGN", holdYear:2015, selectionYear:2014, priorReturnPct:33.55, holdReturnPct:-2.63},
+      {portfolio:"mom6", ticker:"NFLX", holdYear:2015, selectionYear:2015, priorReturnPct:92.31, holdReturnPct:22.15},
+      {portfolio:"mom6", ticker:"CI", holdYear:2015, selectionYear:2015, priorReturnPct:57.47, holdReturnPct:-9.7},
+      {portfolio:"mom6", ticker:"AMZN", holdYear:2015, selectionYear:2015, priorReturnPct:39.87, holdReturnPct:54.53},
+      {portfolio:"mom6", ticker:"HAS", holdYear:2015, selectionYear:2015, priorReturnPct:37.96, holdReturnPct:-10.07},
+      {portfolio:"mom6", ticker:"BSX", holdYear:2015, selectionYear:2015, priorReturnPct:33.58, holdReturnPct:3.6},
+      {portfolio:"mom6", ticker:"HUM", holdYear:2015, selectionYear:2015, priorReturnPct:33.58, holdReturnPct:-7.28},
+      {portfolio:"mom6", ticker:"AVGO", holdYear:2015, selectionYear:2015, priorReturnPct:32.91, holdReturnPct:7.79},
+      {portfolio:"mom6", ticker:"ANTM", holdYear:2015, selectionYear:2015, priorReturnPct:31.68, holdReturnPct:-14.84},
+      {portfolio:"mom6", ticker:"SBUX", holdYear:2015, selectionYear:2015, priorReturnPct:31.6, holdReturnPct:12.06},
+      {portfolio:"mom6", ticker:"LYB", holdYear:2015, selectionYear:2015, priorReturnPct:31.42, holdReturnPct:-12.49},
       {portfolio:"top10", ticker:"NFLX", holdYear:2016, selectionYear:2015, priorReturnPct:134.38, holdReturnPct:8.24},
       {portfolio:"top10", ticker:"AMZN", holdYear:2016, selectionYear:2015, priorReturnPct:117.78, holdReturnPct:10.95},
       {portfolio:"top10", ticker:"NVDA", holdYear:2016, selectionYear:2015, priorReturnPct:67.12, holdReturnPct:226.96},
@@ -1146,6 +1357,26 @@
       {portfolio:"mom12_1", ticker:"HRL", holdYear:2016, selectionYear:2015, priorReturnPct:46.34, holdReturnPct:-10.62},
       {portfolio:"mom12_1", ticker:"EXPE", holdYear:2016, selectionYear:2015, priorReturnPct:45.35, holdReturnPct:-8.05},
       {portfolio:"mom12_1", ticker:"MLM", holdYear:2016, selectionYear:2015, priorReturnPct:44.16, holdReturnPct:63.67},
+      {portfolio:"mom6", ticker:"NVDA", holdYear:2016, selectionYear:2015, priorReturnPct:62.86, holdReturnPct:43.52},
+      {portfolio:"mom6", ticker:"AMZN", holdYear:2016, selectionYear:2015, priorReturnPct:54.53, holdReturnPct:5.88},
+      {portfolio:"mom6", ticker:"GOOG", holdYear:2016, selectionYear:2015, priorReturnPct:45.42, holdReturnPct:-8.8},
+      {portfolio:"mom6", ticker:"FSLR", holdYear:2016, selectionYear:2015, priorReturnPct:43.33, holdReturnPct:-26.53},
+      {portfolio:"mom6", ticker:"GOOGL", holdYear:2016, selectionYear:2015, priorReturnPct:43.2, holdReturnPct:-9.57},
+      {portfolio:"mom6", ticker:"HRL", holdYear:2016, selectionYear:2015, priorReturnPct:39.93, holdReturnPct:-6.75},
+      {portfolio:"mom6", ticker:"VRSN", holdYear:2016, selectionYear:2015, priorReturnPct:38.01, holdReturnPct:-1.03},
+      {portfolio:"mom6", ticker:"TAP", holdYear:2016, selectionYear:2015, priorReturnPct:35.09, holdReturnPct:8.62},
+      {portfolio:"mom6", ticker:"PSA", holdYear:2016, selectionYear:2015, priorReturnPct:34.49, holdReturnPct:4.65},
+      {portfolio:"mom6", ticker:"LUV", holdYear:2016, selectionYear:2015, priorReturnPct:32.45, holdReturnPct:-8.56},
+      {portfolio:"mom6", ticker:"NEM", holdYear:2016, selectionYear:2016, priorReturnPct:117.81, holdReturnPct:-15.36},
+      {portfolio:"mom6", ticker:"OKE", holdYear:2016, selectionYear:2016, priorReturnPct:101.01, holdReturnPct:23.87},
+      {portfolio:"mom6", ticker:"RRC", holdYear:2016, selectionYear:2016, priorReturnPct:75.49, holdReturnPct:-22.67},
+      {portfolio:"mom6", ticker:"FCX", holdYear:2016, selectionYear:2016, priorReturnPct:64.55, holdReturnPct:16.21},
+      {portfolio:"mom6", ticker:"IRM", holdYear:2016, selectionYear:2016, priorReturnPct:51.9, holdReturnPct:-16.32},
+      {portfolio:"mom6", ticker:"EQT", holdYear:2016, selectionYear:2016, priorReturnPct:48.67, holdReturnPct:-17.49},
+      {portfolio:"mom6", ticker:"MUR", holdYear:2016, selectionYear:2016, priorReturnPct:46.13, holdReturnPct:-2.92},
+      {portfolio:"mom6", ticker:"NVDA", holdYear:2016, selectionYear:2016, priorReturnPct:43.52, holdReturnPct:129.53},
+      {portfolio:"mom6", ticker:"MLM", holdYear:2016, selectionYear:2016, priorReturnPct:41.26, holdReturnPct:17.62},
+      {portfolio:"mom6", ticker:"NI", holdYear:2016, selectionYear:2016, priorReturnPct:37.88, holdReturnPct:-15.81},
       {portfolio:"top10", ticker:"NVDA", holdYear:2017, selectionYear:2016, priorReturnPct:226.96, holdReturnPct:81.99},
       {portfolio:"top10", ticker:"OKE", holdYear:2017, selectionYear:2016, priorReturnPct:149.62, holdReturnPct:-2.12},
       {portfolio:"top10", ticker:"FCX", holdYear:2017, selectionYear:2016, priorReturnPct:94.83, holdReturnPct:43.75},
@@ -1179,6 +1410,26 @@
       {portfolio:"mom12_1", ticker:"PWR", holdYear:2017, selectionYear:2016, priorReturnPct:66.52, holdReturnPct:12.22},
       {portfolio:"mom12_1", ticker:"MLM", holdYear:2017, selectionYear:2016, priorReturnPct:62.13, holdReturnPct:0.57},
       {portfolio:"mom12_1", ticker:"MUR", holdYear:2017, selectionYear:2016, priorReturnPct:58.96, holdReturnPct:3.41},
+      {portfolio:"mom6", ticker:"NVDA", holdYear:2017, selectionYear:2016, priorReturnPct:129.53, holdReturnPct:35.75},
+      {portfolio:"mom6", ticker:"CFG", holdYear:2017, selectionYear:2016, priorReturnPct:83.14, holdReturnPct:0.91},
+      {portfolio:"mom6", ticker:"UAL", holdYear:2017, selectionYear:2016, priorReturnPct:76.17, holdReturnPct:3.25},
+      {portfolio:"mom6", ticker:"MU", holdYear:2017, selectionYear:2016, priorReturnPct:75.36, holdReturnPct:36.22},
+      {portfolio:"mom6", ticker:"RF", holdYear:2017, selectionYear:2016, priorReturnPct:73.7, holdReturnPct:2.92},
+      {portfolio:"mom6", ticker:"ZION", holdYear:2017, selectionYear:2016, priorReturnPct:73.57, holdReturnPct:2.41},
+      {portfolio:"mom6", ticker:"LNC", holdYear:2017, selectionYear:2016, priorReturnPct:73.07, holdReturnPct:2.88},
+      {portfolio:"mom6", ticker:"BAC", holdYear:2017, selectionYear:2016, priorReturnPct:70.12, holdReturnPct:10.47},
+      {portfolio:"mom6", ticker:"KEY", holdYear:2017, selectionYear:2016, priorReturnPct:68.75, holdReturnPct:3.58},
+      {portfolio:"mom6", ticker:"MS", holdYear:2017, selectionYear:2016, priorReturnPct:65.11, holdReturnPct:6.43},
+      {portfolio:"mom6", ticker:"VRTX", holdYear:2017, selectionYear:2017, priorReturnPct:74.93, holdReturnPct:16.29},
+      {portfolio:"mom6", ticker:"WYNN", holdYear:2017, selectionYear:2017, priorReturnPct:56.47, holdReturnPct:26.6},
+      {portfolio:"mom6", ticker:"CSX", holdYear:2017, selectionYear:2017, priorReturnPct:52.99, holdReturnPct:1.62},
+      {portfolio:"mom6", ticker:"ISRG", holdYear:2017, selectionYear:2017, priorReturnPct:47.5, holdReturnPct:17.05},
+      {portfolio:"mom6", ticker:"XRX", holdYear:2017, selectionYear:2017, priorReturnPct:45.98, holdReturnPct:3.09},
+      {portfolio:"mom6", ticker:"HAS", holdYear:2017, selectionYear:2017, priorReturnPct:45.06, holdReturnPct:-17.56},
+      {portfolio:"mom6", ticker:"CNC", holdYear:2017, selectionYear:2017, priorReturnPct:41.36, holdReturnPct:26.29},
+      {portfolio:"mom6", ticker:"NRG", holdYear:2017, selectionYear:2017, priorReturnPct:40.96, holdReturnPct:65.79},
+      {portfolio:"mom6", ticker:"MTD", holdYear:2017, selectionYear:2017, priorReturnPct:40.61, holdReturnPct:5.26},
+      {portfolio:"mom6", ticker:"TPR", holdYear:2017, selectionYear:2017, priorReturnPct:37.4, holdReturnPct:-5.03},
       {portfolio:"top10", ticker:"NRG", holdYear:2018, selectionYear:2017, priorReturnPct:133.69, holdReturnPct:39.59},
       {portfolio:"top10", ticker:"VRTX", holdYear:2018, selectionYear:2017, priorReturnPct:103.42, holdReturnPct:10.58},
       {portfolio:"top10", ticker:"WYNN", holdYear:2018, selectionYear:2017, priorReturnPct:98.09, holdReturnPct:-40.18},
@@ -1212,6 +1463,26 @@
       {portfolio:"mom12_1", ticker:"PHM", holdYear:2018, selectionYear:2017, priorReturnPct:87.79, holdReturnPct:-20.76},
       {portfolio:"mom12_1", ticker:"WYNN", holdYear:2018, selectionYear:2017, priorReturnPct:85.74, holdReturnPct:-40.18},
       {portfolio:"mom12_1", ticker:"LRCX", holdYear:2018, selectionYear:2017, priorReturnPct:83.6, holdReturnPct:-24.4},
+      {portfolio:"mom6", ticker:"CPRI", holdYear:2018, selectionYear:2017, priorReturnPct:73.66, holdReturnPct:5.8},
+      {portfolio:"mom6", ticker:"NRG", holdYear:2018, selectionYear:2017, priorReturnPct:65.79, holdReturnPct:8.02},
+      {portfolio:"mom6", ticker:"FCX", holdYear:2018, selectionYear:2017, priorReturnPct:57.87, holdReturnPct:-8.71},
+      {portfolio:"mom6", ticker:"IR", holdYear:2018, selectionYear:2017, priorReturnPct:57.01, holdReturnPct:-13.38},
+      {portfolio:"mom6", ticker:"GPS", holdYear:2018, selectionYear:2017, priorReturnPct:56.11, holdReturnPct:-3.48},
+      {portfolio:"mom6", ticker:"CF", holdYear:2018, selectionYear:2017, priorReturnPct:54.89, holdReturnPct:5.97},
+      {portfolio:"mom6", ticker:"DLTR", holdYear:2018, selectionYear:2017, priorReturnPct:53.48, holdReturnPct:-20.79},
+      {portfolio:"mom6", ticker:"URI", holdYear:2018, selectionYear:2017, priorReturnPct:52.52, holdReturnPct:-14.13},
+      {portfolio:"mom6", ticker:"BA", holdYear:2018, selectionYear:2017, priorReturnPct:50.83, holdReturnPct:14.9},
+      {portfolio:"mom6", ticker:"CAT", holdYear:2018, selectionYear:2017, priorReturnPct:48.58, holdReturnPct:-13.07},
+      {portfolio:"mom6", ticker:"NFLX", holdYear:2018, selectionYear:2018, priorReturnPct:103.91, holdReturnPct:-31.62},
+      {portfolio:"mom6", ticker:"TRIP", holdYear:2018, selectionYear:2018, priorReturnPct:61.67, holdReturnPct:-3.18},
+      {portfolio:"mom6", ticker:"UA", holdYear:2018, selectionYear:2018, priorReturnPct:58.26, holdReturnPct:-23.29},
+      {portfolio:"mom6", ticker:"UAA", holdYear:2018, selectionYear:2018, priorReturnPct:55.79, holdReturnPct:-21.4},
+      {portfolio:"mom6", ticker:"ALGN", holdYear:2018, selectionYear:2018, priorReturnPct:53.99, holdReturnPct:-38.79},
+      {portfolio:"mom6", ticker:"M", holdYear:2018, selectionYear:2018, priorReturnPct:52.0, holdReturnPct:-18.65},
+      {portfolio:"mom6", ticker:"CMG", holdYear:2018, selectionYear:2018, priorReturnPct:49.25, holdReturnPct:0.1},
+      {portfolio:"mom6", ticker:"AMD", holdYear:2018, selectionYear:2018, priorReturnPct:45.82, holdReturnPct:23.15},
+      {portfolio:"mom6", ticker:"AMZN", holdYear:2018, selectionYear:2018, priorReturnPct:45.35, holdReturnPct:-11.64},
+      {portfolio:"mom6", ticker:"NTAP", holdYear:2018, selectionYear:2018, priorReturnPct:42.92, holdReturnPct:-23.26},
       {portfolio:"top10", ticker:"AMD", holdYear:2019, selectionYear:2018, priorReturnPct:79.57, holdReturnPct:148.43},
       {portfolio:"top10", ticker:"AAP", holdYear:2019, selectionYear:2018, priorReturnPct:58.22, holdReturnPct:1.87},
       {portfolio:"top10", ticker:"TRIP", holdYear:2019, selectionYear:2018, priorReturnPct:56.53, holdReturnPct:-36.67},
@@ -1225,12 +1496,12 @@
       {portfolio:"top3", ticker:"AMD", holdYear:2019, selectionYear:2018, priorReturnPct:79.57, holdReturnPct:148.43},
       {portfolio:"top3", ticker:"AAP", holdYear:2019, selectionYear:2018, priorReturnPct:58.22, holdReturnPct:1.87},
       {portfolio:"top3", ticker:"TRIP", holdYear:2019, selectionYear:2018, priorReturnPct:56.53, holdReturnPct:-36.67},
-      {portfolio:"bottom10", ticker:"UNM", holdYear:2019, selectionYear:2018, priorReturnPct:-45.22, holdReturnPct:2.63},
       {portfolio:"bottom10", ticker:"PCG", holdYear:2019, selectionYear:2018, priorReturnPct:-47.02, holdReturnPct:-54.23},
       {portfolio:"bottom10", ticker:"BHF", holdYear:2019, selectionYear:2018, priorReturnPct:-48.02, holdReturnPct:28.71},
       {portfolio:"bottom10", ticker:"WDC", holdYear:2019, selectionYear:2018, priorReturnPct:-51.9, holdReturnPct:77.14},
       {portfolio:"bottom10", ticker:"IVZ", holdYear:2019, selectionYear:2018, priorReturnPct:-52.05, holdReturnPct:14.91},
       {portfolio:"bottom10", ticker:"AMG", holdYear:2019, selectionYear:2018, priorReturnPct:-52.15, holdReturnPct:-11.79},
+      {portfolio:"bottom10", ticker:"LB", holdYear:2019, selectionYear:2018, priorReturnPct:-54.31, holdReturnPct:-25.18},
       {portfolio:"bottom10", ticker:"PRGO", holdYear:2019, selectionYear:2018, priorReturnPct:-55.08, holdReturnPct:35.65},
       {portfolio:"bottom10", ticker:"GE", holdYear:2019, selectionYear:2018, priorReturnPct:-55.39, holdReturnPct:53.94},
       {portfolio:"bottom10", ticker:"MHK", holdYear:2019, selectionYear:2018, priorReturnPct:-57.61, holdReturnPct:16.6},
@@ -1245,6 +1516,26 @@
       {portfolio:"mom12_1", ticker:"ILMN", holdYear:2019, selectionYear:2018, priorReturnPct:54.47, holdReturnPct:10.61},
       {portfolio:"mom12_1", ticker:"BSX", holdYear:2019, selectionYear:2018, priorReturnPct:51.96, holdReturnPct:27.96},
       {portfolio:"mom12_1", ticker:"MKC", holdYear:2019, selectionYear:2018, priorReturnPct:49.14, holdReturnPct:23.65},
+      {portfolio:"mom6", ticker:"LLY", holdYear:2019, selectionYear:2018, priorReturnPct:37.05, holdReturnPct:-3.2},
+      {portfolio:"mom6", ticker:"SBUX", holdYear:2019, selectionYear:2018, priorReturnPct:33.46, holdReturnPct:31.46},
+      {portfolio:"mom6", ticker:"BLL", holdYear:2019, selectionYear:2018, priorReturnPct:29.91, holdReturnPct:52.87},
+      {portfolio:"mom6", ticker:"NRG", holdYear:2019, selectionYear:2018, priorReturnPct:29.22, holdReturnPct:-11.18},
+      {portfolio:"mom6", ticker:"MRK", holdYear:2019, selectionYear:2018, priorReturnPct:27.63, holdReturnPct:11.22},
+      {portfolio:"mom6", ticker:"ORLY", holdYear:2019, selectionYear:2018, priorReturnPct:25.87, holdReturnPct:7.26},
+      {portfolio:"mom6", ticker:"AZO", holdYear:2019, selectionYear:2018, priorReturnPct:24.95, holdReturnPct:31.15},
+      {portfolio:"mom6", ticker:"CHD", holdYear:2019, selectionYear:2018, priorReturnPct:24.6, holdReturnPct:11.84},
+      {portfolio:"mom6", ticker:"AMD", holdYear:2019, selectionYear:2018, priorReturnPct:23.15, holdReturnPct:64.52},
+      {portfolio:"mom6", ticker:"PFE", holdYear:2019, selectionYear:2018, priorReturnPct:22.28, holdReturnPct:1.0},
+      {portfolio:"mom6", ticker:"COTY", holdYear:2019, selectionYear:2019, priorReturnPct:108.58, holdReturnPct:-0.68},
+      {portfolio:"mom6", ticker:"XRX", holdYear:2019, selectionYear:2019, priorReturnPct:81.91, holdReturnPct:3.27},
+      {portfolio:"mom6", ticker:"IR", holdYear:2019, selectionYear:2019, priorReturnPct:75.44, holdReturnPct:9.17},
+      {portfolio:"mom6", ticker:"CMG", holdYear:2019, selectionYear:2019, priorReturnPct:69.73, holdReturnPct:15.4},
+      {portfolio:"mom6", ticker:"AMD", holdYear:2019, selectionYear:2019, priorReturnPct:64.52, holdReturnPct:46.99},
+      {portfolio:"mom6", ticker:"MSCI", holdYear:2019, selectionYear:2019, priorReturnPct:62.93, holdReturnPct:7.98},
+      {portfolio:"mom6", ticker:"CDNS", holdYear:2019, selectionYear:2019, priorReturnPct:62.86, holdReturnPct:-5.44},
+      {portfolio:"mom6", ticker:"XRAY", holdYear:2019, selectionYear:2019, priorReturnPct:57.36, holdReturnPct:-2.61},
+      {portfolio:"mom6", ticker:"CPRT", holdYear:2019, selectionYear:2019, priorReturnPct:56.43, holdReturnPct:21.3},
+      {portfolio:"mom6", ticker:"GPN", holdYear:2019, selectionYear:2019, priorReturnPct:55.29, holdReturnPct:12.37},
       {portfolio:"top10", ticker:"AMD", holdYear:2020, selectionYear:2019, priorReturnPct:148.43, holdReturnPct:99.98},
       {portfolio:"top10", ticker:"LRCX", holdYear:2020, selectionYear:2019, priorReturnPct:119.33, holdReturnPct:64.18},
       {portfolio:"top10", ticker:"KLAC", holdYear:2020, selectionYear:2019, priorReturnPct:103.99, holdReturnPct:47.94},
@@ -1258,14 +1549,14 @@
       {portfolio:"top3", ticker:"AMD", holdYear:2020, selectionYear:2019, priorReturnPct:148.43, holdReturnPct:99.98},
       {portfolio:"top3", ticker:"LRCX", holdYear:2020, selectionYear:2019, priorReturnPct:119.33, holdReturnPct:64.18},
       {portfolio:"top3", ticker:"KLAC", holdYear:2020, selectionYear:2019, priorReturnPct:103.99, holdReturnPct:47.94},
-      {portfolio:"bottom10", ticker:"BEN", holdYear:2020, selectionYear:2019, priorReturnPct:-9.29, holdReturnPct:1.46},
-      {portfolio:"bottom10", ticker:"AAL", holdYear:2020, selectionYear:2019, priorReturnPct:-9.57, holdReturnPct:-44.81},
       {portfolio:"bottom10", ticker:"FFIV", holdYear:2020, selectionYear:2019, priorReturnPct:-13.81, holdReturnPct:25.99},
       {portfolio:"bottom10", ticker:"TPR", holdYear:2020, selectionYear:2019, priorReturnPct:-15.97, holdReturnPct:16.86},
       {portfolio:"bottom10", ticker:"KSS", holdYear:2020, selectionYear:2019, priorReturnPct:-19.22, holdReturnPct:-17.18},
       {portfolio:"bottom10", ticker:"KHC", holdYear:2020, selectionYear:2019, priorReturnPct:-21.2, holdReturnPct:13.78},
+      {portfolio:"bottom10", ticker:"LB", holdYear:2020, selectionYear:2019, priorReturnPct:-25.18, holdReturnPct:107.78},
       {portfolio:"bottom10", ticker:"MOS", holdYear:2020, selectionYear:2019, priorReturnPct:-25.28, holdReturnPct:7.6},
       {portfolio:"bottom10", ticker:"DXC", holdYear:2020, selectionYear:2019, priorReturnPct:-27.9, holdReturnPct:-30.14},
+      {portfolio:"bottom10", ticker:"GPS", holdYear:2020, selectionYear:2019, priorReturnPct:-28.1, holdReturnPct:15.74},
       {portfolio:"bottom10", ticker:"OXY", holdYear:2020, selectionYear:2019, priorReturnPct:-28.28, holdReturnPct:-56.63},
       {portfolio:"bottom10", ticker:"M", holdYear:2020, selectionYear:2019, priorReturnPct:-38.2, holdReturnPct:-31.08},
       {portfolio:"mom12_1", ticker:"AMD", holdYear:2020, selectionYear:2019, priorReturnPct:112.08, holdReturnPct:99.98},
@@ -1278,351 +1569,6 @@
       {portfolio:"mom12_1", ticker:"COTY", holdYear:2020, selectionYear:2019, priorReturnPct:83.8, holdReturnPct:-36.92},
       {portfolio:"mom12_1", ticker:"AMAT", holdYear:2020, selectionYear:2019, priorReturnPct:80.09, holdReturnPct:43.29},
       {portfolio:"mom12_1", ticker:"MSCI", holdYear:2020, selectionYear:2019, priorReturnPct:77.89, holdReturnPct:74.38},
-      {portfolio:"top10", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:122.3, holdReturnPct:125.48},
-      {portfolio:"top10", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:116.51, holdReturnPct:-19.48},
-      {portfolio:"top10", ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:105.39, holdReturnPct:59.76},
-      {portfolio:"top10", ticker:"AMD", holdYear:2021, selectionYear:2020, priorReturnPct:99.98, holdReturnPct:56.91},
-      {portfolio:"top10", ticker:"FCX", holdYear:2021, selectionYear:2020, priorReturnPct:99.06, holdReturnPct:61.41},
-      {portfolio:"top10", ticker:"CDNS", holdYear:2021, selectionYear:2020, priorReturnPct:96.7, holdReturnPct:36.59},
-      {portfolio:"top10", ticker:"NOW", holdYear:2021, selectionYear:2020, priorReturnPct:94.97, holdReturnPct:17.93},
-      {portfolio:"top10", ticker:"ALGN", holdYear:2021, selectionYear:2020, priorReturnPct:91.51, holdReturnPct:22.98},
-      {portfolio:"top10", ticker:"IDXX", holdYear:2021, selectionYear:2020, priorReturnPct:91.43, holdReturnPct:31.73},
-      {portfolio:"top10", ticker:"SNPS", holdYear:2021, selectionYear:2020, priorReturnPct:86.24, holdReturnPct:42.15},
-      {portfolio:"top3", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:122.3, holdReturnPct:125.48},
-      {portfolio:"top3", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:116.51, holdReturnPct:-19.48},
-      {portfolio:"top3", ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:105.39, holdReturnPct:59.76},
-      {portfolio:"bottom10", ticker:"APA", holdYear:2021, selectionYear:2020, priorReturnPct:-43.71, holdReturnPct:90.76},
-      {portfolio:"bottom10", ticker:"SLB", holdYear:2021, selectionYear:2020, priorReturnPct:-43.81, holdReturnPct:39.6},
-      {portfolio:"bottom10", ticker:"AAL", holdYear:2021, selectionYear:2020, priorReturnPct:-44.81, holdReturnPct:13.89},
-      {portfolio:"bottom10", ticker:"NOV", holdYear:2021, selectionYear:2020, priorReturnPct:-44.93, holdReturnPct:-0.89},
-      {portfolio:"bottom10", ticker:"FANG", holdYear:2021, selectionYear:2020, priorReturnPct:-46.0, holdReturnPct:127.51},
-      {portfolio:"bottom10", ticker:"UAL", holdYear:2021, selectionYear:2020, priorReturnPct:-50.9, holdReturnPct:1.23},
-      {portfolio:"bottom10", ticker:"FTI", holdYear:2021, selectionYear:2020, priorReturnPct:-55.23, holdReturnPct:-15.36},
-      {portfolio:"bottom10", ticker:"NCLH", holdYear:2021, selectionYear:2020, priorReturnPct:-56.46, holdReturnPct:-18.44},
-      {portfolio:"bottom10", ticker:"OXY", holdYear:2021, selectionYear:2020, priorReturnPct:-56.63, holdReturnPct:67.71},
-      {portfolio:"bottom10", ticker:"CCL", holdYear:2021, selectionYear:2020, priorReturnPct:-56.89, holdReturnPct:-7.11},
-      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:128.13, holdReturnPct:125.48},
-      {portfolio:"mom12_1", ticker:"AMD", holdYear:2021, selectionYear:2020, priorReturnPct:102.05, holdReturnPct:56.91},
-      {portfolio:"mom12_1", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:97.95, holdReturnPct:-19.48},
-      {portfolio:"mom12_1", ticker:"FDX", holdYear:2021, selectionYear:2020, priorReturnPct:91.94, holdReturnPct:0.72},
-      {portfolio:"mom12_1", ticker:"NOW", holdYear:2021, selectionYear:2020, priorReturnPct:89.34, holdReturnPct:17.93},
-      {portfolio:"mom12_1", ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:88.79, holdReturnPct:59.76},
-      {portfolio:"mom12_1", ticker:"FCX", holdYear:2021, selectionYear:2020, priorReturnPct:78.94, holdReturnPct:61.41},
-      {portfolio:"mom12_1", ticker:"IDXX", holdYear:2021, selectionYear:2020, priorReturnPct:76.53, holdReturnPct:31.73},
-      {portfolio:"mom12_1", ticker:"ROL", holdYear:2021, selectionYear:2020, priorReturnPct:74.13, holdReturnPct:-11.43},
-      {portfolio:"mom12_1", ticker:"ALGN", holdYear:2021, selectionYear:2020, priorReturnPct:72.48, holdReturnPct:22.98},
-      {portfolio:"top10", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:195.89, holdReturnPct:50.86},
-      {portfolio:"top10", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:141.97, holdReturnPct:-31.98},
-      {portfolio:"top10", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:137.48, holdReturnPct:-42.18},
-      {portfolio:"top10", ticker:"FANG", holdYear:2022, selectionYear:2021, priorReturnPct:127.51, holdReturnPct:35.34},
-      {portfolio:"top10", ticker:"NVDA", holdYear:2022, selectionYear:2021, priorReturnPct:125.48, holdReturnPct:-50.26},
-      {portfolio:"top10", ticker:"NUE", holdYear:2022, selectionYear:2021, priorReturnPct:118.45, holdReturnPct:17.39},
-      {portfolio:"top10", ticker:"IT", holdYear:2022, selectionYear:2021, priorReturnPct:108.7, holdReturnPct:0.54},
-      {portfolio:"top10", ticker:"EXR", holdYear:2022, selectionYear:2021, priorReturnPct:100.98, holdReturnPct:-32.82},
-      {portfolio:"top10", ticker:"ANET", holdYear:2022, selectionYear:2021, priorReturnPct:97.89, holdReturnPct:-15.58},
-      {portfolio:"top10", ticker:"SPG", holdYear:2022, selectionYear:2021, priorReturnPct:95.72, holdReturnPct:-21.91},
-      {portfolio:"top3", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:195.89, holdReturnPct:50.86},
-      {portfolio:"top3", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:141.97, holdReturnPct:-31.98},
-      {portfolio:"top3", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:137.48, holdReturnPct:-42.18},
-      {portfolio:"bottom10", ticker:"NCLH", holdYear:2022, selectionYear:2021, priorReturnPct:-18.44, holdReturnPct:-40.98},
-      {portfolio:"bottom10", ticker:"PYPL", holdYear:2022, selectionYear:2021, priorReturnPct:-19.48, holdReturnPct:-62.23},
-      {portfolio:"bottom10", ticker:"TFX", holdYear:2022, selectionYear:2021, priorReturnPct:-19.89, holdReturnPct:-23.61},
-      {portfolio:"bottom10", ticker:"FIS", holdYear:2022, selectionYear:2021, priorReturnPct:-21.9, holdReturnPct:-36.46},
-      {portfolio:"bottom10", ticker:"IPGP", holdYear:2022, selectionYear:2021, priorReturnPct:-23.08, holdReturnPct:-45.0},
-      {portfolio:"bottom10", ticker:"WYNN", holdYear:2022, selectionYear:2021, priorReturnPct:-24.63, holdReturnPct:-3.02},
-      {portfolio:"bottom10", ticker:"VTRS", holdYear:2022, selectionYear:2021, priorReturnPct:-26.12, holdReturnPct:-14.29},
-      {portfolio:"bottom10", ticker:"MKTX", holdYear:2022, selectionYear:2021, priorReturnPct:-27.51, holdReturnPct:-31.5},
-      {portfolio:"bottom10", ticker:"LVS", holdYear:2022, selectionYear:2021, priorReturnPct:-36.85, holdReturnPct:27.71},
-      {portfolio:"bottom10", ticker:"GPN", holdYear:2022, selectionYear:2021, priorReturnPct:-36.91, holdReturnPct:-25.91},
-      {portfolio:"mom12_1", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:177.24, holdReturnPct:50.86},
-      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2022, selectionYear:2021, priorReturnPct:150.48, holdReturnPct:-50.26},
-      {portfolio:"mom12_1", ticker:"FANG", holdYear:2022, selectionYear:2021, priorReturnPct:125.15, holdReturnPct:35.34},
-      {portfolio:"mom12_1", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:123.6, holdReturnPct:-31.98},
-      {portfolio:"mom12_1", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:119.42, holdReturnPct:-42.18},
-      {portfolio:"mom12_1", ticker:"NUE", holdYear:2022, selectionYear:2021, priorReturnPct:102.46, holdReturnPct:17.39},
-      {portfolio:"mom12_1", ticker:"IT", holdYear:2022, selectionYear:2021, priorReturnPct:94.92, holdReturnPct:0.54},
-      {portfolio:"mom12_1", ticker:"SPG", holdYear:2022, selectionYear:2021, priorReturnPct:85.27, holdReturnPct:-21.91},
-      {portfolio:"mom12_1", ticker:"APA", holdYear:2022, selectionYear:2021, priorReturnPct:82.81, holdReturnPct:76.44},
-      {portfolio:"mom12_1", ticker:"ODFL", holdYear:2022, selectionYear:2021, priorReturnPct:82.5, holdReturnPct:-20.48},
-      {portfolio:"top10", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:119.1, holdReturnPct:-4.08},
-      {portfolio:"top10", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:87.41, holdReturnPct:-6.26},
-      {portfolio:"top10", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:86.62, holdReturnPct:30.46},
-      {portfolio:"top10", ticker:"SLB", holdYear:2023, selectionYear:2022, priorReturnPct:81.15, holdReturnPct:-0.78},
-      {portfolio:"top10", ticker:"APA", holdYear:2023, selectionYear:2022, priorReturnPct:76.44, holdReturnPct:-21.24},
-      {portfolio:"top10", ticker:"VLO", holdYear:2023, selectionYear:2022, priorReturnPct:74.95, holdReturnPct:5.86},
-      {portfolio:"top10", ticker:"HAL", holdYear:2023, selectionYear:2022, priorReturnPct:74.45, holdReturnPct:-6.47},
-      {portfolio:"top10", ticker:"COP", holdYear:2023, selectionYear:2022, priorReturnPct:71.69, holdReturnPct:1.98},
-      {portfolio:"top10", ticker:"CVX", holdYear:2023, selectionYear:2022, priorReturnPct:58.46, holdReturnPct:-13.63},
-      {portfolio:"top10", ticker:"EOG", holdYear:2023, selectionYear:2022, priorReturnPct:56.88, holdReturnPct:-2.03},
-      {portfolio:"top3", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:119.1, holdReturnPct:-4.08},
-      {portfolio:"top3", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:87.41, holdReturnPct:-6.26},
-      {portfolio:"top3", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:86.62, holdReturnPct:30.46},
-      {portfolio:"bottom10", ticker:"CZR", holdYear:2023, selectionYear:2022, priorReturnPct:-55.52, holdReturnPct:12.69},
-      {portfolio:"bottom10", ticker:"ZBRA", holdYear:2023, selectionYear:2022, priorReturnPct:-56.92, holdReturnPct:6.6},
-      {portfolio:"bottom10", ticker:"SWK", holdYear:2023, selectionYear:2022, priorReturnPct:-58.92, holdReturnPct:35.55},
-      {portfolio:"bottom10", ticker:"CCL", holdYear:2023, selectionYear:2022, priorReturnPct:-59.94, holdReturnPct:130.02},
-      {portfolio:"bottom10", ticker:"VFC", holdYear:2023, selectionYear:2022, priorReturnPct:-60.38, holdReturnPct:-28.51},
-      {portfolio:"bottom10", ticker:"PYPL", holdYear:2023, selectionYear:2022, priorReturnPct:-62.23, holdReturnPct:-13.77},
-      {portfolio:"bottom10", ticker:"TSLA", holdYear:2023, selectionYear:2022, priorReturnPct:-65.03, holdReturnPct:101.72},
-      {portfolio:"bottom10", ticker:"ALGN", holdYear:2023, selectionYear:2022, priorReturnPct:-67.91, holdReturnPct:29.92},
-      {portfolio:"bottom10", ticker:"MTCH", holdYear:2023, selectionYear:2022, priorReturnPct:-68.63, holdReturnPct:-12.03},
-      {portfolio:"bottom10", ticker:"GNRC", holdYear:2023, selectionYear:2022, priorReturnPct:-71.4, holdReturnPct:28.39},
-      {portfolio:"mom12_1", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:141.21, holdReturnPct:-4.08},
-      {portfolio:"mom12_1", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:95.31, holdReturnPct:30.46},
-      {portfolio:"mom12_1", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:89.18, holdReturnPct:-6.26},
-      {portfolio:"mom12_1", ticker:"VLO", holdYear:2023, selectionYear:2022, priorReturnPct:84.28, holdReturnPct:5.86},
-      {portfolio:"mom12_1", ticker:"COP", holdYear:2023, selectionYear:2022, priorReturnPct:78.59, holdReturnPct:1.98},
-      {portfolio:"mom12_1", ticker:"APA", holdYear:2023, selectionYear:2022, priorReturnPct:77.08, holdReturnPct:-21.24},
-      {portfolio:"mom12_1", ticker:"ENPH", holdYear:2023, selectionYear:2022, priorReturnPct:75.24, holdReturnPct:-50.13},
-      {portfolio:"mom12_1", ticker:"SLB", holdYear:2023, selectionYear:2022, priorReturnPct:74.09, holdReturnPct:-0.78},
-      {portfolio:"mom12_1", ticker:"EOG", holdYear:2023, selectionYear:2022, priorReturnPct:69.89, holdReturnPct:-2.03},
-      {portfolio:"mom12_1", ticker:"HAL", holdYear:2023, selectionYear:2022, priorReturnPct:67.42, holdReturnPct:-6.47},
-      {portfolio:"top10", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:239.02, holdReturnPct:171.25},
-      {portfolio:"top10", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:194.13, holdReturnPct:66.05},
-      {portfolio:"top10", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:161.97, holdReturnPct:78.98},
-      {portfolio:"top10", ticker:"CCL", holdYear:2024, selectionYear:2023, priorReturnPct:130.02, holdReturnPct:34.41},
-      {portfolio:"top10", ticker:"PHM", holdYear:2024, selectionYear:2023, priorReturnPct:128.76, holdReturnPct:6.22},
-      {portfolio:"top10", ticker:"AMD", holdYear:2024, selectionYear:2023, priorReturnPct:127.59, holdReturnPct:-18.06},
-      {portfolio:"top10", ticker:"AVGO", holdYear:2024, selectionYear:2023, priorReturnPct:104.18, holdReturnPct:110.49},
-      {portfolio:"top10", ticker:"TSLA", holdYear:2024, selectionYear:2023, priorReturnPct:101.72, holdReturnPct:62.52},
-      {portfolio:"top10", ticker:"CRM", holdYear:2024, selectionYear:2023, priorReturnPct:98.46, holdReturnPct:27.76},
-      {portfolio:"top10", ticker:"GE", holdYear:2024, selectionYear:2023, priorReturnPct:95.71, holdReturnPct:64.83},
-      {portfolio:"top3", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:239.02, holdReturnPct:171.25},
-      {portfolio:"top3", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:194.13, holdReturnPct:66.05},
-      {portfolio:"top3", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:161.97, holdReturnPct:78.98},
-      {portfolio:"bottom10", ticker:"ETSY", holdYear:2024, selectionYear:2023, priorReturnPct:-32.33, holdReturnPct:-34.74},
-      {portfolio:"bottom10", ticker:"ALB", holdYear:2024, selectionYear:2023, priorReturnPct:-32.8, holdReturnPct:-39.5},
-      {portfolio:"bottom10", ticker:"PAYC", holdYear:2024, selectionYear:2023, priorReturnPct:-33.06, holdReturnPct:-0.04},
-      {portfolio:"bottom10", ticker:"EL", holdYear:2024, selectionYear:2023, priorReturnPct:-40.13, holdReturnPct:-47.59},
-      {portfolio:"bottom10", ticker:"PFE", holdYear:2024, selectionYear:2023, priorReturnPct:-41.26, holdReturnPct:-2.22},
-      {portfolio:"bottom10", ticker:"DG", holdYear:2024, selectionYear:2023, priorReturnPct:-44.13, holdReturnPct:-43.12},
-      {portfolio:"bottom10", ticker:"MRNA", holdYear:2024, selectionYear:2023, priorReturnPct:-44.63, holdReturnPct:-58.19},
-      {portfolio:"bottom10", ticker:"FMC", holdYear:2024, selectionYear:2023, priorReturnPct:-48.02, holdReturnPct:-19.72},
-      {portfolio:"bottom10", ticker:"ENPH", holdYear:2024, selectionYear:2023, priorReturnPct:-50.13, holdReturnPct:-48.02},
-      {portfolio:"bottom10", ticker:"PARA", holdYear:2024, selectionYear:2023, priorReturnPct:-81.42, holdReturnPct:-98.37},
-      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:220.15, holdReturnPct:171.25},
-      {portfolio:"mom12_1", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:171.85, holdReturnPct:66.05},
-      {portfolio:"mom12_1", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:117.4, holdReturnPct:78.98},
-      {portfolio:"mom12_1", ticker:"PHM", holdYear:2024, selectionYear:2023, priorReturnPct:95.58, holdReturnPct:6.22},
-      {portfolio:"mom12_1", ticker:"TSLA", holdYear:2024, selectionYear:2023, priorReturnPct:94.9, holdReturnPct:62.52},
-      {portfolio:"mom12_1", ticker:"CRM", holdYear:2024, selectionYear:2023, priorReturnPct:89.98, holdReturnPct:27.76},
-      {portfolio:"mom12_1", ticker:"AMD", holdYear:2024, selectionYear:2023, priorReturnPct:87.06, holdReturnPct:-18.06},
-      {portfolio:"mom12_1", ticker:"CCL", holdYear:2024, selectionYear:2023, priorReturnPct:86.85, holdReturnPct:34.41},
-      {portfolio:"mom12_1", ticker:"GE", holdYear:2024, selectionYear:2023, priorReturnPct:86.66, holdReturnPct:64.83},
-      {portfolio:"mom12_1", ticker:"ADBE", holdYear:2024, selectionYear:2023, priorReturnPct:81.56, holdReturnPct:-25.46},
-      {portfolio:"top10", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:171.25, holdReturnPct:38.92},
-      {portfolio:"top10", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:135.34, holdReturnPct:15.16},
-      {portfolio:"top10", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:130.06, holdReturnPct:-4.44},
-      {portfolio:"top10", ticker:"AVGO", holdYear:2025, selectionYear:2024, priorReturnPct:110.49, holdReturnPct:50.63},
-      {portfolio:"top10", ticker:"TRGP", holdYear:2025, selectionYear:2024, priorReturnPct:110.12, holdReturnPct:5.65},
-      {portfolio:"top10", ticker:"HWM", holdYear:2025, selectionYear:2024, priorReturnPct:102.71, holdReturnPct:87.95},
-      {portfolio:"top10", ticker:"CEG", holdYear:2025, selectionYear:2024, priorReturnPct:92.71, holdReturnPct:58.8},
-      {portfolio:"top10", ticker:"ANET", holdYear:2025, selectionYear:2024, priorReturnPct:87.73, holdReturnPct:18.55},
-      {portfolio:"top10", ticker:"NFLX", holdYear:2025, selectionYear:2024, priorReturnPct:83.07, holdReturnPct:5.19},
-      {portfolio:"top10", ticker:"TPR", holdYear:2025, selectionYear:2024, priorReturnPct:82.8, holdReturnPct:98.73},
-      {portfolio:"top3", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:171.25, holdReturnPct:38.92},
-      {portfolio:"top3", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:135.34, holdReturnPct:15.16},
-      {portfolio:"top3", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:130.06, holdReturnPct:-4.44},
-      {portfolio:"bottom10", ticker:"BIIB", holdYear:2025, selectionYear:2024, priorReturnPct:-40.91, holdReturnPct:15.09},
-      {portfolio:"bottom10", ticker:"DG", holdYear:2025, selectionYear:2024, priorReturnPct:-43.12, holdReturnPct:79.61},
-      {portfolio:"bottom10", ticker:"HUM", holdYear:2025, selectionYear:2024, priorReturnPct:-43.96, holdReturnPct:2.36},
-      {portfolio:"bottom10", ticker:"DLTR", holdYear:2025, selectionYear:2024, priorReturnPct:-47.24, holdReturnPct:64.14},
-      {portfolio:"bottom10", ticker:"EL", holdYear:2025, selectionYear:2024, priorReturnPct:-47.59, holdReturnPct:42.13},
-      {portfolio:"bottom10", ticker:"ENPH", holdYear:2025, selectionYear:2024, priorReturnPct:-48.02, holdReturnPct:-53.33},
-      {portfolio:"bottom10", ticker:"CE", holdYear:2025, selectionYear:2024, priorReturnPct:-54.57, holdReturnPct:-38.76},
-      {portfolio:"bottom10", ticker:"MRNA", holdYear:2025, selectionYear:2024, priorReturnPct:-58.19, holdReturnPct:-29.08},
-      {portfolio:"bottom10", ticker:"INTC", holdYear:2025, selectionYear:2024, priorReturnPct:-59.57, holdReturnPct:84.04},
-      {portfolio:"bottom10", ticker:"PARA", holdYear:2025, selectionYear:2024, priorReturnPct:-98.37, holdReturnPct:-92.28},
-      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:179.23, holdReturnPct:38.92},
-      {portfolio:"mom12_1", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:150.44, holdReturnPct:-4.44},
-      {portfolio:"mom12_1", ticker:"TRGP", holdYear:2025, selectionYear:2024, priorReturnPct:140.5, holdReturnPct:5.65},
-      {portfolio:"mom12_1", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:134.68, holdReturnPct:15.16},
-      {portfolio:"mom12_1", ticker:"CEG", holdYear:2025, selectionYear:2024, priorReturnPct:121.01, holdReturnPct:58.8},
-      {portfolio:"mom12_1", ticker:"HWM", holdYear:2025, selectionYear:2024, priorReturnPct:119.4, holdReturnPct:87.95},
-      {portfolio:"mom12_1", ticker:"FICO", holdYear:2025, selectionYear:2024, priorReturnPct:104.04, holdReturnPct:-15.08},
-      {portfolio:"mom12_1", ticker:"NRG", holdYear:2025, selectionYear:2024, priorReturnPct:101.13, holdReturnPct:78.91},
-      {portfolio:"mom12_1", ticker:"RCL", holdYear:2025, selectionYear:2024, priorReturnPct:88.92, holdReturnPct:22.46},
-      {portfolio:"mom12_1", ticker:"NFLX", holdYear:2025, selectionYear:2024, priorReturnPct:82.14, holdReturnPct:5.19},
-      {portfolio:"mom6", ticker:"BKNG", holdYear:2011, selectionYear:2010, priorReturnPct:119.5, holdReturnPct:28.13},
-      {portfolio:"mom6", ticker:"FCX", holdYear:2011, selectionYear:2010, priorReturnPct:109.92, holdReturnPct:-10.25},
-      {portfolio:"mom6", ticker:"CF", holdYear:2011, selectionYear:2010, priorReturnPct:106.79, holdReturnPct:4.97},
-      {portfolio:"mom6", ticker:"NOV", holdYear:2011, selectionYear:2010, priorReturnPct:103.19, holdReturnPct:16.64},
-      {portfolio:"mom6", ticker:"ANF", holdYear:2011, selectionYear:2010, priorReturnPct:82.17, holdReturnPct:16.75},
-      {portfolio:"mom6", ticker:"CMI", holdYear:2011, selectionYear:2010, priorReturnPct:70.75, holdReturnPct:-5.47},
-      {portfolio:"mom6", ticker:"AIG", holdYear:2011, selectionYear:2010, priorReturnPct:70.07, holdReturnPct:-38.65},
-      {portfolio:"mom6", ticker:"CLF", holdYear:2011, selectionYear:2010, priorReturnPct:67.25, holdReturnPct:18.87},
-      {portfolio:"mom6", ticker:"FTI", holdYear:2011, selectionYear:2010, priorReturnPct:66.44, holdReturnPct:0.75},
-      {portfolio:"mom6", ticker:"HAL", holdYear:2011, selectionYear:2010, priorReturnPct:64.35, holdReturnPct:25.37},
-      {portfolio:"mom6", ticker:"EP", holdYear:2011, selectionYear:2011, priorReturnPct:66.67, holdReturnPct:-60.0},
-      {portfolio:"mom6", ticker:"BIIB", holdYear:2011, selectionYear:2011, priorReturnPct:59.46, holdReturnPct:1.43},
-      {portfolio:"mom6", ticker:"NFLX", holdYear:2011, selectionYear:2011, priorReturnPct:49.51, holdReturnPct:-74.14},
-      {portfolio:"mom6", ticker:"HUM", holdYear:2011, selectionYear:2011, priorReturnPct:47.59, holdReturnPct:6.03},
-      {portfolio:"mom6", ticker:"TDC", holdYear:2011, selectionYear:2011, priorReturnPct:46.26, holdReturnPct:-20.36},
-      {portfolio:"mom6", ticker:"MCO", holdYear:2011, selectionYear:2011, priorReturnPct:45.57, holdReturnPct:-12.92},
-      {portfolio:"mom6", ticker:"ISRG", holdYear:2011, selectionYear:2011, priorReturnPct:44.37, holdReturnPct:22.28},
-      {portfolio:"mom6", ticker:"UNH", holdYear:2011, selectionYear:2011, priorReturnPct:43.73, holdReturnPct:-3.96},
-      {portfolio:"mom6", ticker:"GT", holdYear:2011, selectionYear:2011, priorReturnPct:41.52, holdReturnPct:-18.05},
-      {portfolio:"mom6", ticker:"CI", holdYear:2011, selectionYear:2011, priorReturnPct:40.42, holdReturnPct:-19.54},
-      {portfolio:"mom6", ticker:"GOOGL", holdYear:2012, selectionYear:2011, priorReturnPct:23.97, holdReturnPct:-10.19},
-      {portfolio:"mom6", ticker:"ISRG", holdYear:2012, selectionYear:2011, priorReturnPct:22.28, holdReturnPct:19.61},
-      {portfolio:"mom6", ticker:"TJX", holdYear:2012, selectionYear:2011, priorReturnPct:22.24, holdReturnPct:33.75},
-      {portfolio:"mom6", ticker:"BMY", holdYear:2012, selectionYear:2011, priorReturnPct:22.12, holdReturnPct:4.06},
-      {portfolio:"mom6", ticker:"ORLY", holdYear:2012, selectionYear:2011, priorReturnPct:20.75, holdReturnPct:4.78},
-      {portfolio:"mom6", ticker:"PM", holdYear:2012, selectionYear:2011, priorReturnPct:20.2, holdReturnPct:13.18},
-      {portfolio:"mom6", ticker:"FAST", holdYear:2012, selectionYear:2011, priorReturnPct:19.92, holdReturnPct:-6.9},
-      {portfolio:"mom6", ticker:"GWW", holdYear:2012, selectionYear:2011, priorReturnPct:19.3, holdReturnPct:2.91},
-      {portfolio:"mom6", ticker:"MCD", holdYear:2012, selectionYear:2011, priorReturnPct:18.82, holdReturnPct:-10.45},
-      {portfolio:"mom6", ticker:"MA", holdYear:2012, selectionYear:2011, priorReturnPct:18.67, holdReturnPct:15.49},
-      {portfolio:"mom6", ticker:"TRIP", holdYear:2012, selectionYear:2012, priorReturnPct:77.27, holdReturnPct:-6.2},
-      {portfolio:"mom6", ticker:"PHM", holdYear:2012, selectionYear:2012, priorReturnPct:69.57, holdReturnPct:69.72},
-      {portfolio:"mom6", ticker:"EXPE", holdYear:2012, selectionYear:2012, priorReturnPct:66.43, holdReturnPct:29.54},
-      {portfolio:"mom6", ticker:"GR", holdYear:2012, selectionYear:2012, priorReturnPct:60.0, holdReturnPct:-45.83},
-      {portfolio:"mom6", ticker:"LEN", holdYear:2012, selectionYear:2012, priorReturnPct:57.83, holdReturnPct:25.4},
-      {portfolio:"mom6", ticker:"RF", holdYear:2012, selectionYear:2012, priorReturnPct:57.5, holdReturnPct:5.93},
-      {portfolio:"mom6", ticker:"SHW", holdYear:2012, selectionYear:2012, priorReturnPct:49.33, holdReturnPct:16.84},
-      {portfolio:"mom6", ticker:"TDC", holdYear:2012, selectionYear:2012, priorReturnPct:48.44, holdReturnPct:-14.05},
-      {portfolio:"mom6", ticker:"BAC", holdYear:2012, selectionYear:2012, priorReturnPct:47.5, holdReturnPct:42.25},
-      {portfolio:"mom6", ticker:"DHI", holdYear:2012, selectionYear:2012, priorReturnPct:46.47, holdReturnPct:8.9},
-      {portfolio:"mom6", ticker:"FSLR", holdYear:2013, selectionYear:2012, priorReturnPct:104.91, holdReturnPct:45.2},
-      {portfolio:"mom6", ticker:"PHM", holdYear:2013, selectionYear:2012, priorReturnPct:69.72, holdReturnPct:4.46},
-      {portfolio:"mom6", ticker:"WHR", holdYear:2013, selectionYear:2012, priorReturnPct:68.37, holdReturnPct:13.46},
-      {portfolio:"mom6", ticker:"TMUS", holdYear:2013, selectionYear:2012, priorReturnPct:64.3, holdReturnPct:50.62},
-      {portfolio:"mom6", ticker:"DXC", holdYear:2013, selectionYear:2012, priorReturnPct:63.2, holdReturnPct:10.22},
-      {portfolio:"mom6", ticker:"PSX", holdYear:2013, selectionYear:2012, priorReturnPct:61.51, holdReturnPct:12.03},
-      {portfolio:"mom6", ticker:"THC", holdYear:2013, selectionYear:2012, priorReturnPct:54.91, holdReturnPct:41.98},
-      {portfolio:"mom6", ticker:"KMX", holdYear:2013, selectionYear:2012, priorReturnPct:44.72, holdReturnPct:22.96},
-      {portfolio:"mom6", ticker:"C", holdYear:2013, selectionYear:2012, priorReturnPct:44.42, holdReturnPct:21.31},
-      {portfolio:"mom6", ticker:"GILD", holdYear:2013, selectionYear:2012, priorReturnPct:43.23, holdReturnPct:39.61},
-      {portfolio:"mom6", ticker:"BBY", holdYear:2013, selectionYear:2013, priorReturnPct:133.85, holdReturnPct:35.26},
-      {portfolio:"mom6", ticker:"NFLX", holdYear:2013, selectionYear:2013, priorReturnPct:127.98, holdReturnPct:64.16},
-      {portfolio:"mom6", ticker:"MU", holdYear:2013, selectionYear:2013, priorReturnPct:126.03, holdReturnPct:52.42},
-      {portfolio:"mom6", ticker:"HPQ", holdYear:2013, selectionYear:2013, priorReturnPct:76.17, holdReturnPct:13.56},
-      {portfolio:"mom6", ticker:"GME", holdYear:2013, selectionYear:2013, priorReturnPct:70.78, holdReturnPct:18.02},
-      {portfolio:"mom6", ticker:"AMD", holdYear:2013, selectionYear:2013, priorReturnPct:70.0, holdReturnPct:-5.61},
-      {portfolio:"mom6", ticker:"BSX", holdYear:2013, selectionYear:2013, priorReturnPct:61.78, holdReturnPct:28.28},
-      {portfolio:"mom6", ticker:"CME", holdYear:2013, selectionYear:2013, priorReturnPct:51.98, holdReturnPct:7.12},
-      {portfolio:"mom6", ticker:"GNW", holdYear:2013, selectionYear:2013, priorReturnPct:51.93, holdReturnPct:30.29},
-      {portfolio:"mom6", ticker:"HRB", holdYear:2013, selectionYear:2013, priorReturnPct:51.55, holdReturnPct:4.7},
-      {portfolio:"mom6", ticker:"NFLX", holdYear:2014, selectionYear:2013, priorReturnPct:64.16, holdReturnPct:19.67},
-      {portfolio:"mom6", ticker:"CLF", holdYear:2014, selectionYear:2013, priorReturnPct:61.49, holdReturnPct:-41.66},
-      {portfolio:"mom6", ticker:"PBI", holdYear:2014, selectionYear:2013, priorReturnPct:58.74, holdReturnPct:20.25},
-      {portfolio:"mom6", ticker:"CTSH", holdYear:2014, selectionYear:2013, priorReturnPct:57.61, holdReturnPct:-3.13},
-      {portfolio:"mom6", ticker:"WYNN", holdYear:2014, selectionYear:2013, priorReturnPct:56.01, holdReturnPct:8.14},
-      {portfolio:"mom6", ticker:"GT", holdYear:2014, selectionYear:2013, priorReturnPct:54.34, holdReturnPct:16.94},
-      {portfolio:"mom6", ticker:"OKE", holdYear:2014, selectionYear:2013, priorReturnPct:53.93, holdReturnPct:27.04},
-      {portfolio:"mom6", ticker:"MU", holdYear:2014, selectionYear:2013, priorReturnPct:52.42, holdReturnPct:51.49},
-      {portfolio:"mom6", ticker:"ADSK", holdYear:2014, selectionYear:2013, priorReturnPct:48.88, holdReturnPct:12.04},
-      {portfolio:"mom6", ticker:"VLO", holdYear:2014, selectionYear:2013, priorReturnPct:48.81, holdReturnPct:0.37},
-      {portfolio:"mom6", ticker:"NBR", holdYear:2014, selectionYear:2014, priorReturnPct:73.43, holdReturnPct:-56.21},
-      {portfolio:"mom6", ticker:"WMB", holdYear:2014, selectionYear:2014, priorReturnPct:53.77, holdReturnPct:-21.54},
-      {portfolio:"mom6", ticker:"MU", holdYear:2014, selectionYear:2014, priorReturnPct:51.49, holdReturnPct:3.03},
-      {portfolio:"mom6", ticker:"LUV", holdYear:2014, selectionYear:2014, priorReturnPct:43.15, holdReturnPct:53.13},
-      {portfolio:"mom6", ticker:"DAL", holdYear:2014, selectionYear:2014, priorReturnPct:41.45, holdReturnPct:22.59},
-      {portfolio:"mom6", ticker:"HAL", holdYear:2014, selectionYear:2014, priorReturnPct:40.62, holdReturnPct:-44.12},
-      {portfolio:"mom6", ticker:"HP", holdYear:2014, selectionYear:2014, priorReturnPct:39.89, holdReturnPct:-41.27},
-      {portfolio:"mom6", ticker:"EOG", holdYear:2014, selectionYear:2014, priorReturnPct:39.58, holdReturnPct:-20.76},
-      {portfolio:"mom6", ticker:"EXC", holdYear:2014, selectionYear:2014, priorReturnPct:35.78, holdReturnPct:5.76},
-      {portfolio:"mom6", ticker:"BHGE", holdYear:2014, selectionYear:2014, priorReturnPct:35.38, holdReturnPct:-24.34},
-      {portfolio:"mom6", ticker:"MNST", holdYear:2015, selectionYear:2014, priorReturnPct:54.48, holdReturnPct:23.69},
-      {portfolio:"mom6", ticker:"LUV", holdYear:2015, selectionYear:2014, priorReturnPct:53.13, holdReturnPct:-21.54},
-      {portfolio:"mom6", ticker:"EW", holdYear:2015, selectionYear:2014, priorReturnPct:46.18, holdReturnPct:11.82},
-      {portfolio:"mom6", ticker:"LOW", holdYear:2015, selectionYear:2014, priorReturnPct:44.27, holdReturnPct:-2.01},
-      {portfolio:"mom6", ticker:"ROST", holdYear:2015, selectionYear:2014, priorReturnPct:42.39, holdReturnPct:3.62},
-      {portfolio:"mom6", ticker:"WHR", holdYear:2015, selectionYear:2014, priorReturnPct:37.82, holdReturnPct:-9.93},
-      {portfolio:"mom6", ticker:"AVGO", holdYear:2015, selectionYear:2014, priorReturnPct:36.87, holdReturnPct:32.91},
-      {portfolio:"mom6", ticker:"REGN", holdYear:2015, selectionYear:2014, priorReturnPct:35.22, holdReturnPct:24.35},
-      {portfolio:"mom6", ticker:"AMGN", holdYear:2015, selectionYear:2014, priorReturnPct:33.55, holdReturnPct:-2.63},
-      {portfolio:"mom6", ticker:"ZTS", holdYear:2015, selectionYear:2014, priorReturnPct:32.9, holdReturnPct:12.47},
-      {portfolio:"mom6", ticker:"NFLX", holdYear:2015, selectionYear:2015, priorReturnPct:92.31, holdReturnPct:22.15},
-      {portfolio:"mom6", ticker:"CI", holdYear:2015, selectionYear:2015, priorReturnPct:57.47, holdReturnPct:-9.7},
-      {portfolio:"mom6", ticker:"AMZN", holdYear:2015, selectionYear:2015, priorReturnPct:39.87, holdReturnPct:54.53},
-      {portfolio:"mom6", ticker:"HAS", holdYear:2015, selectionYear:2015, priorReturnPct:37.96, holdReturnPct:-10.07},
-      {portfolio:"mom6", ticker:"BSX", holdYear:2015, selectionYear:2015, priorReturnPct:33.58, holdReturnPct:3.6},
-      {portfolio:"mom6", ticker:"HUM", holdYear:2015, selectionYear:2015, priorReturnPct:33.58, holdReturnPct:-7.28},
-      {portfolio:"mom6", ticker:"AVGO", holdYear:2015, selectionYear:2015, priorReturnPct:32.91, holdReturnPct:7.79},
-      {portfolio:"mom6", ticker:"SBUX", holdYear:2015, selectionYear:2015, priorReturnPct:31.6, holdReturnPct:12.06},
-      {portfolio:"mom6", ticker:"LYB", holdYear:2015, selectionYear:2015, priorReturnPct:31.42, holdReturnPct:-12.49},
-      {portfolio:"mom6", ticker:"WMB", holdYear:2015, selectionYear:2015, priorReturnPct:30.88, holdReturnPct:-53.6},
-      {portfolio:"mom6", ticker:"NVDA", holdYear:2016, selectionYear:2015, priorReturnPct:62.86, holdReturnPct:43.52},
-      {portfolio:"mom6", ticker:"AMZN", holdYear:2016, selectionYear:2015, priorReturnPct:54.53, holdReturnPct:5.88},
-      {portfolio:"mom6", ticker:"GOOG", holdYear:2016, selectionYear:2015, priorReturnPct:45.42, holdReturnPct:-8.8},
-      {portfolio:"mom6", ticker:"FSLR", holdYear:2016, selectionYear:2015, priorReturnPct:43.33, holdReturnPct:-26.53},
-      {portfolio:"mom6", ticker:"GOOGL", holdYear:2016, selectionYear:2015, priorReturnPct:43.2, holdReturnPct:-9.57},
-      {portfolio:"mom6", ticker:"HRL", holdYear:2016, selectionYear:2015, priorReturnPct:39.93, holdReturnPct:-6.75},
-      {portfolio:"mom6", ticker:"VRSN", holdYear:2016, selectionYear:2015, priorReturnPct:38.01, holdReturnPct:-1.03},
-      {portfolio:"mom6", ticker:"TAP", holdYear:2016, selectionYear:2015, priorReturnPct:35.09, holdReturnPct:8.62},
-      {portfolio:"mom6", ticker:"PSA", holdYear:2016, selectionYear:2015, priorReturnPct:34.49, holdReturnPct:4.65},
-      {portfolio:"mom6", ticker:"LUV", holdYear:2016, selectionYear:2015, priorReturnPct:32.45, holdReturnPct:-8.56},
-      {portfolio:"mom6", ticker:"NEM", holdYear:2016, selectionYear:2016, priorReturnPct:117.81, holdReturnPct:-15.36},
-      {portfolio:"mom6", ticker:"OKE", holdYear:2016, selectionYear:2016, priorReturnPct:101.01, holdReturnPct:23.87},
-      {portfolio:"mom6", ticker:"RRC", holdYear:2016, selectionYear:2016, priorReturnPct:75.49, holdReturnPct:-22.67},
-      {portfolio:"mom6", ticker:"FCX", holdYear:2016, selectionYear:2016, priorReturnPct:64.55, holdReturnPct:16.21},
-      {portfolio:"mom6", ticker:"IRM", holdYear:2016, selectionYear:2016, priorReturnPct:51.9, holdReturnPct:-16.32},
-      {portfolio:"mom6", ticker:"EQT", holdYear:2016, selectionYear:2016, priorReturnPct:48.67, holdReturnPct:-17.49},
-      {portfolio:"mom6", ticker:"MUR", holdYear:2016, selectionYear:2016, priorReturnPct:46.13, holdReturnPct:-2.92},
-      {portfolio:"mom6", ticker:"NVDA", holdYear:2016, selectionYear:2016, priorReturnPct:43.52, holdReturnPct:129.53},
-      {portfolio:"mom6", ticker:"MLM", holdYear:2016, selectionYear:2016, priorReturnPct:41.26, holdReturnPct:17.62},
-      {portfolio:"mom6", ticker:"NI", holdYear:2016, selectionYear:2016, priorReturnPct:37.88, holdReturnPct:-15.81},
-      {portfolio:"mom6", ticker:"NVDA", holdYear:2017, selectionYear:2016, priorReturnPct:129.53, holdReturnPct:35.75},
-      {portfolio:"mom6", ticker:"CFG", holdYear:2017, selectionYear:2016, priorReturnPct:83.14, holdReturnPct:0.91},
-      {portfolio:"mom6", ticker:"UAL", holdYear:2017, selectionYear:2016, priorReturnPct:76.17, holdReturnPct:3.25},
-      {portfolio:"mom6", ticker:"MU", holdYear:2017, selectionYear:2016, priorReturnPct:75.36, holdReturnPct:36.22},
-      {portfolio:"mom6", ticker:"RF", holdYear:2017, selectionYear:2016, priorReturnPct:73.7, holdReturnPct:2.92},
-      {portfolio:"mom6", ticker:"ZION", holdYear:2017, selectionYear:2016, priorReturnPct:73.57, holdReturnPct:2.41},
-      {portfolio:"mom6", ticker:"LNC", holdYear:2017, selectionYear:2016, priorReturnPct:73.07, holdReturnPct:2.88},
-      {portfolio:"mom6", ticker:"BAC", holdYear:2017, selectionYear:2016, priorReturnPct:70.12, holdReturnPct:10.47},
-      {portfolio:"mom6", ticker:"KEY", holdYear:2017, selectionYear:2016, priorReturnPct:68.75, holdReturnPct:3.58},
-      {portfolio:"mom6", ticker:"MS", holdYear:2017, selectionYear:2016, priorReturnPct:65.11, holdReturnPct:6.43},
-      {portfolio:"mom6", ticker:"VRTX", holdYear:2017, selectionYear:2017, priorReturnPct:74.93, holdReturnPct:16.29},
-      {portfolio:"mom6", ticker:"WYNN", holdYear:2017, selectionYear:2017, priorReturnPct:56.47, holdReturnPct:26.6},
-      {portfolio:"mom6", ticker:"CSX", holdYear:2017, selectionYear:2017, priorReturnPct:52.99, holdReturnPct:1.62},
-      {portfolio:"mom6", ticker:"ISRG", holdYear:2017, selectionYear:2017, priorReturnPct:47.5, holdReturnPct:17.05},
-      {portfolio:"mom6", ticker:"XRX", holdYear:2017, selectionYear:2017, priorReturnPct:45.98, holdReturnPct:3.09},
-      {portfolio:"mom6", ticker:"HAS", holdYear:2017, selectionYear:2017, priorReturnPct:45.06, holdReturnPct:-17.56},
-      {portfolio:"mom6", ticker:"CNC", holdYear:2017, selectionYear:2017, priorReturnPct:41.36, holdReturnPct:26.29},
-      {portfolio:"mom6", ticker:"NRG", holdYear:2017, selectionYear:2017, priorReturnPct:40.96, holdReturnPct:65.79},
-      {portfolio:"mom6", ticker:"MTD", holdYear:2017, selectionYear:2017, priorReturnPct:40.61, holdReturnPct:5.26},
-      {portfolio:"mom6", ticker:"TPR", holdYear:2017, selectionYear:2017, priorReturnPct:37.4, holdReturnPct:-5.03},
-      {portfolio:"mom6", ticker:"CPRI", holdYear:2018, selectionYear:2017, priorReturnPct:73.66, holdReturnPct:5.8},
-      {portfolio:"mom6", ticker:"NRG", holdYear:2018, selectionYear:2017, priorReturnPct:65.79, holdReturnPct:8.02},
-      {portfolio:"mom6", ticker:"FCX", holdYear:2018, selectionYear:2017, priorReturnPct:57.87, holdReturnPct:-8.71},
-      {portfolio:"mom6", ticker:"IR", holdYear:2018, selectionYear:2017, priorReturnPct:57.01, holdReturnPct:-13.38},
-      {portfolio:"mom6", ticker:"CF", holdYear:2018, selectionYear:2017, priorReturnPct:54.89, holdReturnPct:5.97},
-      {portfolio:"mom6", ticker:"DLTR", holdYear:2018, selectionYear:2017, priorReturnPct:53.48, holdReturnPct:-20.79},
-      {portfolio:"mom6", ticker:"URI", holdYear:2018, selectionYear:2017, priorReturnPct:52.52, holdReturnPct:-14.13},
-      {portfolio:"mom6", ticker:"BA", holdYear:2018, selectionYear:2017, priorReturnPct:50.83, holdReturnPct:14.9},
-      {portfolio:"mom6", ticker:"CAT", holdYear:2018, selectionYear:2017, priorReturnPct:48.58, holdReturnPct:-13.07},
-      {portfolio:"mom6", ticker:"DHI", holdYear:2018, selectionYear:2017, priorReturnPct:48.5, holdReturnPct:-19.26},
-      {portfolio:"mom6", ticker:"NFLX", holdYear:2018, selectionYear:2018, priorReturnPct:103.91, holdReturnPct:-31.62},
-      {portfolio:"mom6", ticker:"TRIP", holdYear:2018, selectionYear:2018, priorReturnPct:61.67, holdReturnPct:-3.18},
-      {portfolio:"mom6", ticker:"UA", holdYear:2018, selectionYear:2018, priorReturnPct:58.26, holdReturnPct:-23.29},
-      {portfolio:"mom6", ticker:"UAA", holdYear:2018, selectionYear:2018, priorReturnPct:55.79, holdReturnPct:-21.4},
-      {portfolio:"mom6", ticker:"ALGN", holdYear:2018, selectionYear:2018, priorReturnPct:53.99, holdReturnPct:-38.79},
-      {portfolio:"mom6", ticker:"M", holdYear:2018, selectionYear:2018, priorReturnPct:52.0, holdReturnPct:-18.65},
-      {portfolio:"mom6", ticker:"CMG", holdYear:2018, selectionYear:2018, priorReturnPct:49.25, holdReturnPct:0.1},
-      {portfolio:"mom6", ticker:"AMD", holdYear:2018, selectionYear:2018, priorReturnPct:45.82, holdReturnPct:23.15},
-      {portfolio:"mom6", ticker:"AMZN", holdYear:2018, selectionYear:2018, priorReturnPct:45.35, holdReturnPct:-11.64},
-      {portfolio:"mom6", ticker:"NTAP", holdYear:2018, selectionYear:2018, priorReturnPct:42.92, holdReturnPct:-23.26},
-      {portfolio:"mom6", ticker:"LLY", holdYear:2019, selectionYear:2018, priorReturnPct:37.05, holdReturnPct:-3.2},
-      {portfolio:"mom6", ticker:"SBUX", holdYear:2019, selectionYear:2018, priorReturnPct:33.46, holdReturnPct:31.46},
-      {portfolio:"mom6", ticker:"NRG", holdYear:2019, selectionYear:2018, priorReturnPct:29.22, holdReturnPct:-11.18},
-      {portfolio:"mom6", ticker:"MRK", holdYear:2019, selectionYear:2018, priorReturnPct:27.63, holdReturnPct:11.22},
-      {portfolio:"mom6", ticker:"ORLY", holdYear:2019, selectionYear:2018, priorReturnPct:25.87, holdReturnPct:7.26},
-      {portfolio:"mom6", ticker:"AZO", holdYear:2019, selectionYear:2018, priorReturnPct:24.95, holdReturnPct:31.15},
-      {portfolio:"mom6", ticker:"CHD", holdYear:2019, selectionYear:2018, priorReturnPct:24.6, holdReturnPct:11.84},
-      {portfolio:"mom6", ticker:"AMD", holdYear:2019, selectionYear:2018, priorReturnPct:23.15, holdReturnPct:64.52},
-      {portfolio:"mom6", ticker:"PFE", holdYear:2019, selectionYear:2018, priorReturnPct:22.28, holdReturnPct:1.0},
-      {portfolio:"mom6", ticker:"HCA", holdYear:2019, selectionYear:2018, priorReturnPct:21.91, holdReturnPct:9.28},
-      {portfolio:"mom6", ticker:"COTY", holdYear:2019, selectionYear:2019, priorReturnPct:108.58, holdReturnPct:-0.68},
-      {portfolio:"mom6", ticker:"XRX", holdYear:2019, selectionYear:2019, priorReturnPct:81.91, holdReturnPct:3.27},
-      {portfolio:"mom6", ticker:"IR", holdYear:2019, selectionYear:2019, priorReturnPct:75.44, holdReturnPct:9.17},
-      {portfolio:"mom6", ticker:"CMG", holdYear:2019, selectionYear:2019, priorReturnPct:69.73, holdReturnPct:15.4},
-      {portfolio:"mom6", ticker:"AMD", holdYear:2019, selectionYear:2019, priorReturnPct:64.52, holdReturnPct:46.99},
-      {portfolio:"mom6", ticker:"MSCI", holdYear:2019, selectionYear:2019, priorReturnPct:62.93, holdReturnPct:7.98},
-      {portfolio:"mom6", ticker:"CDNS", holdYear:2019, selectionYear:2019, priorReturnPct:62.86, holdReturnPct:-5.44},
-      {portfolio:"mom6", ticker:"XRAY", holdYear:2019, selectionYear:2019, priorReturnPct:57.36, holdReturnPct:-2.61},
-      {portfolio:"mom6", ticker:"CPRT", holdYear:2019, selectionYear:2019, priorReturnPct:56.43, holdReturnPct:21.3},
-      {portfolio:"mom6", ticker:"GPN", holdYear:2019, selectionYear:2019, priorReturnPct:55.29, holdReturnPct:12.37},
       {portfolio:"mom6", ticker:"QRVO", holdYear:2020, selectionYear:2019, priorReturnPct:64.68, holdReturnPct:-4.9},
       {portfolio:"mom6", ticker:"LRCX", holdYear:2020, selectionYear:2019, priorReturnPct:54.25, holdReturnPct:11.73},
       {portfolio:"mom6", ticker:"TGT", holdYear:2020, selectionYear:2019, priorReturnPct:49.48, holdReturnPct:-5.43},
@@ -1643,6 +1589,40 @@
       {portfolio:"mom6", ticker:"NEM", holdYear:2020, selectionYear:2020, priorReturnPct:43.11, holdReturnPct:-1.37},
       {portfolio:"mom6", ticker:"TSCO", holdYear:2020, selectionYear:2020, priorReturnPct:42.0, holdReturnPct:6.56},
       {portfolio:"mom6", ticker:"NFLX", holdYear:2020, selectionYear:2020, priorReturnPct:40.63, holdReturnPct:11.34},
+      {portfolio:"top10", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:122.3, holdReturnPct:125.48},
+      {portfolio:"top10", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:116.51, holdReturnPct:-19.48},
+      {portfolio:"top10", ticker:"LB", holdYear:2021, selectionYear:2020, priorReturnPct:107.78, holdReturnPct:133.7},
+      {portfolio:"top10", ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:105.39, holdReturnPct:59.76},
+      {portfolio:"top10", ticker:"AMD", holdYear:2021, selectionYear:2020, priorReturnPct:99.98, holdReturnPct:56.91},
+      {portfolio:"top10", ticker:"FCX", holdYear:2021, selectionYear:2020, priorReturnPct:99.06, holdReturnPct:61.41},
+      {portfolio:"top10", ticker:"CDNS", holdYear:2021, selectionYear:2020, priorReturnPct:96.7, holdReturnPct:36.59},
+      {portfolio:"top10", ticker:"NOW", holdYear:2021, selectionYear:2020, priorReturnPct:94.97, holdReturnPct:17.93},
+      {portfolio:"top10", ticker:"ALGN", holdYear:2021, selectionYear:2020, priorReturnPct:91.51, holdReturnPct:22.98},
+      {portfolio:"top10", ticker:"IDXX", holdYear:2021, selectionYear:2020, priorReturnPct:91.43, holdReturnPct:31.73},
+      {portfolio:"top3", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:122.3, holdReturnPct:125.48},
+      {portfolio:"top3", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:116.51, holdReturnPct:-19.48},
+      {portfolio:"top3", ticker:"LB", holdYear:2021, selectionYear:2020, priorReturnPct:107.78, holdReturnPct:133.7},
+      {portfolio:"bottom10", ticker:"SLB", holdYear:2021, selectionYear:2020, priorReturnPct:-43.81, holdReturnPct:39.6},
+      {portfolio:"bottom10", ticker:"AAL", holdYear:2021, selectionYear:2020, priorReturnPct:-44.81, holdReturnPct:13.89},
+      {portfolio:"bottom10", ticker:"NOV", holdYear:2021, selectionYear:2020, priorReturnPct:-44.93, holdReturnPct:-0.89},
+      {portfolio:"bottom10", ticker:"FANG", holdYear:2021, selectionYear:2020, priorReturnPct:-46.0, holdReturnPct:127.51},
+      {portfolio:"bottom10", ticker:"HFC", holdYear:2021, selectionYear:2020, priorReturnPct:-46.47, holdReturnPct:27.97},
+      {portfolio:"bottom10", ticker:"UAL", holdYear:2021, selectionYear:2020, priorReturnPct:-50.9, holdReturnPct:1.23},
+      {portfolio:"bottom10", ticker:"FTI", holdYear:2021, selectionYear:2020, priorReturnPct:-55.23, holdReturnPct:-15.36},
+      {portfolio:"bottom10", ticker:"NCLH", holdYear:2021, selectionYear:2020, priorReturnPct:-56.46, holdReturnPct:-18.44},
+      {portfolio:"bottom10", ticker:"OXY", holdYear:2021, selectionYear:2020, priorReturnPct:-56.63, holdReturnPct:67.71},
+      {portfolio:"bottom10", ticker:"CCL", holdYear:2021, selectionYear:2020, priorReturnPct:-56.89, holdReturnPct:-7.11},
+      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2021, selectionYear:2020, priorReturnPct:128.13, holdReturnPct:125.48},
+      {portfolio:"mom12_1", ticker:"LB", holdYear:2021, selectionYear:2020, priorReturnPct:116.83, holdReturnPct:133.7},
+      {portfolio:"mom12_1", ticker:"AMD", holdYear:2021, selectionYear:2020, priorReturnPct:102.05, holdReturnPct:56.91},
+      {portfolio:"mom12_1", ticker:"PYPL", holdYear:2021, selectionYear:2020, priorReturnPct:97.95, holdReturnPct:-19.48},
+      {portfolio:"mom12_1", ticker:"FDX", holdYear:2021, selectionYear:2020, priorReturnPct:91.94, holdReturnPct:0.72},
+      {portfolio:"mom12_1", ticker:"NOW", holdYear:2021, selectionYear:2020, priorReturnPct:89.34, holdReturnPct:17.93},
+      {portfolio:"mom12_1", ticker:"ALB", holdYear:2021, selectionYear:2020, priorReturnPct:88.79, holdReturnPct:59.76},
+      {portfolio:"mom12_1", ticker:"FCX", holdYear:2021, selectionYear:2020, priorReturnPct:78.94, holdReturnPct:61.41},
+      {portfolio:"mom12_1", ticker:"IDXX", holdYear:2021, selectionYear:2020, priorReturnPct:76.53, holdReturnPct:31.73},
+      {portfolio:"mom12_1", ticker:"ROL", holdYear:2021, selectionYear:2020, priorReturnPct:74.13, holdReturnPct:-11.43},
+      {portfolio:"mom6", ticker:"LB", holdYear:2021, selectionYear:2020, priorReturnPct:146.29, holdReturnPct:94.19},
       {portfolio:"mom6", ticker:"TPR", holdYear:2021, selectionYear:2020, priorReturnPct:139.63, holdReturnPct:39.9},
       {portfolio:"mom6", ticker:"FCX", holdYear:2021, selectionYear:2020, priorReturnPct:126.46, holdReturnPct:42.94},
       {portfolio:"mom6", ticker:"PVH", holdYear:2021, selectionYear:2020, priorReturnPct:101.09, holdReturnPct:14.59},
@@ -1652,17 +1632,49 @@
       {portfolio:"mom6", ticker:"MGM", holdYear:2021, selectionYear:2020, priorReturnPct:87.94, holdReturnPct:35.37},
       {portfolio:"mom6", ticker:"MOS", holdYear:2021, selectionYear:2020, priorReturnPct:86.94, holdReturnPct:39.18},
       {portfolio:"mom6", ticker:"HWM", holdYear:2021, selectionYear:2020, priorReturnPct:86.78, holdReturnPct:20.78},
-      {portfolio:"mom6", ticker:"UAA", holdYear:2021, selectionYear:2020, priorReturnPct:79.41, holdReturnPct:23.18},
       {portfolio:"mom6", ticker:"FANG", holdYear:2021, selectionYear:2021, priorReturnPct:96.07, holdReturnPct:9.38},
+      {portfolio:"mom6", ticker:"LB", holdYear:2021, selectionYear:2021, priorReturnPct:94.19, holdReturnPct:17.89},
       {portfolio:"mom6", ticker:"DVN", holdYear:2021, selectionYear:2021, priorReturnPct:89.09, holdReturnPct:52.46},
       {portfolio:"mom6", ticker:"NUE", holdYear:2021, selectionYear:2021, priorReturnPct:82.06, holdReturnPct:19.09},
       {portfolio:"mom6", ticker:"OXY", holdYear:2021, selectionYear:2021, priorReturnPct:80.77, holdReturnPct:-11.71},
       {portfolio:"mom6", ticker:"EOG", holdYear:2021, selectionYear:2021, priorReturnPct:69.3, holdReturnPct:8.11},
       {portfolio:"mom6", ticker:"F", holdYear:2021, selectionYear:2021, priorReturnPct:69.06, holdReturnPct:40.0},
+      {portfolio:"mom6", ticker:"GPS", holdYear:2021, selectionYear:2021, priorReturnPct:68.02, holdReturnPct:-46.89},
       {portfolio:"mom6", ticker:"AMAT", holdYear:2021, selectionYear:2021, priorReturnPct:65.61, holdReturnPct:14.46},
       {portfolio:"mom6", ticker:"FTNT", holdYear:2021, selectionYear:2021, priorReturnPct:60.36, holdReturnPct:48.3},
-      {portfolio:"mom6", ticker:"XOM", holdYear:2021, selectionYear:2021, priorReturnPct:57.9, holdReturnPct:-0.49},
-      {portfolio:"mom6", ticker:"COF", holdYear:2021, selectionYear:2021, priorReturnPct:57.43, holdReturnPct:-6.63},
+      {portfolio:"top10", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:195.89, holdReturnPct:50.86},
+      {portfolio:"top10", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:141.97, holdReturnPct:-31.98},
+      {portfolio:"top10", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:137.48, holdReturnPct:-42.18},
+      {portfolio:"top10", ticker:"BBWI", holdYear:2022, selectionYear:2021, priorReturnPct:133.7, holdReturnPct:-38.4},
+      {portfolio:"top10", ticker:"FANG", holdYear:2022, selectionYear:2021, priorReturnPct:127.51, holdReturnPct:35.34},
+      {portfolio:"top10", ticker:"NVDA", holdYear:2022, selectionYear:2021, priorReturnPct:125.48, holdReturnPct:-50.26},
+      {portfolio:"top10", ticker:"NUE", holdYear:2022, selectionYear:2021, priorReturnPct:118.45, holdReturnPct:17.39},
+      {portfolio:"top10", ticker:"IT", holdYear:2022, selectionYear:2021, priorReturnPct:108.7, holdReturnPct:0.54},
+      {portfolio:"top10", ticker:"EXR", holdYear:2022, selectionYear:2021, priorReturnPct:100.98, holdReturnPct:-32.82},
+      {portfolio:"top10", ticker:"ANET", holdYear:2022, selectionYear:2021, priorReturnPct:97.89, holdReturnPct:-15.58},
+      {portfolio:"top3", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:195.89, holdReturnPct:50.86},
+      {portfolio:"top3", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:141.97, holdReturnPct:-31.98},
+      {portfolio:"top3", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:137.48, holdReturnPct:-42.18},
+      {portfolio:"bottom10", ticker:"PYPL", holdYear:2022, selectionYear:2021, priorReturnPct:-19.48, holdReturnPct:-62.23},
+      {portfolio:"bottom10", ticker:"TFX", holdYear:2022, selectionYear:2021, priorReturnPct:-19.89, holdReturnPct:-23.61},
+      {portfolio:"bottom10", ticker:"DISCA", holdYear:2022, selectionYear:2021, priorReturnPct:-21.77, holdReturnPct:-59.73},
+      {portfolio:"bottom10", ticker:"FIS", holdYear:2022, selectionYear:2021, priorReturnPct:-21.9, holdReturnPct:-36.46},
+      {portfolio:"bottom10", ticker:"IPGP", holdYear:2022, selectionYear:2021, priorReturnPct:-23.08, holdReturnPct:-45.0},
+      {portfolio:"bottom10", ticker:"WYNN", holdYear:2022, selectionYear:2021, priorReturnPct:-24.63, holdReturnPct:-3.02},
+      {portfolio:"bottom10", ticker:"VTRS", holdYear:2022, selectionYear:2021, priorReturnPct:-26.12, holdReturnPct:-14.29},
+      {portfolio:"bottom10", ticker:"MKTX", holdYear:2022, selectionYear:2021, priorReturnPct:-27.51, holdReturnPct:-31.5},
+      {portfolio:"bottom10", ticker:"LVS", holdYear:2022, selectionYear:2021, priorReturnPct:-36.85, holdReturnPct:27.71},
+      {portfolio:"bottom10", ticker:"GPN", holdYear:2022, selectionYear:2021, priorReturnPct:-36.91, holdReturnPct:-25.91},
+      {portfolio:"mom12_1", ticker:"DVN", holdYear:2022, selectionYear:2021, priorReturnPct:177.24, holdReturnPct:50.86},
+      {portfolio:"mom12_1", ticker:"BBWI", holdYear:2022, selectionYear:2021, priorReturnPct:151.59, holdReturnPct:-38.4},
+      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2022, selectionYear:2021, priorReturnPct:150.48, holdReturnPct:-50.26},
+      {portfolio:"mom12_1", ticker:"FANG", holdYear:2022, selectionYear:2021, priorReturnPct:125.15, holdReturnPct:35.34},
+      {portfolio:"mom12_1", ticker:"FTNT", holdYear:2022, selectionYear:2021, priorReturnPct:123.6, holdReturnPct:-31.98},
+      {portfolio:"mom12_1", ticker:"F", holdYear:2022, selectionYear:2021, priorReturnPct:119.42, holdReturnPct:-42.18},
+      {portfolio:"mom12_1", ticker:"NUE", holdYear:2022, selectionYear:2021, priorReturnPct:102.46, holdReturnPct:17.39},
+      {portfolio:"mom12_1", ticker:"IT", holdYear:2022, selectionYear:2021, priorReturnPct:94.92, holdReturnPct:0.54},
+      {portfolio:"mom12_1", ticker:"SPG", holdYear:2022, selectionYear:2021, priorReturnPct:85.27, holdReturnPct:-21.91},
+      {portfolio:"mom12_1", ticker:"APA", holdYear:2022, selectionYear:2021, priorReturnPct:82.81, holdReturnPct:76.44},
       {portfolio:"mom6", ticker:"ANET", holdYear:2022, selectionYear:2021, priorReturnPct:58.23, holdReturnPct:-34.79},
       {portfolio:"mom6", ticker:"TSLA", holdYear:2022, selectionYear:2021, priorReturnPct:55.89, holdReturnPct:-36.28},
       {portfolio:"mom6", ticker:"AMD", holdYear:2022, selectionYear:2021, priorReturnPct:54.22, holdReturnPct:-46.86},
@@ -1683,8 +1695,42 @@
       {portfolio:"mom6", ticker:"DVN", holdYear:2022, selectionYear:2022, priorReturnPct:29.32, holdReturnPct:16.66},
       {portfolio:"mom6", ticker:"EOG", holdYear:2022, selectionYear:2022, priorReturnPct:28.84, holdReturnPct:20.48},
       {portfolio:"mom6", ticker:"VRTX", holdYear:2022, selectionYear:2022, priorReturnPct:28.32, holdReturnPct:0.51},
+      {portfolio:"top10", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:119.1, holdReturnPct:-4.08},
+      {portfolio:"top10", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:87.41, holdReturnPct:-6.26},
+      {portfolio:"top10", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:86.62, holdReturnPct:30.46},
+      {portfolio:"top10", ticker:"SLB", holdYear:2023, selectionYear:2022, priorReturnPct:81.15, holdReturnPct:-0.78},
+      {portfolio:"top10", ticker:"APA", holdYear:2023, selectionYear:2022, priorReturnPct:76.44, holdReturnPct:-21.24},
+      {portfolio:"top10", ticker:"VLO", holdYear:2023, selectionYear:2022, priorReturnPct:74.95, holdReturnPct:5.86},
+      {portfolio:"top10", ticker:"HAL", holdYear:2023, selectionYear:2022, priorReturnPct:74.45, holdReturnPct:-6.47},
+      {portfolio:"top10", ticker:"COP", holdYear:2023, selectionYear:2022, priorReturnPct:71.69, holdReturnPct:1.98},
+      {portfolio:"top10", ticker:"CVX", holdYear:2023, selectionYear:2022, priorReturnPct:58.46, holdReturnPct:-13.63},
+      {portfolio:"top10", ticker:"EOG", holdYear:2023, selectionYear:2022, priorReturnPct:56.88, holdReturnPct:-2.03},
+      {portfolio:"top3", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:119.1, holdReturnPct:-4.08},
+      {portfolio:"top3", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:87.41, holdReturnPct:-6.26},
+      {portfolio:"top3", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:86.62, holdReturnPct:30.46},
+      {portfolio:"bottom10", ticker:"SWK", holdYear:2023, selectionYear:2022, priorReturnPct:-58.92, holdReturnPct:35.55},
+      {portfolio:"bottom10", ticker:"WBD", holdYear:2023, selectionYear:2022, priorReturnPct:-59.73, holdReturnPct:20.04},
+      {portfolio:"bottom10", ticker:"CCL", holdYear:2023, selectionYear:2022, priorReturnPct:-59.94, holdReturnPct:130.02},
+      {portfolio:"bottom10", ticker:"VFC", holdYear:2023, selectionYear:2022, priorReturnPct:-60.38, holdReturnPct:-28.51},
+      {portfolio:"bottom10", ticker:"PYPL", holdYear:2023, selectionYear:2022, priorReturnPct:-62.23, holdReturnPct:-13.77},
+      {portfolio:"bottom10", ticker:"META", holdYear:2023, selectionYear:2022, priorReturnPct:-64.22, holdReturnPct:194.13},
+      {portfolio:"bottom10", ticker:"TSLA", holdYear:2023, selectionYear:2022, priorReturnPct:-65.03, holdReturnPct:101.72},
+      {portfolio:"bottom10", ticker:"ALGN", holdYear:2023, selectionYear:2022, priorReturnPct:-67.91, holdReturnPct:29.92},
+      {portfolio:"bottom10", ticker:"MTCH", holdYear:2023, selectionYear:2022, priorReturnPct:-68.63, holdReturnPct:-12.03},
+      {portfolio:"bottom10", ticker:"GNRC", holdYear:2023, selectionYear:2022, priorReturnPct:-71.4, holdReturnPct:28.39},
+      {portfolio:"mom12_1", ticker:"OXY", holdYear:2023, selectionYear:2022, priorReturnPct:141.21, holdReturnPct:-4.08},
+      {portfolio:"mom12_1", ticker:"MPC", holdYear:2023, selectionYear:2022, priorReturnPct:95.31, holdReturnPct:30.46},
+      {portfolio:"mom12_1", ticker:"XOM", holdYear:2023, selectionYear:2022, priorReturnPct:89.18, holdReturnPct:-6.26},
+      {portfolio:"mom12_1", ticker:"VLO", holdYear:2023, selectionYear:2022, priorReturnPct:84.28, holdReturnPct:5.86},
+      {portfolio:"mom12_1", ticker:"COP", holdYear:2023, selectionYear:2022, priorReturnPct:78.59, holdReturnPct:1.98},
+      {portfolio:"mom12_1", ticker:"APA", holdYear:2023, selectionYear:2022, priorReturnPct:77.08, holdReturnPct:-21.24},
+      {portfolio:"mom12_1", ticker:"ENPH", holdYear:2023, selectionYear:2022, priorReturnPct:75.24, holdReturnPct:-50.13},
+      {portfolio:"mom12_1", ticker:"SLB", holdYear:2023, selectionYear:2022, priorReturnPct:74.09, holdReturnPct:-0.78},
+      {portfolio:"mom12_1", ticker:"EOG", holdYear:2023, selectionYear:2022, priorReturnPct:69.89, holdReturnPct:-2.03},
+      {portfolio:"mom12_1", ticker:"HAL", holdYear:2023, selectionYear:2022, priorReturnPct:67.42, holdReturnPct:-6.47},
       {portfolio:"mom6", ticker:"NFLX", holdYear:2023, selectionYear:2022, priorReturnPct:63.87, holdReturnPct:49.38},
       {portfolio:"mom6", ticker:"ROST", holdYear:2023, selectionYear:2022, priorReturnPct:63.61, holdReturnPct:-2.77},
+      {portfolio:"mom6", ticker:"BBWI", holdYear:2023, selectionYear:2022, priorReturnPct:52.88, holdReturnPct:-10.09},
       {portfolio:"mom6", ticker:"SLB", holdYear:2023, selectionYear:2022, priorReturnPct:51.17, holdReturnPct:-7.18},
       {portfolio:"mom6", ticker:"CEG", holdYear:2023, selectionYear:2022, priorReturnPct:50.17, holdReturnPct:6.95},
       {portfolio:"mom6", ticker:"ETSY", holdYear:2023, selectionYear:2022, priorReturnPct:50.08, holdReturnPct:-29.36},
@@ -1692,7 +1738,6 @@
       {portfolio:"mom6", ticker:"DXCM", holdYear:2023, selectionYear:2022, priorReturnPct:45.87, holdReturnPct:13.48},
       {portfolio:"mom6", ticker:"URI", holdYear:2023, selectionYear:2022, priorReturnPct:45.45, holdReturnPct:26.27},
       {portfolio:"mom6", ticker:"TJX", holdYear:2023, selectionYear:2022, priorReturnPct:43.3, holdReturnPct:7.37},
-      {portfolio:"mom6", ticker:"DE", holdYear:2023, selectionYear:2022, priorReturnPct:43.01, holdReturnPct:-4.91},
       {portfolio:"mom6", ticker:"NVDA", holdYear:2023, selectionYear:2023, priorReturnPct:189.54, holdReturnPct:17.09},
       {portfolio:"mom6", ticker:"META", holdYear:2023, selectionYear:2023, priorReturnPct:138.47, holdReturnPct:23.34},
       {portfolio:"mom6", ticker:"CCL", holdYear:2023, selectionYear:2023, priorReturnPct:133.62, holdReturnPct:-1.54},
@@ -1703,6 +1748,39 @@
       {portfolio:"mom6", ticker:"PHM", holdYear:2023, selectionYear:2023, priorReturnPct:71.47, holdReturnPct:33.41},
       {portfolio:"mom6", ticker:"GE", holdYear:2023, selectionYear:2023, priorReturnPct:68.1, holdReturnPct:16.43},
       {portfolio:"mom6", ticker:"ALGN", holdYear:2023, selectionYear:2023, priorReturnPct:67.68, holdReturnPct:-22.52},
+      {portfolio:"top10", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:239.02, holdReturnPct:171.25},
+      {portfolio:"top10", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:194.13, holdReturnPct:66.05},
+      {portfolio:"top10", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:161.97, holdReturnPct:78.98},
+      {portfolio:"top10", ticker:"CCL", holdYear:2024, selectionYear:2023, priorReturnPct:130.02, holdReturnPct:34.41},
+      {portfolio:"top10", ticker:"PHM", holdYear:2024, selectionYear:2023, priorReturnPct:128.76, holdReturnPct:6.22},
+      {portfolio:"top10", ticker:"AMD", holdYear:2024, selectionYear:2023, priorReturnPct:127.59, holdReturnPct:-18.06},
+      {portfolio:"top10", ticker:"AVGO", holdYear:2024, selectionYear:2023, priorReturnPct:104.18, holdReturnPct:110.49},
+      {portfolio:"top10", ticker:"TSLA", holdYear:2024, selectionYear:2023, priorReturnPct:101.72, holdReturnPct:62.52},
+      {portfolio:"top10", ticker:"CRM", holdYear:2024, selectionYear:2023, priorReturnPct:98.46, holdReturnPct:27.76},
+      {portfolio:"top10", ticker:"GE", holdYear:2024, selectionYear:2023, priorReturnPct:95.71, holdReturnPct:64.83},
+      {portfolio:"top3", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:239.02, holdReturnPct:171.25},
+      {portfolio:"top3", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:194.13, holdReturnPct:66.05},
+      {portfolio:"top3", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:161.97, holdReturnPct:78.98},
+      {portfolio:"bottom10", ticker:"ILMN", holdYear:2024, selectionYear:2023, priorReturnPct:-31.14, holdReturnPct:-1.34},
+      {portfolio:"bottom10", ticker:"ETSY", holdYear:2024, selectionYear:2023, priorReturnPct:-32.33, holdReturnPct:-34.74},
+      {portfolio:"bottom10", ticker:"ALB", holdYear:2024, selectionYear:2023, priorReturnPct:-32.8, holdReturnPct:-39.5},
+      {portfolio:"bottom10", ticker:"PAYC", holdYear:2024, selectionYear:2023, priorReturnPct:-33.06, holdReturnPct:-0.04},
+      {portfolio:"bottom10", ticker:"EL", holdYear:2024, selectionYear:2023, priorReturnPct:-40.13, holdReturnPct:-47.59},
+      {portfolio:"bottom10", ticker:"PFE", holdYear:2024, selectionYear:2023, priorReturnPct:-41.26, holdReturnPct:-2.22},
+      {portfolio:"bottom10", ticker:"DG", holdYear:2024, selectionYear:2023, priorReturnPct:-44.13, holdReturnPct:-43.12},
+      {portfolio:"bottom10", ticker:"MRNA", holdYear:2024, selectionYear:2023, priorReturnPct:-44.63, holdReturnPct:-58.19},
+      {portfolio:"bottom10", ticker:"FMC", holdYear:2024, selectionYear:2023, priorReturnPct:-48.02, holdReturnPct:-19.72},
+      {portfolio:"bottom10", ticker:"ENPH", holdYear:2024, selectionYear:2023, priorReturnPct:-50.13, holdReturnPct:-48.02},
+      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2024, selectionYear:2023, priorReturnPct:220.15, holdReturnPct:171.25},
+      {portfolio:"mom12_1", ticker:"META", holdYear:2024, selectionYear:2023, priorReturnPct:171.85, holdReturnPct:66.05},
+      {portfolio:"mom12_1", ticker:"RCL", holdYear:2024, selectionYear:2023, priorReturnPct:117.4, holdReturnPct:78.98},
+      {portfolio:"mom12_1", ticker:"PHM", holdYear:2024, selectionYear:2023, priorReturnPct:95.58, holdReturnPct:6.22},
+      {portfolio:"mom12_1", ticker:"TSLA", holdYear:2024, selectionYear:2023, priorReturnPct:94.9, holdReturnPct:62.52},
+      {portfolio:"mom12_1", ticker:"CRM", holdYear:2024, selectionYear:2023, priorReturnPct:89.98, holdReturnPct:27.76},
+      {portfolio:"mom12_1", ticker:"AMD", holdYear:2024, selectionYear:2023, priorReturnPct:87.06, holdReturnPct:-18.06},
+      {portfolio:"mom12_1", ticker:"CCL", holdYear:2024, selectionYear:2023, priorReturnPct:86.85, holdReturnPct:34.41},
+      {portfolio:"mom12_1", ticker:"GE", holdYear:2024, selectionYear:2023, priorReturnPct:86.66, holdReturnPct:64.83},
+      {portfolio:"mom12_1", ticker:"ADBE", holdYear:2024, selectionYear:2023, priorReturnPct:81.56, holdReturnPct:-25.46},
       {portfolio:"mom6", ticker:"ZION", holdYear:2024, selectionYear:2023, priorReturnPct:67.24, holdReturnPct:0.83},
       {portfolio:"mom6", ticker:"KEY", holdYear:2024, selectionYear:2023, priorReturnPct:61.59, holdReturnPct:1.56},
       {portfolio:"mom6", ticker:"INTC", holdYear:2024, selectionYear:2023, priorReturnPct:51.31, holdReturnPct:-37.94},
@@ -1723,6 +1801,39 @@
       {portfolio:"mom6", ticker:"ANET", holdYear:2024, selectionYear:2024, priorReturnPct:48.82, holdReturnPct:23.95},
       {portfolio:"mom6", ticker:"NTAP", holdYear:2024, selectionYear:2024, priorReturnPct:47.64, holdReturnPct:-10.13},
       {portfolio:"mom6", ticker:"AMAT", holdYear:2024, selectionYear:2024, priorReturnPct:46.12, holdReturnPct:-31.21},
+      {portfolio:"top10", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:171.25, holdReturnPct:38.92},
+      {portfolio:"top10", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:135.34, holdReturnPct:15.16},
+      {portfolio:"top10", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:130.06, holdReturnPct:-4.44},
+      {portfolio:"top10", ticker:"AVGO", holdYear:2025, selectionYear:2024, priorReturnPct:110.49, holdReturnPct:50.63},
+      {portfolio:"top10", ticker:"TRGP", holdYear:2025, selectionYear:2024, priorReturnPct:110.12, holdReturnPct:5.65},
+      {portfolio:"top10", ticker:"HWM", holdYear:2025, selectionYear:2024, priorReturnPct:102.71, holdReturnPct:87.95},
+      {portfolio:"top10", ticker:"CEG", holdYear:2025, selectionYear:2024, priorReturnPct:92.71, holdReturnPct:58.8},
+      {portfolio:"top10", ticker:"ANET", holdYear:2025, selectionYear:2024, priorReturnPct:87.73, holdReturnPct:18.55},
+      {portfolio:"top10", ticker:"NFLX", holdYear:2025, selectionYear:2024, priorReturnPct:83.07, holdReturnPct:5.19},
+      {portfolio:"top10", ticker:"TPR", holdYear:2025, selectionYear:2024, priorReturnPct:82.8, holdReturnPct:98.73},
+      {portfolio:"top3", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:171.25, holdReturnPct:38.92},
+      {portfolio:"top3", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:135.34, holdReturnPct:15.16},
+      {portfolio:"top3", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:130.06, holdReturnPct:-4.44},
+      {portfolio:"bottom10", ticker:"CVS", holdYear:2025, selectionYear:2024, priorReturnPct:-40.77, holdReturnPct:84.35},
+      {portfolio:"bottom10", ticker:"BIIB", holdYear:2025, selectionYear:2024, priorReturnPct:-40.91, holdReturnPct:15.09},
+      {portfolio:"bottom10", ticker:"DG", holdYear:2025, selectionYear:2024, priorReturnPct:-43.12, holdReturnPct:79.61},
+      {portfolio:"bottom10", ticker:"HUM", holdYear:2025, selectionYear:2024, priorReturnPct:-43.96, holdReturnPct:2.36},
+      {portfolio:"bottom10", ticker:"DLTR", holdYear:2025, selectionYear:2024, priorReturnPct:-47.24, holdReturnPct:64.14},
+      {portfolio:"bottom10", ticker:"EL", holdYear:2025, selectionYear:2024, priorReturnPct:-47.59, holdReturnPct:42.13},
+      {portfolio:"bottom10", ticker:"ENPH", holdYear:2025, selectionYear:2024, priorReturnPct:-48.02, holdReturnPct:-53.33},
+      {portfolio:"bottom10", ticker:"CE", holdYear:2025, selectionYear:2024, priorReturnPct:-54.57, holdReturnPct:-38.76},
+      {portfolio:"bottom10", ticker:"MRNA", holdYear:2025, selectionYear:2024, priorReturnPct:-58.19, holdReturnPct:-29.08},
+      {portfolio:"bottom10", ticker:"INTC", holdYear:2025, selectionYear:2024, priorReturnPct:-59.57, holdReturnPct:84.04},
+      {portfolio:"mom12_1", ticker:"NVDA", holdYear:2025, selectionYear:2024, priorReturnPct:179.23, holdReturnPct:38.92},
+      {portfolio:"mom12_1", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:150.44, holdReturnPct:-4.44},
+      {portfolio:"mom12_1", ticker:"TRGP", holdYear:2025, selectionYear:2024, priorReturnPct:140.5, holdReturnPct:5.65},
+      {portfolio:"mom12_1", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:134.68, holdReturnPct:15.16},
+      {portfolio:"mom12_1", ticker:"CEG", holdYear:2025, selectionYear:2024, priorReturnPct:121.01, holdReturnPct:58.8},
+      {portfolio:"mom12_1", ticker:"HWM", holdYear:2025, selectionYear:2024, priorReturnPct:119.4, holdReturnPct:87.95},
+      {portfolio:"mom12_1", ticker:"FICO", holdYear:2025, selectionYear:2024, priorReturnPct:104.04, holdReturnPct:-15.08},
+      {portfolio:"mom12_1", ticker:"NRG", holdYear:2025, selectionYear:2024, priorReturnPct:101.13, holdReturnPct:78.91},
+      {portfolio:"mom12_1", ticker:"RCL", holdYear:2025, selectionYear:2024, priorReturnPct:88.92, holdReturnPct:22.46},
+      {portfolio:"mom12_1", ticker:"NFLX", holdYear:2025, selectionYear:2024, priorReturnPct:82.14, holdReturnPct:5.19},
       {portfolio:"mom6", ticker:"AXON", holdYear:2025, selectionYear:2024, priorReturnPct:105.5, holdReturnPct:39.31},
       {portfolio:"mom6", ticker:"UAL", holdYear:2025, selectionYear:2024, priorReturnPct:100.91, holdReturnPct:-17.99},
       {portfolio:"mom6", ticker:"GEV", holdYear:2025, selectionYear:2024, priorReturnPct:96.5, holdReturnPct:60.99},
@@ -1745,24 +1856,21 @@
       {portfolio:"mom6", ticker:"GE", holdYear:2025, selectionYear:2025, priorReturnPct:54.61, holdReturnPct:24.17},
     ];
     const YTD_2026 = {
-      holdYear: 2026, selectionYear: 2025,
-      top10Tickers: ["WDC","MU","STX","NEM","WBD","LRCX","PLTR","GEV","TPR","APH"],
-      bottom10Tickers: ["GDDY","DOW","CMG","FDS","CHTR","MOH","LULU","ARE","IT","DECK"],
-      top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 1.24, mom12_1Pct: 102.49, mom12_1Tickers: ["WDC", "STX", "MU", "NEM", "WBD", "PLTR", "LRCX", "APH", "INTC", "NRG"], top3Pct: 229.11, top3Tickers: ["WDC", "MU", "STX"], top250Pct: 23.59, top250Tickers: ["WDC", "MU", "STX", "NEM", "WBD", "LRCX", "PLTR", "GEV", "TPR", "APH", "KLAC", "HWM", "GLW", "GE", "CVS", "HII", "INTC", "DG", "NRG", "AMD", "CAH", "C", "ALB", "GOOGL", "GOOG", "DLTR", "IDXX", "RTX", "TEL", "CAT", "AMAT", "CHRW", "CEG", "JBL", "IVZ", "HCA", "GS", "RL", "MPWR", "TER", "GM", "EXPE", "JCI", "HAS", "FOXA", "COR", "STLD", "AVGO", "WELL", "CMI", "FSLR", "JNJ", "MNST", "MS", "MCK", "FOX", "INCY", "EBAY", "F", "LHX", "EL", "NUE", "WYNN", "LLY", "PH", "ULTA", "TTWO", "NVDA", "CFG", "ROK", "IBM", "PM", "COF", "JPM", "CRWD", "VLO", "NTRS", "SCHW", "GILD", "EXPD", "WFC", "STT", "UBER", "FCX", "VTR", "PWR", "CSCO", "ABBV", "ROL", "SYF", "GD", "ADI", "AMGN", "LVS", "AEP", "CBOE", "TJX", "DD", "HIG", "BAC"], mom6Pct: 100.06, mom6Tickers: ["SNDK", "MU", "INTC", "WDC", "STX", "DELL", "GLW", "AMAT", "AMD", "LRCX"], mom6H1Tickers: ["WDC", "WBD", "MU", "ALB", "TER", "STX", "GOOGL", "GOOG", "LRCX", "NEM"], mom6H2Tickers: ["SNDK", "MU", "INTC", "WDC", "STX", "DELL", "GLW", "AMAT", "AMD", "LRCX"], mom6H1Pct: 114.02, mom6H2Pct: -6.52,
+      holdYear: 2026, selectionYear: 2025, top10Tickers: ["WDC", "MU", "STX", "NEM", "WBD", "LRCX", "PLTR", "GEV", "TPR", "APH"], bottom10Tickers: ["GDDY", "DOW", "CMG", "FDS", "CHTR", "MOH", "LULU", "ARE", "IT", "DECK"], top10Pct: 86.2, bottom10Pct: -13.98, sp500Pct: 13.47, mom12_1Pct: 102.49, mom12_1Tickers: ["WDC", "STX", "MU", "NEM", "WBD", "PLTR", "LRCX", "APH", "INTC", "NRG"], top3Pct: 229.11, top3Tickers: ["WDC", "MU", "STX"], mom6Pct: 100.07, mom6Tickers: ["SNDK", "MU", "INTC", "WDC", "STX", "DELL", "GLW", "AMAT", "AMD", "LRCX"], mom6H1Tickers: ["WDC", "WBD", "MU", "ALB", "TER", "STX", "GOOGL", "GOOG", "LRCX", "NEM"], mom6H2Tickers: ["SNDK", "MU", "INTC", "WDC", "STX", "DELL", "GLW", "AMAT", "AMD", "LRCX"], mom6H1Pct: 114.02, mom6H2Pct: -6.52,
       isPartial: true, chartLabel: "23. sep.", periodLabel: "YTD 2026 pr. 23. september",
     };
+    const DATA_EXCLUDED = ["CPWR", "EP", "GR", "PARA", "SII"];
     const YEAR_ROWS = [...DATA, YTD_2026];
     const CHART_ROWS = YEAR_ROWS;
-    const TOP10_TOTAL = 965.2, BOTTOM10_TOTAL = 180.5, MOM12_1_TOTAL = 946.8, TOP3_TOTAL = 3457.9, TOP250_TOTAL = 511.8, MOM6_TOTAL = 707.5, SP500_TOTAL = 608.8;
+    const TOP10_TOTAL = 1175.9, BOTTOM10_TOTAL = 359.7, MOM12_1_TOTAL = 1191.3, TOP3_TOTAL = 4299.6, MOM6_TOTAL = 901.5, SP500_TOTAL = 608.8;
 
     const I18N = {
       da: {
         title: "S&P 500 momentum-backtest",
         intro: "Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst i året/halvåret før?",
-        strategyLead: "Seks porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.",
+        strategyLead: "Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.",
         ruleTop10: "De 10 bedste aktier året før. Køb 1. januar, hold et år.",
         ruleTop3: "De 3 bedste aktier året før. Køb 1. januar, hold et år.",
-        ruleTop250: "De 100 bedste aktier året før. Køb 1. januar, hold et år.",
         ruleBottom10: "De 10 dårligste aktier året før. Køb 1. januar, hold et år.",
         ruleMom121: "De 10 bedste jan–nov (december udelades). Køb 1. januar.",
         ruleMom6: "De 10 bedste aktier seneste 6 mdr. Køb 1. januar/juli, hold 6 mdr.",
@@ -1790,12 +1898,28 @@
         ytdHd: "YTD 2026 · pr. 23. september",
         selectYear: "Vælg år",
         fullReturnData: "Fuld afkastdata",
+        tableModeAbs: "Afkast",
+        tableModeExcess: "Mer-afkast vs. S&P 500",
+        heatmap: "Heatmap",
+        tableHint: "Klik på en kolonne for at sortere · klik på et år for at se porteføljen · ★ = årets bedste strategi",
+        tableHintExcess: "Procentpoint over/under S&P 500 · klik på en kolonne for at sortere · klik på et år for at se porteføljen",
+        showYear: "Vis porteføljen for {year}",
         scatterTitle: "Momentum og næste års afkast",
         scatterNote: "Én prik per aktie i porteføljen (2011–2025).",
+        topHoldingsTitle: "Største enkeltafkast",
+        topHoldingsDesc: "De 10 største afkast for én aktie i én holdeperiode, på tværs af porteføljerne (2011–2025).",
+        bubbleSize: "Størrelse efter afkast året før",
+        priorYear: "Afkast året før",
+        priorJanNov: "Afkast jan–nov året før",
+        priorHalf: "Afkast seneste 6 mdr. før køb",
+        bubbleNote: "Delte bobler indgik i flere porteføljer. Størrelse = afkast året før (mellemstørrelse = median).",
+        bubbleAria: "Boblediagram over de 10 største enkeltafkast pr. år",
+        returnAxis: "Afkast i holdeperioden (%)",
+        rank: "Nr. {n}",
         source: "Al kursdata er hentet fra Yahoo Finance (justerede lukkepriser inkl. splits og udbytter). S&P 500-medlemskab er baseret på historiske indeksdata (fja05680/sp500).",
+        excludedNote: "Yahoo har ikke kurser for selskaber, der siden er blevet opkøbt eller afnoteret, så de er ikke med i beregningen. Det gælder især de første år og får nok Bund-10 til at se lidt pænere ud, end den var. Vi har også taget {list} ud, fordi Yahoos data for dem tydeligvis var forkerte.",
         labelTop10: "Top-10",
         labelTop3: "Top-3",
-        labelTop250: "Top-100",
         labelBottom10: "Bund-10",
         labelMom121: "Jegadeesh-Titman",
         labelMom6: "Top-10 halvårlig",
@@ -1831,10 +1955,9 @@
       en: {
         title: "S&P 500 momentum backtest",
         intro: "What happens if we buy the stocks that did best or worst in the year/half-year before?",
-        strategyLead: "Six portfolios are simulated and compared with the S&P 500 index return.",
+        strategyLead: "Five portfolios are simulated and compared with the S&P 500 index return.",
         ruleTop10: "The 10 best stocks of the prior year. Buy 1 January, hold one year.",
         ruleTop3: "The 3 best stocks of the prior year. Buy 1 January, hold one year.",
-        ruleTop250: "The 100 best stocks of the prior year. Buy 1 January, hold one year.",
         ruleBottom10: "The 10 worst stocks of the prior year. Buy 1 January, hold one year.",
         ruleMom121: "The 10 best stocks Jan–Nov (December skipped). Buy 1 January.",
         ruleMom6: "The 10 best stocks of the past 6 months. Buy 1 January / 1 July, hold 6 months.",
@@ -1862,12 +1985,28 @@
         ytdHd: "YTD 2026 · as of 23 September",
         selectYear: "Select year",
         fullReturnData: "Full return data",
+        tableModeAbs: "Return",
+        tableModeExcess: "Excess vs. S&P 500",
+        heatmap: "Heatmap",
+        tableHint: "Click a column to sort · click a year to see the portfolio · ★ = best strategy that year",
+        tableHintExcess: "Percentage points above/below the S&P 500 · click a column to sort · click a year to see the portfolio",
+        showYear: "Show the portfolio for {year}",
         scatterTitle: "Momentum and next-year returns",
         scatterNote: "One dot per stock in the portfolio (2011–2025).",
+        topHoldingsTitle: "Largest single-stock returns",
+        topHoldingsDesc: "The 10 largest returns for one stock in one holding period, across the portfolios (2011–2025).",
+        bubbleSize: "Size by prior-year return",
+        priorYear: "Return the year before",
+        priorJanNov: "Return Jan–Nov the year before",
+        priorHalf: "Return in the 6 months before purchase",
+        bubbleNote: "Split bubbles were held by several portfolios. Size = prior-year return (medium size = median).",
+        bubbleAria: "Bubble chart of the 10 largest single-stock returns by year",
+        returnAxis: "Return in holding period (%)",
+        rank: "No. {n}",
         source: "All price data is from Yahoo Finance (adjusted close, including splits and dividends). S&P 500 membership is based on historical index data (fja05680/sp500).",
+        excludedNote: "Yahoo has no prices for companies that have since been acquired or delisted, so they are left out. This mostly affects the early years and probably makes Bottom-10 look a little better than it really was. We also removed {list}, because Yahoo's data for them was clearly wrong.",
         labelTop10: "Top-10",
         labelTop3: "Top-3",
-        labelTop250: "Top-100",
         labelBottom10: "Bottom-10",
         labelMom121: "Jegadeesh-Titman",
         labelMom6: "Top-10 semiannual",
@@ -1904,7 +2043,6 @@
     const LABEL_KEY = {
       top10: "labelTop10",
       top3: "labelTop3",
-      top250: "labelTop250",
       bottom10: "labelBottom10",
       mom12_1: "labelMom121",
       mom6: "labelMom6",
@@ -1956,7 +2094,6 @@
     const SHARPE = {
       top10: sharpeRatio(DATA.map((d) => d.top10Pct)),
       top3: sharpeRatio(DATA.map((d) => d.top3Pct)),
-      top250: sharpeRatio(DATA.map((d) => d.top250Pct)),
       bottom10: sharpeRatio(DATA.map((d) => d.bottom10Pct)),
       sp500: sharpeRatio(DATA.map((d) => d.sp500Pct)),
       mom12_1: sharpeRatio(DATA.map((d) => d.mom12_1Pct)),
@@ -2041,7 +2178,6 @@
       const rows = [
         { id: "top10", val: SHARPE.top10 },
         { id: "top3", val: SHARPE.top3 },
-        { id: "top250", val: SHARPE.top250 },
         { id: "bottom10", val: SHARPE.bottom10 },
         { id: "mom12_1", val: SHARPE.mom12_1 },
         { id: "mom6", val: SHARPE.mom6 },
@@ -2071,7 +2207,6 @@
         <div class="ytd-grid">
           <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">${pLabel("top10")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">${pLabel("top3")}</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.top250Pct)}</div><div class="label">${pLabel("top250")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">${pLabel("bottom10")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">${pLabel("mom12_1")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">${pLabel("mom6")}</div></div>
@@ -2105,13 +2240,6 @@
             </div>
             <div class="pills">${pills(y.top3Tickers, "top3")}</div>
           </div>
-          <div class="portfolio-block top250">
-            <div class="portfolio-block-hd">
-              <span class="name">${pLabel("top250")}</span>
-              <span class="ret ${retClass(y.top250Pct)}">${fmt(y.top250Pct)}</span>
-            </div>
-            <div class="pills dense">${pills(y.top250Tickers, "top250")}</div>
-          </div>
           <div class="portfolio-block bottom">
             <div class="portfolio-block-hd">
               <span class="name">${pLabel("bottom10")}</span>
@@ -2140,50 +2268,128 @@
         <p class="benchmark-row">${t("benchmark")} <strong>S&P 500 (SPY):</strong> ${fmt(y.sp500Pct)}</p>`;
     }
 
+    const tableState = { sortKey: "year", dir: 1, mode: "abs", heat: true };
+    const TABLE_TOTALS = {
+      top10: TOP10_TOTAL, top3: TOP3_TOTAL, bottom10: BOTTOM10_TOTAL,
+      mom12_1: MOM12_1_TOTAL, mom6: MOM6_TOTAL, sp500: SP500_TOTAL,
+    };
+
+    // In "excess" mode strategy columns show percentage points vs. the S&P 500; the S&P 500 column stays as reference.
+    function tableValue(d, s) {
+      const v = d[s.pctKey];
+      return tableState.mode === "excess" && s.id !== "sp500" ? v - d.sp500Pct : v;
+    }
+
+    function tableCellFmt(v, s, digits = 1) {
+      const txt = fmt(v, digits);
+      return tableState.mode === "excess" && s.id !== "sp500" ? txt.replace("%", " pp") : txt;
+    }
+
+    function heatStyle(v, s) {
+      if (!tableState.heat || (tableState.mode === "excess" && s.id === "sp500")) return "";
+      const scale = tableState.mode === "excess" ? 40 : 60;
+      const a = Math.min(Math.abs(v) / scale, 1) * 0.3;
+      const rgb = v >= 0 ? "22, 163, 74" : "220, 38, 38";
+      return ` style="background:rgba(${rgb}, ${a.toFixed(3)})"`;
+    }
+
     function renderTable() {
-      const rows = YEAR_ROWS.map(d => {
+      const cols = CHART_SERIES;
+      const strategyCols = cols.filter(s => s.id !== "sp500");
+      const { sortKey, dir } = tableState;
+      const sorted = [...YEAR_ROWS].sort((a, b) => {
+        if (sortKey === "year") return (a.holdYear - b.holdYear) * dir;
+        const s = cols.find(c => c.id === sortKey);
+        return (tableValue(a, s) - tableValue(b, s)) * dir;
+      });
+      const rows = sorted.map(d => {
         const win = d.top10Pct > d.sp500Pct;
         const loss = d.top10Pct < d.sp500Pct;
         const cls = win ? "win" : loss ? "loss" : "";
-        return `<tr class="${cls}">
-          <td>${d.isPartial ? "2026" : d.holdYear}</td>
-          <td class="num">${fmt(d.top10Pct)}</td>
-          <td class="num">${fmt(d.top3Pct)}</td>
-          <td class="num">${fmt(d.top250Pct)}</td>
-          <td class="num">${fmt(d.bottom10Pct)}</td>
-          <td class="num">${fmt(d.mom12_1Pct)}</td>
-          <td class="num">${fmt(d.mom6Pct)}</td>
-          <td class="num">${fmt(d.sp500Pct)}</td>
+        const best = strategyCols.reduce((m, s) => (d[s.pctKey] > d[m.pctKey] ? s : m), strategyCols[0]).id;
+        const label = d.isPartial ? "2026 YTD" : d.holdYear;
+        return `<tr class="${cls}" tabindex="0" data-year="${d.holdYear}" title="${t("showYear", { year: label })}">
+          <td>${d.isPartial ? "2026*" : d.holdYear}</td>
+          ${cols.map(s => {
+            const v = tableValue(d, s);
+            const ref = tableState.mode === "excess" && s.id === "sp500";
+            return `<td class="num${s.id === best ? " best" : ""}${ref ? " ref" : ""}"${heatStyle(v, s)}>${tableCellFmt(v, s)}</td>`;
+          }).join("")}
         </tr>`;
+      }).join("");
+      const th = (key, label, num) => {
+        const aria = sortKey === key ? (dir > 0 ? "ascending" : "descending") : "none";
+        return `<th class="${num ? "num" : ""}" aria-sort="${aria}"><button type="button" class="sort-btn" data-sort="${key}">${label}</button></th>`;
+      };
+      const totals = cols.map(s => {
+        const v = tableState.mode === "excess" && s.id !== "sp500" ? TABLE_TOTALS[s.id] - TABLE_TOTALS.sp500 : TABLE_TOTALS[s.id];
+        return `<td class="num">${tableCellFmt(v, s, 0)}</td>`;
       }).join("");
       document.getElementById("all-years").innerHTML = `
         <thead><tr>
-          <th>${t("year")}</th>
-          <th class="num">${pLabel("top10")}</th>
-          <th class="num">${pLabel("top3")}</th>
-          <th class="num">${pLabel("top250")}</th>
-          <th class="num">${pLabel("bottom10")}</th>
-          <th class="num">${pLabel("mom12_1")}</th>
-          <th class="num">${pLabel("mom6")}</th>
-          <th class="num">${pLabel("sp500")}</th>
+          ${th("year", t("year"), false)}
+          ${cols.map(s => th(s.id, pLabel(s.id), true)).join("")}
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr class="total-row">
           <td>${t("total")}</td>
-          <td class="num">${fmt(TOP10_TOTAL,0)}</td>
-          <td class="num">${fmt(TOP3_TOTAL,0)}</td>
-          <td class="num">${fmt(TOP250_TOTAL,0)}</td>
-          <td class="num">${fmt(BOTTOM10_TOTAL,0)}</td>
-          <td class="num">${fmt(MOM12_1_TOTAL,0)}</td>
-          <td class="num">${fmt(MOM6_TOTAL,0)}</td>
-          <td class="num">${fmt(SP500_TOTAL,0)}</td>
+          ${totals}
         </tr></tfoot>`;
+      document.getElementById("table-hint").textContent = t(tableState.mode === "excess" ? "tableHintExcess" : "tableHint");
+      document.querySelectorAll("#table-mode button").forEach(b => b.classList.toggle("on", b.dataset.mode === tableState.mode));
+      document.getElementById("table-heat-toggle").classList.toggle("on", tableState.heat);
+    }
+
+    function bindTableEvents() {
+      const table = document.getElementById("all-years");
+      table.addEventListener("click", (e) => {
+        const btn = e.target.closest(".sort-btn");
+        if (btn) {
+          const key = btn.dataset.sort;
+          if (tableState.sortKey === key) tableState.dir *= -1;
+          else { tableState.sortKey = key; tableState.dir = key === "year" ? 1 : -1; }
+          renderTable();
+          return;
+        }
+        const row = e.target.closest("tbody tr");
+        if (row) showYearFromTable(+row.dataset.year);
+      });
+      table.addEventListener("keydown", (e) => {
+        const row = e.target.closest("tbody tr");
+        if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showYearFromTable(+row.dataset.year); }
+      });
+      // Crosshair: highlight the hovered row and column.
+      table.addEventListener("mouseover", (e) => {
+        const cell = e.target.closest("tbody td");
+        table.querySelectorAll(".hl, .hl-cell").forEach(c => c.classList.remove("hl", "hl-cell"));
+        if (!cell) return;
+        const idx = cell.cellIndex;
+        cell.parentElement.querySelectorAll("td").forEach(c => c.classList.add("hl"));
+        table.querySelectorAll("tbody tr").forEach(r => r.cells[idx] && r.cells[idx].classList.add("hl"));
+        if (idx > 0) cell.classList.add("hl-cell");
+      });
+      table.addEventListener("mouseleave", () => {
+        table.querySelectorAll(".hl, .hl-cell").forEach(c => c.classList.remove("hl", "hl-cell"));
+      });
+      document.querySelectorAll("#table-mode button").forEach(b => b.addEventListener("click", () => {
+        tableState.mode = b.dataset.mode;
+        renderTable();
+      }));
+      document.getElementById("table-heat-toggle").addEventListener("click", () => {
+        tableState.heat = !tableState.heat;
+        renderTable();
+      });
+    }
+
+    function showYearFromTable(year) {
+      sel.value = String(year);
+      renderYearDetail(year);
+      document.querySelector(".year-detail-card").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     const CHART_SERIES = [
       { id: "top10", color: "var(--top)", pctKey: "top10Pct", indexKey: "top10Index" },
       { id: "top3", color: "var(--top3)", pctKey: "top3Pct", indexKey: "top3Index" },
-      { id: "top250", color: "var(--top250)", pctKey: "top250Pct", indexKey: "top250Index" },
       { id: "bottom10", color: "var(--bottom)", pctKey: "bottom10Pct", indexKey: "bottom10Index" },
       { id: "mom12_1", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
       { id: "mom6", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
@@ -2535,9 +2741,19 @@
       });
       const lineLabels = showEndLabels
         ? layoutEndLabels(lineLabelSeed, 18, m.t + 8, m.t + plotH - 6)
+        : mobile
+        ? layoutEndLabels(lineLabelSeed, 13, m.t + 8, m.t + plotH - 6)
         : lineLabelSeed;
-      // Mobile has no room for names next to the lines: show only the end value (colour matches the legend).
-      const lineLabelSvg = mobile && animating ? "" : lineLabels.map(({ s, end, x, y }) => mobile
+      // Mobile: names follow the line tips inside the plot (flipped to the left of the tip near the right edge);
+      // once the animation ends, only the end value fits in the right margin (colour matches the legend).
+      const mobileTipLabel = ({ s, x, y }) => {
+        const name = pLabel(s.id);
+        const flip = x + name.length * (font - 1) * 0.56 > W - m.r - 4;
+        return `<text class="cum-line-label" x="${flip ? x - 16 : x}" y="${y + 4}" text-anchor="${flip ? "end" : "start"}" fill="${s.color}" font-size="${font - 1}" font-weight="600" paint-order="stroke" stroke="var(--chart-bg)" stroke-width="3">${name}</text>`;
+      };
+      const lineLabelSvg = lineLabels.map(({ s, end, x, y }) => mobile && animating
+        ? mobileTipLabel({ s, x, y })
+        : mobile
         ? `<text class="series-hit cum-line-label" data-id="${s.id}" x="${x - 4}" y="${y + 4}" fill="${s.color}" font-size="${font - 1}" font-weight="600">${cumReturnPct(end)}%</text>`
         : animating
         ? `<text class="cum-line-label" x="${x}" y="${y + 4}" fill="${s.color}" font-size="${font - 2}" font-weight="600">${pLabel(s.id)}</text>`
@@ -2798,6 +3014,12 @@
     }).join("");
     sel.value = "2026";
     sel.addEventListener("change", () => renderYearDetail(+sel.value));
+    bindTableEvents();
+    document.getElementById("bubble-size-toggle").addEventListener("click", (e) => {
+      bubbleSized = !bubbleSized;
+      e.currentTarget.classList.toggle("on", bubbleSized);
+      renderBubbleChart();
+    });
 
     Object.keys(CHARTS).forEach(key => {
       document.getElementById(CHARTS[key].toggle).addEventListener("click", () => {
@@ -2832,7 +3054,169 @@
       renderChart();
       renderScatterFilters();
       renderScatterChart();
+      renderBubbleChart();
     });
+
+    // One entry per stock and holding period; a stock held by several portfolios in the same period
+    // counts once and lists all of them. Top-10 halvårlig holds half-years (H2 when selected in the hold year).
+    function topHoldings(n) {
+      const byHolding = new Map();
+      SCATTER.forEach(p => {
+        const half = p.portfolio !== "mom6" ? "year" : p.selectionYear === p.holdYear ? "h2" : "h1";
+        const key = `${p.ticker}|${p.holdYear}|${half}`;
+        const entry = byHolding.get(key) || { ticker: p.ticker, holdYear: p.holdYear, half, ret: p.holdReturnPct, portfolios: [], priors: {} };
+        if (!entry.portfolios.includes(p.portfolio)) entry.portfolios.push(p.portfolio);
+        entry.priors[p.portfolio] = p.priorReturnPct;
+        byHolding.set(key, entry);
+      });
+      return [...byHolding.values()].sort((a, b) => b.ret - a.ret).slice(0, n);
+    }
+
+    let bubbleSized = false;
+
+    // Only list portfolios that appear among the bubbles.
+    function renderBubbleLegend() {
+      const used = new Set(topHoldings(10).flatMap(h => h.portfolios));
+      document.getElementById("bubble-legend").innerHTML = SCATTER_PORTFOLIOS.filter(p => used.has(p.id)).map(p => {
+        const color = CHART_SERIES.find(s => s.id === p.id)?.color;
+        return `<span><i style="--c:${color}"></i>${pLabel(p.id)}</span>`;
+      }).join("");
+    }
+
+    // A stock held by several portfolios in the same period is drawn as a pie with one slice per portfolio.
+    function bubbleSvg(h, x, y, r, colorOf) {
+      const style = c => `fill="${c}" fill-opacity="0.82" stroke="var(--surface)" stroke-width="1.5"`;
+      const n = h.portfolios.length;
+      if (n === 1) return `<circle class="bubble" data-rank="${h.rank}" cx="${x}" cy="${y}" r="${r}" ${style(colorOf(h.portfolios[0]))}/>`;
+      const pt = a => `${x + r * Math.cos(a)},${y + r * Math.sin(a)}`;
+      const slices = h.portfolios.map((id, i) => {
+        const a1 = -Math.PI / 2 + (i / n) * 2 * Math.PI;
+        const a2 = -Math.PI / 2 + ((i + 1) / n) * 2 * Math.PI;
+        return `<path d="M${x},${y} L${pt(a1)} A${r},${r} 0 ${a2 - a1 > Math.PI ? 1 : 0} 1 ${pt(a2)} Z" ${style(colorOf(id))} stroke-width="1"/>`;
+      }).join("");
+      return `<g class="bubble" data-rank="${h.rank}">${slices}<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="var(--surface)" stroke-width="1.5"/></g>`;
+    }
+
+    function renderBubbleChart() {
+      const order = SCATTER_PORTFOLIOS.map(p => p.id);
+      const colorOf = id => CHART_SERIES.find(s => s.id === id)?.color || "var(--text)";
+      const holdings = topHoldings(10).map((h, i) => ({
+        ...h,
+        rank: i + 1,
+        portfolios: [...h.portfolios].sort((a, b) => order.indexOf(a) - order.indexOf(b)),
+        // Prefer the calendar prior year; Jegadeesh-Titman ranks on Jan–Nov, the half-year portfolio on the last 6 months.
+        ...(() => {
+          const src = order.find(id => id in h.priors);
+          const key = src === "mom12_1" ? "priorJanNov" : src === "mom6" ? "priorHalf" : "priorYear";
+          return { prior: h.priors[src], priorKey: key };
+        })(),
+        // Half-year holdings sit in the first or second half of the year band.
+        xYear: h.holdYear + (h.half === "h1" ? -0.22 : h.half === "h2" ? 0.22 : 0),
+      }));
+      const years = [...new Set(SCATTER.map(p => p.holdYear))].sort((a, b) => a - b);
+      const mobile = isMobileChart();
+      const { W, H, font, ml } = getChartLayout(years.length, { w: 1040, h: 440, r: 24 }, false);
+      const m = { t: 24, r: mobile ? 10 : 24, b: 48, l: ml };
+      const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+      const rets = holdings.map(h => h.ret);
+      const yMin = Math.max(0, Math.floor((Math.min(...rets) - 40) / 50) * 50);
+      const yMax = Math.ceil((Math.max(...rets) + 30) / 50) * 50;
+      const step = yMax - yMin > 300 ? 100 : 50;
+      const yTicks = [];
+      for (let v = yMin; v <= yMax; v += step) yTicks.push(v);
+      const band = plotW / years.length;
+      const xScale = y => m.l + (y - years[0] + 0.5) * band;
+      const yScale = v => m.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+      const rFixed = mobile ? 7 : 10;
+      const rMax = mobile ? 16 : 34;
+      // Size by the return in the selection period: the median prior gets a medium bubble, the worst the smallest
+      // and the best the largest. Areas are interpolated linearly on each side of the median.
+      const priors = holdings.map(h => h.prior).sort((a, b) => a - b);
+      const mid = Math.floor(priors.length / 2);
+      const median = priors.length % 2 ? priors[mid] : (priors[mid - 1] + priors[mid]) / 2;
+      const pMin = priors[0], pMax = priors[priors.length - 1];
+      const rMin = mobile ? 4 : 5, rMid = mobile ? 9 : 15;
+      const area = r => r * r;
+      const radius = h => {
+        if (!bubbleSized) return rFixed;
+        const [a0, a1, f] = h.prior <= median
+          ? [area(rMin), area(rMid), median > pMin ? (h.prior - pMin) / (median - pMin) : 1]
+          : [area(rMid), area(rMax), pMax > median ? (h.prior - median) / (pMax - median) : 0];
+        return Math.sqrt(a0 + (a1 - a0) * f);
+      };
+
+      // Nudge overlapping bubbles sideways to the free spot closest to their true position,
+      // but never out of their own year band (if nothing is free there, they overlap translucently).
+      const placed = holdings.map(h => ({ h, x: xScale(h.xYear), y: yScale(h.ret), r: radius(h) }));
+      placed.forEach((p, i) => {
+        const before = placed.slice(0, i);
+        const centre = xScale(p.h.holdYear);
+        const inBand = x => Math.abs(x - centre) <= band * 0.48;
+        const clear = x => before.every(q => Math.hypot(x - q.x, p.y - q.y) >= p.r + q.r + 2);
+        if (clear(p.x)) return;
+        const options = before.flatMap(q => {
+          const off = Math.sqrt(Math.max(0, (p.r + q.r + 2) ** 2 - (p.y - q.y) ** 2)) + 0.5;
+          return [q.x - off, q.x + off];
+        }).filter(x => clear(x) && inBand(x));
+        if (options.length) p.x = options.reduce((a, b) => (Math.abs(b - p.x) < Math.abs(a - p.x) ? b : a));
+      });
+
+      // Place each label at the first free spot (right, left, then shifted up/down) that hits no bubble or earlier label.
+      const boxes = placed.map(p => ({ x1: p.x - p.r, x2: p.x + p.r, y1: p.y - p.r, y2: p.y + p.r }));
+      const hits = (b, list) => list.some(o => b.x1 < o.x2 && o.x1 < b.x2 && b.y1 < o.y2 && o.y1 < b.y2);
+      const labels = placed.map(({ h, x, y, r }, i) => {
+        const w = h.ticker.length * font * 0.64, lh = font + 2;
+        const others = boxes.filter((_, j) => j !== i);
+        const candidates = [0, -1, 1, -2, 2].flatMap(k => [
+          { anchor: "start", lx: x + r + 4, ly: y + k * lh },
+          { anchor: "end", lx: x - r - 4, ly: y + k * lh },
+        ]);
+        const boxOf = c => c.anchor === "start"
+          ? { x1: c.lx, x2: c.lx + w, y1: c.ly - lh / 2, y2: c.ly + lh / 2 }
+          : { x1: c.lx - w, x2: c.lx, y1: c.ly - lh / 2, y2: c.ly + lh / 2 };
+        const fits = c => { const b = boxOf(c); return b.x1 >= m.l && b.x2 <= W - m.r && !hits(b, others); };
+        const c = candidates.find(fits) || candidates[0];
+        boxes.push(boxOf(c));
+        return `<text x="${c.lx}" y="${c.ly + 4}" text-anchor="${c.anchor}" font-size="${font}" font-weight="600" fill="var(--text)" paint-order="stroke" stroke="var(--chart-bg)" stroke-width="3" pointer-events="none">${h.ticker}</text>`;
+      }).join("");
+      // Largest first, so smaller bubbles are drawn on top.
+      const bubbles = [...placed].sort((a, b) => b.r - a.r).map(({ h, x, y, r }) =>
+        bubbleSvg(h, x, y, r, colorOf)
+      ).join("");
+
+      const yTitle = mobile ? "" : `<text x="14" y="${m.t + plotH / 2}" font-size="${font}" font-weight="600" fill="var(--chart-label)" text-anchor="middle" transform="rotate(-90, 14, ${m.t + plotH / 2})">${t("returnAxis")}</text>`;
+      document.getElementById("bubble-chart").innerHTML = `
+        ${chartSvgOpen(W, H, t("bubbleAria"), false)}
+          ${yTitle}
+          <rect x="${m.l}" y="${m.t}" width="${plotW}" height="${plotH}" fill="var(--chart-bg)" rx="10"/>
+          ${years.map((yr, i) => i % 2 ? `<rect x="${m.l + i * band}" y="${m.t}" width="${band}" height="${plotH}" fill="var(--chart-grid)" opacity="0.12"/>` : "").join("")}
+          ${yTicks.map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${yScale(v)}" y2="${yScale(v)}" stroke="var(--chart-grid)" stroke-dasharray="3 5"/>
+            <text x="${m.l - 10}" y="${yScale(v) + 4}" text-anchor="end" fill="var(--chart-label)" font-size="${font}">${v}%</text>`).join("")}
+          ${years.map((yr, i) => (!mobile || (years.length - 1 - i) % 2 === 0)
+            ? `<text x="${xScale(yr)}" y="${H - 22}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}">${yr}</text>` : "").join("")}
+          <text x="${m.l + plotW / 2}" y="${H - 4}" text-anchor="middle" fill="var(--chart-label)" font-size="${font}" font-weight="600">${t("calendarYear")}</text>
+          ${bubbles}
+          ${labels}
+        </svg>`;
+
+      const tip = document.getElementById("bubble-tooltip");
+      const wrap = document.getElementById("bubble-wrap");
+      document.querySelectorAll("#bubble-chart .bubble").forEach(el => {
+        const h = holdings.find(x => x.rank === +el.dataset.rank);
+        const show = (e) => {
+          const period = h.half === "year" ? h.holdYear : `${h.holdYear} · ${t(h.half === "h1" ? "h1JanJun" : "h2JulDec")}`;
+          const name = tickerName(h.ticker);
+          tip.innerHTML = `<strong>${t("rank", { n: h.rank })} · ${h.ticker}</strong>${name ? ` · ${name}` : ""}<br>
+            ${period}: <strong>${fmt(h.ret)}</strong><br>
+            ${t(h.priorKey)}: ${fmt(h.prior)}
+            <div class="th-meta">${h.portfolios.map(id => `<span class="th-tag ${id}">${pLabel(id)}</span>`).join("")}</div>`;
+          positionTooltipAtCursor(tip, wrap, e);
+        };
+        el.addEventListener("mouseenter", show);
+        el.addEventListener("mousemove", show);
+        el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+      });
+    }
 
     function applyLang() {
       applyStaticI18n();
@@ -2844,6 +3228,12 @@
       renderTable();
       renderScatterFilters();
       renderScatterChart();
+      renderBubbleLegend();
+      renderBubbleChart();
+      const excl = DATA_EXCLUDED.length > 1
+        ? `${DATA_EXCLUDED.slice(0, -1).join(", ")} ${lang === "da" ? "og" : "and"} ${DATA_EXCLUDED.at(-1)}`
+        : DATA_EXCLUDED.join("");
+      document.getElementById("excluded-note").textContent = t("excludedNote", { list: excl });
     }
 
     document.querySelectorAll(".lang-switch button").forEach(btn => {
