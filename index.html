@@ -119,6 +119,7 @@
     .strategy.bottom10 { --c: var(--bottom); }
     .strategy.mom12_1 { --c: var(--mom121); }
     .strategy.mom6 { --c: var(--mom6); }
+    .strategy[hidden] { display: none; }
     .strategy-name { font-size: 0.92rem; font-weight: 600; color: var(--text); }
     .strategy-rule { font-size: 0.82rem; line-height: 1.45; color: var(--muted); }
     .hero-note {
@@ -437,7 +438,7 @@
     @media (max-width: 600px) {
       h2 { font-size: 1.15rem; margin-top: 30px; padding-top: 20px; }
     }
-    .ytd-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    .ytd-grid { display: grid; grid-template-columns: repeat(var(--n, 6), 1fr); gap: 12px; }
     @media (max-width: 900px) { .ytd-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 500px) { .ytd-grid { grid-template-columns: repeat(2, 1fr); } }
     .year-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; }
@@ -600,9 +601,9 @@
         </div>
       </div>
       <p class="intro" data-i18n="intro">
-        Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst i året/halvåret før?
+        Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?
       </p>
-      <p class="strategy-lead" data-i18n="strategyLead">Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
+      <p class="strategy-lead" data-i18n="strategyLead">Fire porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.</p>
       <div class="strategy-grid">
         <div class="strategy top10">
           <span class="strategy-name" data-i18n="labelTop10">Top-10</span>
@@ -620,7 +621,7 @@
           <span class="strategy-name" data-i18n="labelMom121">Jegadeesh-Titman</span>
           <span class="strategy-rule" data-i18n="ruleMom121">De 10 bedste jan–nov (december udelades). Køb 1. januar.</span>
         </div>
-        <div class="strategy mom6">
+        <div class="strategy mom6" data-portfolio="mom6">
           <span class="strategy-name" data-i18n="labelMom6">Top-10 halvårlig</span>
           <span class="strategy-rule" data-i18n="ruleMom6">De 10 bedste aktier seneste 6 mdr. Køb 1. januar/juli, hold 6 mdr.</span>
         </div>
@@ -1920,8 +1921,8 @@
     const I18N = {
       da: {
         title: "S&P 500 momentum-backtest",
-        intro: "Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst i året/halvåret før?",
-        strategyLead: "Fem porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.",
+        intro: "Hvad sker der, hvis vi køber de aktier der klarede sig bedst eller dårligst året før?",
+        strategyLead: "Fire porteføljer simuleres og sammenlignes med afkastet for S&P 500-indekset.",
         ruleTop10: "De 10 bedste aktier året før. Køb 1. januar, hold et år.",
         ruleTop3: "De 3 bedste aktier året før. Køb 1. januar, hold et år.",
         ruleBottom10: "De 10 dårligste aktier året før. Køb 1. januar, hold et år.",
@@ -2007,8 +2008,8 @@
       },
       en: {
         title: "S&P 500 momentum backtest",
-        intro: "What happens if we buy the stocks that did best or worst in the year/half-year before?",
-        strategyLead: "Five portfolios are simulated and compared with the S&P 500 index return.",
+        intro: "What happens if we buy the stocks that did best or worst the year before?",
+        strategyLead: "Four portfolios are simulated and compared with the S&P 500 index return.",
         ruleTop10: "The 10 best stocks of the prior year. Buy 1 January, hold one year.",
         ruleTop3: "The 3 best stocks of the prior year. Buy 1 January, hold one year.",
         ruleBottom10: "The 10 worst stocks of the prior year. Buy 1 January, hold one year.",
@@ -2093,6 +2094,11 @@
         cumAria: "Cumulative returns",
       },
     };
+    // Portfolios hidden on the site. Their data and code are kept, so a portfolio comes back by removing it here
+    // (also adjust the counts in "strategyLead" and, for mom6, "intro" back to "året/halvåret før").
+    const DISABLED_PORTFOLIOS = new Set(["mom6"]);
+    const isOn = id => !DISABLED_PORTFOLIOS.has(id);
+
     const LABEL_KEY = {
       top10: "labelTop10",
       top3: "labelTop3",
@@ -2235,7 +2241,7 @@
         { id: "mom12_1", val: SHARPE.mom12_1 },
         { id: "mom6", val: SHARPE.mom6 },
         { id: "sp500", val: SHARPE.sp500 },
-      ];
+      ].filter(r => isOn(r.id));
       const sorted = [...rows].sort((a, b) => {
         const av = Number.isFinite(a.val) ? a.val : -Infinity;
         const bv = Number.isFinite(b.val) ? b.val : -Infinity;
@@ -2257,12 +2263,12 @@
 
     function renderSummary() {
       document.getElementById("ytd-panel").innerHTML = `
-        <div class="ytd-grid">
+        <div class="ytd-grid" style="--n:${6 - DISABLED_PORTFOLIOS.size}">
           <div class="stat"><div class="val">${fmt(YTD_2026.top10Pct)}</div><div class="label">${pLabel("top10")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.top3Pct)}</div><div class="label">${pLabel("top3")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.bottom10Pct)}</div><div class="label">${pLabel("bottom10")}</div></div>
           <div class="stat"><div class="val">${fmt(YTD_2026.mom12_1Pct)}</div><div class="label">${pLabel("mom12_1")}</div></div>
-          <div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">${pLabel("mom6")}</div></div>
+          ${isOn("mom6") ? `<div class="stat"><div class="val">${fmt(YTD_2026.mom6Pct)}</div><div class="label">${pLabel("mom6")}</div></div>` : ""}
           <div class="stat"><div class="val">${fmt(YTD_2026.sp500Pct)}</div><div class="label">${pLabel("sp500")}</div></div>
         </div>`;
     }
@@ -2307,7 +2313,7 @@
             </div>
             <div class="pills">${pills(y.mom12_1Tickers, "mom121")}</div>
           </div>
-          <div class="portfolio-block mom6">
+          ${isOn("mom6") ? `<div class="portfolio-block mom6">
             <div class="portfolio-block-hd">
               <span class="name">${pLabel("mom6")}</span>
               <span class="ret ${retClass(y.mom6Pct)}">${fmt(y.mom6Pct)}</span>
@@ -2316,7 +2322,7 @@
             <div class="pills">${pills(y.mom6H1Tickers, "mom6")}</div>
             <p class="half-meta">${y.isPartial ? t("h2JulSep") : t("h2JulDec")} · ${fmt(y.mom6H2Pct)}</p>
             <div class="pills">${pills(y.mom6H2Tickers, "mom6")}</div>
-          </div>
+          </div>` : ""}
         </div>
         <p class="benchmark-row">${t("benchmark")} <strong>S&P 500 (SPY):</strong> ${fmt(y.sp500Pct)}</p>`;
     }
@@ -2447,7 +2453,7 @@
       { id: "mom12_1", color: "var(--mom121)", pctKey: "mom12_1Pct", indexKey: "mom12_1Index" },
       { id: "mom6", color: "var(--mom6)", pctKey: "mom6Pct", indexKey: "mom6Index" },
       { id: "sp500", color: "var(--spy)", pctKey: "sp500Pct", indexKey: "sp500Index" },
-    ];
+    ].filter(s => isOn(s.id));
     const CUM_POINTS_PER_YEAR = 4;
     const CUM_ORIGIN_STEPS = 4;
     const CUM_ORIGIN_X = -1;
@@ -2917,7 +2923,7 @@
       { id: "bottom10" },
       { id: "mom12_1" },
       { id: "mom6" },
-    ];
+    ].filter(p => isOn(p.id));
     const scatterActive = new Set(SCATTER_PORTFOLIOS.map(p => p.id));
     let scatterRegression = false;
     let scatterZoomed = false;
@@ -3115,7 +3121,7 @@
     // Top-10 halvårlig), only its best period is kept. Half-years: H2 when selected in the hold year.
     function topHoldings(n) {
       const byHolding = new Map();
-      SCATTER.forEach(p => {
+      SCATTER.filter(p => isOn(p.portfolio)).forEach(p => {
         const half = p.portfolio !== "mom6" ? "year" : p.selectionYear === p.holdYear ? "h2" : "h1";
         const key = `${p.ticker}|${p.holdYear}|${half}`;
         const entry = byHolding.get(key) || { ticker: p.ticker, holdYear: p.holdYear, half, ret: p.holdReturnPct, portfolios: [], priors: {} };
@@ -3288,6 +3294,7 @@
       renderTable();
       renderScatterFilters();
       renderScatterChart();
+      document.querySelectorAll(".strategy[data-portfolio]").forEach(el => { el.hidden = !isOn(el.dataset.portfolio); });
       renderBubbleLegend();
       renderBubbleChart();
       const excl = DATA_EXCLUDED.length > 1
